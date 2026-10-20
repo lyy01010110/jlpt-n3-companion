@@ -955,7 +955,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     (_, index) => kanaQuestionPool[(index * 37 + 11) % kanaQuestionPool.length]
   );
 
-  const lessons = [
+  const defaultLessons = [
     {
       day: "Day 1", title: "平假名起点：あ行・か行完整音形", focus: "あいうえお / かきくけこ / 双向快速回忆", goal: "系统掌握 10 个平假名，做到看字读音、看音找字", morning: "15–25 分钟", night: "15–20 分钟",
       purpose: "先建立平假名的行列规律，再用足量双向题确认真正会认；完成快且正确率高就直接进入下一课。",
@@ -1114,8 +1114,9 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     });
   }
 
-  function renderKanaGrid(day) {
-    const group = systematicKana[day];
+  function renderKanaGrid(dayOrLesson) {
+    const lesson = typeof dayOrLesson === "number" ? activeLessons()[dayOrLesson] : dayOrLesson;
+    const group = systematicKana.find(g => lesson?.title?.includes(g.title)) || systematicKana[typeof dayOrLesson === "number" ? dayOrLesson : 0] || systematicKana[0];
     return `<div class="kana-grid" aria-label="${group.title}五十音表">${group.rows.map(row => `<div class="kana-row">${row.map(([kana, romaji]) => `<div class="kana-cell"><strong lang="ja">${kana}</strong><span>${romaji}</span></div>`).join("")}</div>`).join("")}</div>`;
   }
 
@@ -1149,7 +1150,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     "最后两天，把清浊音和平假名混合识别一起收好。",
     "首周闭环完成！Lv.5 是我们更远的长期目标。"
   ];
-  const lessonPacks = [
+  const defaultPacks = [
     {
       morningChecklist: ["辨清 あ行、か行 的外形", "纠正 カ 与汉字「力」的混淆", "把「おはよう」整体记成问候块"],
       nightChecklist: ["重复听清 か、き、く", "跟读一遍假名组，一遍固定表达", "收尾小测只检查当天核心点"],
@@ -1320,7 +1321,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     }
   ];
 
-  Object.assign(lessonPacks[0], {
+  Object.assign(defaultPacks[0], {
     morningChecklist: ["随机认识 あ行、か行 10 个平假名", "完成 20 题双向快速回忆", "只读由已学假名组成的短词"],
     nightChecklist: ["重复听清 あ行、か行", "跟读假名组和已学短词", "收尾小测检查当天核心点"],
     visualDrills: [
@@ -1349,7 +1350,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     ]
   });
 
-  Object.assign(lessonPacks[1], {
+  Object.assign(defaultPacks[1], {
     morningChecklist: ["随机认识 さ行、た行 10 个平假名", "重点单独记住 し・ち・つ", "只读 Day 1–2 已学字符组成的词"],
     nightChecklist: ["听清 shi / chi / tsu 区别", "朗读已学假名和短词", "收尾小测检查音形连接"],
     phraseDrills: [
@@ -1369,7 +1370,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     ]
   });
 
-  Object.assign(lessonPacks[5], {
+  Object.assign(defaultPacks[5], {
     morningChecklist: ["随机复现平假名，不依赖五十音顺序", "完成 20 题双向通关检查", "逐字解码首批完整表达"],
     nightChecklist: ["听清随机假名与已学表达", "跟读本周平假名和表达", "完成首周收尾小测"],
     visualDrills: [
@@ -1397,6 +1398,200 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
       { type: "input", prompt: "输入「早上好」对应的日语表达。", answer: "おはよう", ok: "首周闭环完成。", bad: "早上好是「おはよう」。", hint: "从 お 开始。" }
     ]
   });
+
+  // ── 个性化课件：根据五十音摸底结果生成 ──────────────────────────
+  function buildPersonalizedCourse() {
+    const results = kanaGroupResults();
+    const resultMap = new Map(results.map(r => [r.id, r]));
+    const out = { lessons: [], packs: [] };
+
+    kanaBaseGroups.forEach(baseGroup => {
+      const hira = resultMap.get(`hiragana:${baseGroup.id}`);
+      const kata = resultMap.get(`katakana:${baseGroup.id}`);
+      const weak = [];
+      [hira, kata].forEach(res => {
+        if (!res) return;
+        [...res.wrong, ...res.unknown].forEach(item => {
+          if (!weak.find(w => w.kana === item.kana && w.script === item.script)) {
+            weak.push({ ...item, scriptLabel: item.script === "hiragana" ? "平假名" : "片假名" });
+          }
+        });
+      });
+      if (!weak.length) return;
+
+      const dayNum = out.lessons.length + 1;
+      out.lessons.push(makePersonalizedLesson(dayNum, baseGroup, weak));
+      out.packs.push(makePersonalizedPack(baseGroup, weak));
+    });
+
+    if (!out.lessons.length) {
+      out.lessons.push(makeAllPassedLesson());
+      out.packs.push(makeAllPassedPack());
+    }
+    return out;
+  }
+
+  function nearbySounds(sound, count) {
+    const idx = kanaSounds.indexOf(sound);
+    const picked = [];
+    for (let i = 1; picked.length < count && i < kanaSounds.length; i++) {
+      const candidate = kanaSounds[(idx + i) % kanaSounds.length];
+      if (candidate && candidate !== sound) picked.push(candidate);
+    }
+    return picked;
+  }
+  function nearbyKana(kana, script, count) {
+    const sameScript = kanaPairs.filter(p => p.script === script);
+    const idx = sameScript.findIndex(p => p.kana === kana);
+    const picked = [];
+    for (let i = 1; picked.length < count && i < sameScript.length; i++) {
+      const candidate = sameScript[(idx + i) % sameScript.length];
+      if (candidate && candidate.kana !== kana) picked.push(candidate.kana);
+    }
+    return picked;
+  }
+  function rotateArr(arr, offset) { return arr.slice(offset).concat(arr.slice(0, offset)); }
+
+  function makePersonalizedLesson(dayNum, baseGroup, weak) {
+    const hiraWeak = weak.filter(w => w.script === "hiragana");
+    const kataWeak = weak.filter(w => w.script === "katakana");
+    const first = weak[0];
+    const scriptLabel = hiraWeak.length && kataWeak.length ? "平假名 + 片假名" : (hiraWeak.length ? "平假名" : "片假名");
+    const kanaList = weak.map(w => `${w.kana}(${w.sound})`).join("、");
+    const speech = weak.map(w => w.kana).join("、");
+    return {
+      day: `Day ${dayNum}`,
+      title: `薄弱补练：${baseGroup.title}（${scriptLabel}）`,
+      focus: `${kanaList} ／ 看字读音 + 看音找字双向巩固`,
+      goal: `把本组 ${weak.length} 个认错的假名练到第一眼认出，覆盖平假名与片假名`,
+      morning: "15–20 分钟", night: "10–15 分钟",
+      purpose: "只练你在摸底中答错或选了“不知道”的假名，不重复已掌握的内容。",
+      exam: "JLPT 阅读与听力都依赖瞬间假名识别，薄弱点必须单独练熟。",
+      assessmentLink: `本次摸底中本组有 ${weak.length} 个假名需要补强：${kanaList}。`,
+      trap: "不要靠行序顺背，看到单个假名直接读音；平片假名同音不同形要分开认。",
+      phrase: { title: "本组需补假名", body: `以下 ${weak.length} 个假名是摸底中出错的，今天逐个练熟。`, example: weak.map(w => w.kana).join(" ") },
+      explainTitle: "针对薄弱假名的专项练习",
+      explain: `${baseGroup.title}中，你需要重点练习：${kanaList}。先看清字形，再连读音，最后输入加固。`,
+      example: weak.map(w => `${w.kana} ${w.sound}`).join("　／　"),
+      speech,
+      choice: { prompt: `「${first.kana}」怎么读？`, options: rotateArr([first.sound, ...nearbySounds(first.sound, 3)], 1), answer: first.sound, ok: `正确，${first.kana} 读 ${first.sound}。`, bad: `${first.kana} 读 ${first.sound}。` },
+      input: { prompt: `输入「${first.sound}」的${first.scriptLabel}`, answer: first.kana, hint: `输入法键入 ${first.sound}。` },
+      listen: { prompt: "播放后选择听到的假名。", speech: first.kana, options: rotateArr([first.kana, ...nearbyKana(first.kana, first.script, 3)], 1), answer: first.kana },
+      shadow: weak.map(w => w.kana).join("。") + "。"
+    };
+  }
+
+  function makePersonalizedPack(baseGroup, weak) {
+    const visualDrills = weak.slice(0, 4).map((w, i) => ({
+      type: "choice",
+      prompt: `「${w.kana}」怎么读？`,
+      options: rotateArr([w.sound, ...nearbySounds(w.sound, 3)], i + 1),
+      answer: w.sound, ok: `正确，${w.kana} 读 ${w.sound}。`, bad: `${w.kana} 读 ${w.sound}。`, hint: `回看上方${baseGroup.title}表。`
+    }));
+    const inputDrills = weak.slice(0, 3).map(w => ({
+      type: "input",
+      prompt: `输入「${w.sound}」的${w.scriptLabel}`,
+      answer: w.kana, ok: "输入正确。", bad: `${w.sound} 对应「${w.kana}」。`, hint: `输入法键入 ${w.sound}。`
+    }));
+    const phraseDrills = weak.filter(w => w.script === "hiragana").slice(0, 2).map(w => ({
+      type: "choice",
+      prompt: `哪个平假名读「${w.sound}」？`,
+      options: rotateArr([w.kana, ...nearbyKana(w.kana, "hiragana", 3)], 1),
+      answer: w.kana, ok: `正确。`, bad: `${w.sound} 对应「${w.kana}」。`, hint: `看字形直接回忆 ${w.sound}。`
+    }));
+    const reviewDrills = weak.filter(w => w.script === "katakana").slice(0, 2).map(w => ({
+      type: "choice",
+      prompt: `哪个片假名读「${w.sound}」？`,
+      options: rotateArr([w.kana, ...nearbyKana(w.kana, "katakana", 3)], 1),
+      answer: w.kana, ok: `正确。`, bad: `${w.sound} 对应「${w.kana}」。`, hint: `片假名${w.kana}读 ${w.sound}。`
+    }));
+    const listenDrills = weak.slice(0, 2).map(w => ({
+      type: "listen",
+      prompt: "播放后选择听到的假名。",
+      speech: w.kana,
+      options: rotateArr([w.kana, ...nearbyKana(w.kana, w.script, 2)], 1),
+      answer: w.kana, ok: "听对了。", bad: `这次听到的是「${w.kana}」。`, hint: `是 ${w.sound}。`
+    }));
+    const wrapUp = weak.slice(0, 2).map(w => ({
+      type: "choice",
+      prompt: `下面哪一项是正确配对？`,
+      options: rotateArr([`${w.kana} = ${w.sound}`, `${w.kana} = ${nearbySounds(w.sound, 1)[0]}`, `${nearbyKana(w.kana, w.script, 1)[0]} = ${w.sound}`], 1),
+      answer: `${w.kana} = ${w.sound}`, ok: "收尾正确。", bad: `记住：${w.kana} = ${w.sound}。`, hint: "看字形和读音是否匹配。"
+    }));
+    return {
+      morningChecklist: [`逐个认出本组 ${weak.length} 个薄弱假名`, "完成双向快速回忆", "用输入加固视觉识别"],
+      nightChecklist: ["听清薄弱假名的发音", "跟读薄弱假名", "收尾小测确认已掌握"],
+      visualDrills, inputDrills, phraseDrills, reviewDrills, listenDrills, wrapUp
+    };
+  }
+
+  function makeAllPassedLesson() {
+    return {
+      day: "Day 1", title: "全部掌握：五十音总复盘", focus: "46 清音平片假名随机识别", goal: "保持已有的识别速度，进入下一阶段", morning: "10 分钟", night: "10 分钟",
+      purpose: "摸底中所有组都达到 90% 以上，只需保持手感。",
+      exam: "继续保持瞬间识别，为 N3 词汇和句型打基础。",
+      assessmentLink: "你的五十音摸底全部通过，可以进入下一阶段学习。",
+      trap: "即使全对，也要定期随机复现，防止回生。",
+      phrase: { title: "全勤通过", body: "所有五十音组均已掌握，建议保持每日少量随机复习。", example: "あいうえお　かきくけこ　さしすせそ" },
+      explainTitle: "保持手感",
+      explain: "你已经掌握全部 46 个清音的平假名和片假名。继续保持随机识别，不要依赖行序。",
+      example: "あ a　い i　う u　え e　お o",
+      speech: "あ、い、う、え、お。",
+      choice: { prompt: "「あ」怎么读？", options: ["a", "i", "u", "e"], answer: "a", ok: "正确。", bad: "あ 读 a。" },
+      input: { prompt: "输入「a」的平假名", answer: "あ", hint: "输入法键入 a。" },
+      listen: { prompt: "播放后选择听到的假名。", speech: "あ", options: ["あ", "い", "う"], answer: "あ" },
+      shadow: "あいうえお。かきくけこ。"
+    };
+  }
+  function makeAllPassedPack() {
+    return {
+      morningChecklist: ["随机抽查 10 个假名", "保持识别速度"],
+      nightChecklist: ["听音辨形", "跟读一遍"],
+      visualDrills: [
+        { type: "choice", prompt: "「あ」怎么读？", options: ["a", "i", "u"], answer: "a", ok: "正确。", bad: "あ 读 a。" }
+      ],
+      inputDrills: [], phraseDrills: [], reviewDrills: [], listenDrills: [], wrapUp: []
+    };
+  }
+
+  function activeCourse() {
+    if (state.katakanaComplete && state.kanaPlacementMode === KANA_PLACEMENT_MODE) {
+      const built = buildPersonalizedCourse();
+      if (built.lessons.length) return built;
+    }
+    return { lessons: defaultLessons, packs: defaultPacks };
+  }
+  function activeLessons() { return activeCourse().lessons; }
+  function activePack(day) {
+    const { lessons, packs } = activeCourse();
+    const pack = packs[day] || { morningChecklist: [], nightChecklist: [], visualDrills: [], inputDrills: [], phraseDrills: [], reviewDrills: [], listenDrills: [], wrapUp: [] };
+    if (packs === defaultPacks) return { ...pack, rapidDrills: buildRapidDrills(day) };
+    return { ...pack, rapidDrills: buildPersonalizedRapidDrills(lessons[day], day) };
+  }
+  function buildPersonalizedRapidDrills(lesson, day) {
+    if (!lesson) return [];
+    const weak = [];
+    const results = kanaGroupResults();
+    const resultMap = new Map(results.map(r => [r.id, r]));
+    const baseId = lesson.title.match(/（.*?）$/) ? kanaBaseGroups.find(g => lesson.title.includes(g.title))?.id : null;
+    if (!baseId) return [];
+    const hira = resultMap.get(`hiragana:${baseId}`);
+    const kata = resultMap.get(`katakana:${baseId}`);
+    [hira, kata].forEach(res => {
+      if (!res) return;
+      [...res.wrong, ...res.unknown].forEach(item => {
+        if (!weak.find(w => w.kana === item.kana && w.script === item.script)) weak.push(item);
+      });
+    });
+    return weak.flatMap((w, i) => {
+      const soundChoices = rotateArr([w.sound, ...nearbySounds(w.sound, 3)], i + 1);
+      const kanaChoices = rotateArr([w.kana, ...nearbyKana(w.kana, w.script, 3)], i + 1);
+      return [
+        { type: "choice", prompt: `「${w.kana}」怎么读？`, options: soundChoices, answer: w.sound, ok: `正确，${w.kana} 读 ${w.sound}。`, bad: `${w.kana} 读 ${w.sound}。`, hint: `直接看字形回忆 ${w.sound}。` },
+        { type: "choice", prompt: `哪个${w.script === "hiragana" ? "平假名" : "片假名"}读「${w.sound}」？`, options: kanaChoices, answer: w.kana, ok: `正确。`, bad: `${w.sound} 对应「${w.kana}」。`, hint: `看字形直接回忆 ${w.sound}。` }
+      ];
+    });
+  }
 
   let state = loadState();
   let mediaRecorder = null;
@@ -1428,7 +1623,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     const placementCompatible = safe.kanaPlacementMode === KANA_PLACEMENT_MODE;
     return {
       ...freshState(), ...safe, version: DATA_VERSION,
-      activeDay: Number.isInteger(safe.activeDay) && safe.activeDay >= 0 && safe.activeDay < lessons.length ? safe.activeDay : 0,
+      activeDay: Number.isInteger(safe.activeDay) && safe.activeDay >= 0 && safe.activeDay < defaultLessons.length ? safe.activeDay : 0,
       activePeriod: ["morning", "night"].includes(safe.activePeriod) ? safe.activePeriod : "morning",
       answers: safe.answers && typeof safe.answers === "object" ? safe.answers : {},
       completedDays: Array.isArray(safe.completedDays) ? [...new Set(safe.completedDays.filter(n => Number.isInteger(n) && n >= 0 && n < 6))] : [],
@@ -1455,10 +1650,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
   function itemId(day, type) { return `lesson:${day + 1}:${type}`; }
   function lessonTaskId(day, section, index) { return `lesson:${day + 1}:${section}:${index}`; }
   function domSafeId(value) { return value.replace(/[^a-z0-9_-]/gi, "-"); }
-  function lessonPack(day) {
-    const pack = lessonPacks[day] || { morningChecklist: [], nightChecklist: [], visualDrills: [], inputDrills: [], phraseDrills: [], reviewDrills: [], listenDrills: [], wrapUp: [] };
-    return { ...pack, rapidDrills: buildRapidDrills(day) };
-  }
+  function lessonPack(day) { return activePack(day); }
   function periodTaskIds(day, period) {
     const pack = lessonPack(day);
     const sections = period === "night" ? ["listenx", "wrap"] : ["rapid", "visual", "inputx", "phrase", "review"];
@@ -1491,7 +1683,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
   function itemMeta(id) {
     const match = /^lesson:(\d+):(choice|input|listen)$/.exec(id);
     if (match) {
-      const lesson = lessons[Number(match[1]) - 1], type = match[2], task = lesson[type];
+      const lesson = activeLessons()[Number(match[1]) - 1], type = match[2], task = lesson[type];
       return { id, day: Number(match[1]) - 1, type, title: `${lesson.day} · ${type === "choice" ? "音形选择" : type === "input" ? "基础输入" : "听辨"}`, prompt: task.prompt, answer: task.answer, options: task.options || [], speech: task.speech || "", hint: type === "input" ? task.hint : "" };
     }
     const extra = /^lesson:(\d+):(rapid|visual|inputx|phrase|review|listenx|wrap):(\d+)$/.exec(id);
@@ -1499,7 +1691,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
       const day = Number(extra[1]) - 1, section = extra[2], index = Number(extra[3]);
       const task = lessonTaskLookup(day, section, index);
       const titles = { rapid: "双向快速回忆", visual: "辨形加练", inputx: "输入加练", phrase: "词例解码", review: "错项回收", listenx: "听辨加练", wrap: "收尾小测" };
-      return task ? { id, day, type: task.type === "listen" ? "listen" : task.type, title: `${lessons[day].day} · ${titles[section]}`, prompt: task.prompt, answer: task.answer, options: task.options || [], speech: task.speech || "", hint: task.hint || "" } : null;
+      return task ? { id, day, type: task.type === "listen" ? "listen" : task.type, title: `${activeLessons()[day].day} · ${titles[section]}`, prompt: task.prompt, answer: task.answer, options: task.options || [], speech: task.speech || "", hint: task.hint || "" } : null;
     }
     const q = questions.find(x => `assessment:${x.id}` === id);
     if (q) return { id, day: -1, type: q.type, title: `测评 · ${q.skill}`, prompt: q.prompt, answer: q.answer, options: q.options || [], speech: q.speech || "", hint: q.explain };
@@ -1572,7 +1764,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     const requestedView = params.get("view");
     if (["home", "assessment", "course", "review", "report"].includes(requestedView)) state.view = requestedView;
     const requestedDay = Number(params.get("day"));
-    if (Number.isInteger(requestedDay) && requestedDay >= 1 && requestedDay <= lessons.length) state.activeDay = requestedDay - 1;
+    if (Number.isInteger(requestedDay) && requestedDay >= 1 && requestedDay <= activeLessons().length) state.activeDay = requestedDay - 1;
     const requestedPeriod = params.get("period");
     if (["morning", "night"].includes(requestedPeriod)) state.activePeriod = requestedPeriod;
     if (["kana", "katakana"].includes(params.get("test")) && !state.katakanaComplete) state.katakanaStarted = true;
@@ -1597,8 +1789,8 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     $("#home-companion-name").textContent = pet.name;
     $("#home-companion-title").textContent = pet.title;
     $("#home-companion-line").textContent = companionLines[Math.min(days, companionLines.length - 1)];
-    $("#home-companion-progress-label").textContent = `${days} / ${lessons.length} 天`;
-    $("#home-companion-progress-bar").style.width = `${days / lessons.length * 100}%`;
+    $("#home-companion-progress-label").textContent = `${days} / ${activeLessons().length} 天`;
+    $("#home-companion-progress-bar").style.width = `${days / activeLessons().length * 100}%`;
     $("#home-companion-next").textContent = next ? `完成 ${next.minDays} 天课程后成长为 Lv.${next.level} ${next.name}` : "首周最高形态已达成；Lv.5 星墨灵作为长期目标保持隐藏。";
   }
   function updateProgress() {
@@ -1768,14 +1960,17 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
   }
 
   function renderCourse() {
-    $("#day-tabs").innerHTML = lessons.map((lesson, i) => `<button class="day-tab ${state.activeDay === i ? "is-active" : ""} ${state.completedDays.includes(i) ? "is-done" : ""}" role="tab" aria-selected="${state.activeDay === i}" data-day="${i}"><strong>${lesson.day}</strong><span>${lesson.title}</span></button>`).join("");
+    const lessonsNow = activeLessons();
+    if (state.activeDay >= lessonsNow.length) state.activeDay = 0;
+    $("#day-tabs").innerHTML = lessonsNow.map((lesson, i) => `<button class="day-tab ${state.activeDay === i ? "is-active" : ""} ${state.completedDays.includes(i) ? "is-done" : ""}" role="tab" aria-selected="${state.activeDay === i}" data-day="${i}"><strong>${lesson.day}</strong><span>${lesson.title}</span></button>`).join("");
     $$(".day-tab").forEach(btn => btn.addEventListener("click", () => { state.activeDay = Number(btn.dataset.day); saveState(); renderCourse(); syncRoute(); }));
-    const lesson = lessons[state.activeDay], parts = state.lessonParts[state.activeDay] || {};
+    const lesson = lessonsNow[state.activeDay], parts = state.lessonParts[state.activeDay] || {};
     const morningProgress = periodProgress(state.activeDay, "morning");
     const nightProgress = periodProgress(state.activeDay, "night");
     const pet = currentCompanionLevel();
     const courseLines = ["今天系统学 あ行和か行；完成快且准确就可以前进。", "今天系统学 さ行和た行，重点单独记 shi、chi、tsu。", "字符会变多，但我们只抓相似字和最短回应。", "清音快收齐了，给每个假名留一拍。", "小っ是一拍安静的停顿，我们一起听清。", "今天随机复现全部平假名，不依赖顺序猜答案。"];
-    $("#day-overview").innerHTML = `<div class="day-overview-main"><dl><div><dt>今日重点</dt><dd>${lesson.focus}</dd></div><div><dt>上午 · 无声</dt><dd>${lesson.morning}</dd></div><div><dt>晚间 · 有声</dt><dd>${lesson.night}</dd></div></dl><div class="part-status"><span class="${parts.morning ? "done" : ""}">上午 ${parts.morning ? "已完成" : "待完成"}</span><span class="${parts.night ? "done" : ""}">晚间 ${parts.night ? "已完成" : "待完成"}</span></div></div><aside class="course-companion"><img src="${pet.image}" alt="${pet.name}陪学"><div><strong>${pet.name} · 陪学提示</strong><p>${courseLines[state.activeDay]}</p></div></aside>`;
+    const companionLine = courseLines[state.activeDay % courseLines.length];
+    $("#day-overview").innerHTML = `<div class="day-overview-main"><dl><div><dt>今日重点</dt><dd>${lesson.focus}</dd></div><div><dt>上午 · 无声</dt><dd>${lesson.morning}</dd></div><div><dt>晚间 · 有声</dt><dd>${lesson.night}</dd></div></dl><div class="part-status"><span class="${parts.morning ? "done" : ""}">上午 ${parts.morning ? "已完成" : "待完成"}</span><span class="${parts.night ? "done" : ""}">晚间 ${parts.night ? "已完成" : "待完成"}</span></div></div><aside class="course-companion"><img src="${pet.image}" alt="${pet.name}陪学"><div><strong>${pet.name} · 陪学提示</strong><p>${companionLine}</p></div></aside>`;
     $("#course-period-control").innerHTML = `<div class="period-switch" role="tablist" aria-label="学习时段"><button type="button" role="tab" aria-selected="${state.activePeriod === "morning"}" class="${state.activePeriod === "morning" ? "is-active" : ""}" data-period="morning"><span>上午 · 无声</span><strong>${morningProgress.done} / ${morningProgress.total} 题</strong></button><button type="button" role="tab" aria-selected="${state.activePeriod === "night"}" class="${state.activePeriod === "night" ? "is-active" : ""}" data-period="night"><span>晚间 · 有声</span><strong>${nightProgress.done} / ${nightProgress.total} 题</strong></button></div><p>${state.activePeriod === "morning" ? "当前仅显示上午课，不会播放声音。" : "请打开声音；录音仅保留在当前页面内存中。"}</p>`;
     $$("[data-period]", $("#course-period-control")).forEach(btn => btn.addEventListener("click", () => {
       state.activePeriod = btn.dataset.period;
@@ -1785,8 +1980,9 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
       $("#lesson-host").scrollIntoView({ behavior: "smooth", block: "start" });
     }));
     renderLesson(lesson, state.activeDay);
-    $("#course-progress-label").textContent = `${state.completedDays.length} / 6 天完成`;
-    $("#course-progress-bar").style.width = `${state.completedDays.length / 6 * 100}%`;
+    const totalDays = lessonsNow.length;
+    $("#course-progress-label").textContent = `${state.completedDays.length} / ${totalDays} 天完成`;
+    $("#course-progress-bar").style.width = `${state.completedDays.length / totalDays * 100}%`;
   }
   function renderLesson(lesson, index) {
     const savedInput = state.lessonInputs[index] || "";
@@ -1801,7 +1997,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
       <div data-period-section="morning">
       <div class="session-banner morning"><strong>上午 · 无声学习（${lesson.morning}）</strong><span>系统认形 · 20 题双向回忆 · 输入与词例解码</span></div>
       <div class="lesson-step checklist-step"><div class="step-label">上午安排</div><h3>今天上午要完成什么</h3><ul class="task-checklist">${pack.morningChecklist.map(item => `<li>${item}</li>`).join("")}</ul></div>
-      <div class="lesson-step"><div class="step-label">1 · 系统教学</div><h3>${lesson.explainTitle}</h3><p>${lesson.explain}</p>${renderKanaGrid(index)}<div class="example-box"><p lang="ja">${lesson.example}</p><small>上午先默读、指认或书写，不播放声音。</small></div></div>
+      <div class="lesson-step"><div class="step-label">1 · 系统教学</div><h3>${lesson.explainTitle}</h3><p>${lesson.explain}</p>${renderKanaGrid(lesson)}<div class="example-box"><p lang="ja">${lesson.example}</p><small>上午先默读、指认或书写，不播放声音。</small></div></div>
       <div class="lesson-step"><div class="step-label">2 · 音形练习</div><h3>${lesson.choice.prompt}</h3><fieldset class="practice">${lesson.choice.options.map(option => `<label><input type="radio" name="lesson-choice" value="${option}" ${state.lessonAnswers[itemId(index, "choice")] === option ? "checked" : ""}> ${option}</label>`).join("")}</fieldset><button class="btn btn-secondary" id="check-choice">检查答案</button><p id="choice-feedback" class="feedback" role="status"></p></div>
       <div class="lesson-step"><div class="step-label">3 · 基础输入</div><label for="lesson-input"><strong>${lesson.input.prompt}</strong></label><input id="lesson-input" class="text-answer" lang="ja" autocomplete="off" value="${escapeHtml(savedInput)}" placeholder="${lesson.input.hint}"><button class="btn btn-secondary input-check" id="check-input">检查输入</button><p id="input-feedback" class="feedback" role="status">输入内容会自动保存在本机。</p></div>
       ${renderTaskGroup(index, "rapid", "双向快速回忆", "20 题逐个确认：看到假名能读音，看到读音也能找回假名。", pack.rapidDrills, "4 · 快速回忆")}
@@ -1851,7 +2047,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     $("#complete-day").addEventListener("click", () => toggleDay(index));
   }
   function checkLessonAnswer(index, type, value, selector, ok, bad) {
-    const task = lessons[index][type], node = $(selector), id = itemId(index, type);
+    const task = activeLessons()[index][type], node = $(selector), id = itemId(index, type);
     if (!value) { node.textContent = type === "input" ? "请先输入答案。" : "请先选择一个答案。"; node.className = "feedback bad"; return; }
     const good = normalize(value) === normalize(task.answer);
     const usedHint = hintedThisRender.has(id);
@@ -1987,7 +2183,8 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     const plans = Object.entries(state.mastery).filter(([id]) => itemMeta(id));
     const events = state.events.slice().sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
     const avgMastery = plans.length ? Math.round(plans.reduce((sum, [, plan]) => sum + (plan.mastery || 0), 0) / plans.length) : 0;
-    const completion = Math.round(state.completedDays.length / lessons.length * 100);
+    const totalDays = activeLessons().length;
+    const completion = Math.round(state.completedDays.length / totalDays * 100);
     const weak = plans.slice().sort((a, b) => a[1].mastery - b[1].mastery).slice(0, 5);
     const periodCard = (label, days) => {
       const list = eventsSince(days), correct = list.filter(e => e.correct).length;
@@ -1999,12 +2196,12 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     const nightCount = Object.values(state.lessonParts).filter(part => part?.night).length;
     const accessoryUnlocked = item => item.id === "daily_01" ? events.length > 0 || state.completedDays.length > 0
       : item.id === "daily_04" ? nightCount >= 5
-      : item.id === "rare_03" ? state.completedDays.length === lessons.length
+      : item.id === "rare_03" ? state.completedDays.length === totalDays
       : item.id === "rare_04" ? events.length > 0 && events.every(event => event.correct)
       : false;
     $("#report-host").innerHTML = `
       <div class="metric-grid">
-        <article class="metric-card"><span>课程完成率</span><strong>${completion}%</strong><small>${state.completedDays.length} / ${lessons.length} 天</small></article>
+        <article class="metric-card"><span>课程完成率</span><strong>${completion}%</strong><small>${state.completedDays.length} / ${totalDays} 天</small></article>
         <article class="metric-card"><span>平均掌握度</span><strong>${avgMastery}%</strong><small>${plans.length} 个学习项</small></article>
         <article class="metric-card"><span>累计答题</span><strong>${events.length}</strong><small>正确 ${events.filter(e => e.correct).length} · 错误 ${events.filter(e => !e.correct).length}</small></article>
         <article class="metric-card"><span>今日到期</span><strong>${dueItems().length}</strong><small>动态安排</small></article>
@@ -2014,7 +2211,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
         <section class="report-panel"><h2>周 / 月概览</h2><div class="period-grid">${periodCard("近 7 天", 7)}${periodCard("近 30 天", 30)}</div></section>
       </div>
       <section class="report-panel evolution-report">
-        <div class="evolution-copy"><p class="eyebrow">墨滴仔成长</p><h2>Lv.${pet.level} ${pet.name} · ${pet.title}</h2><p>${next ? `再完成 ${next.minDays - state.completedDays.length} 天课程，将成长为 Lv.${next.level} ${next.name}。` : "已达到首周原型最高形态；Lv.5 星墨灵是隐藏的长期目标。"}</p><div class="progress-track"><span style="width:${state.completedDays.length / lessons.length * 100}%"></span></div><small>${state.completedDays.length} / ${lessons.length} 天完成</small></div>
+        <div class="evolution-copy"><p class="eyebrow">墨滴仔成长</p><h2>Lv.${pet.level} ${pet.name} · ${pet.title}</h2><p>${next ? `再完成 ${next.minDays - state.completedDays.length} 天课程，将成长为 Lv.${next.level} ${next.name}。` : "已达到首周原型最高形态；Lv.5 星墨灵是隐藏的长期目标。"}</p><div class="progress-track"><span style="width:${state.completedDays.length / totalDays * 100}%"></span></div><small>${state.completedDays.length} / ${totalDays} 天完成</small></div>
         <img src="${pet.image}" alt="墨滴仔当前进化形态：${pet.name}">
       </section>
       <section class="report-panel accessory-report"><div class="accessory-heading"><div><p class="eyebrow">透明贴纸图鉴</p><h2>已解锁配饰</h2></div><span>${modizaiAccessories.filter(accessoryUnlocked).length} / ${modizaiAccessories.length}</span></div><div class="accessory-grid">${modizaiAccessories.map(item => { const unlocked = accessoryUnlocked(item); return `<article class="accessory-card ${unlocked ? "is-unlocked" : "is-locked"}"><div class="accessory-image"><img src="${item.image}" alt="${item.name}透明贴纸"></div><h3>${item.name}</h3><p>${item.slot} · ${item.rarity}</p><small>${unlocked ? "已解锁" : item.rule}</small></article>`; }).join("")}</div><p class="gallery-note">配饰暂以透明贴纸图鉴展示；完成槽位定位后再支持佩戴叠加。</p></section>
