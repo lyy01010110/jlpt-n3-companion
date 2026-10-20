@@ -206,7 +206,7 @@ p { margin: 0 0 12px; }
 .companion-progress > div:first-child { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 7px; }
 .companion-progress small { display: block; margin-top: 8px; color: var(--page-text-muted); }
 @keyframes companion-bob { 0%, 100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-8px) rotate(1deg); } }
-.section-shell, .page-head, .assessment-intro, .quiz, .result-panel, .day-tabs, .day-overview, .course-period-control, .lesson-shell {
+.section-shell, .page-head, .katakana-placement, .assessment-intro, .quiz, .result-panel, .day-tabs, .day-overview, .course-period-control, .lesson-shell {
   width: min(calc(100% - 32px), var(--max));
   margin-left: auto;
   margin-right: auto;
@@ -236,6 +236,41 @@ p { margin: 0 0 12px; }
 .progress-track { height: 8px; border-radius: 99px; background: var(--page-border); overflow: hidden; }
 .progress-track span { display: block; width: 0; height: 100%; border-radius: inherit; background: var(--page-brand); transition: width .25s ease; }
 .assessment-intro { padding: 8px 0 72px; }
+.katakana-placement {
+  margin-bottom: 28px;
+  padding: 24px;
+  border: 1px solid var(--page-border);
+  border-radius: var(--radius);
+  background: var(--page-surface);
+}
+.katakana-placement .section-heading { margin-bottom: 18px; }
+.katakana-placement .section-heading p:last-child { color: var(--page-text-secondary); }
+.katakana-start, .katakana-result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 20px;
+  border-radius: 8px;
+  background: var(--page-surface-muted);
+}
+.katakana-start h3, .katakana-result-head h3 { margin-top: 8px; }
+.katakana-start p, .katakana-result-head p { margin-bottom: 0; color: var(--page-text-secondary); }
+.katakana-result-head > strong { color: var(--page-brand); font-size: 34px; }
+.katakana-progress { margin-bottom: 16px; }
+.katakana-progress > div:first-child { display: flex; justify-content: space-between; margin-bottom: 7px; }
+.katakana-progress small { display: block; margin-top: 6px; color: var(--page-text-muted); }
+.katakana-question { box-shadow: none; }
+.katakana-question h2 { font-size: 56px; }
+.katakana-group-results { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 14px; }
+.katakana-group-results article { padding: 16px; border: 1px solid var(--page-border); border-radius: 8px; }
+.katakana-group-results article > div { display: flex; align-items: center; gap: 8px; }
+.katakana-group-results article span { padding: 2px 7px; border-radius: 99px; font-size: 11px; font-weight: 800; }
+.katakana-group-results article b { display: block; margin-top: 8px; font-size: 20px; }
+.katakana-group-results article p { margin: 4px 0 0; color: var(--page-text-secondary); font-size: 12px; }
+.katakana-group-results .is-pass { border-color: #8fc9b5; background: #eff9f5; }
+.katakana-group-results .is-pass span { color: var(--success); background: #d7f0e5; }
+.katakana-group-results .needs-work span { color: var(--warning); background: #fff1cc; }
 .module-card { margin-bottom: 12px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 18px; }
 .module-card.night { background: var(--page-night-soft); }
 .module-icon {
@@ -603,10 +638,13 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
   .companion-card { grid-template-columns: 1fr; }
   .companion-portrait { min-height: 210px; }
   .companion-portrait img { height: 220px; }
-  .section-shell, .page-head, .assessment-intro, .quiz, .result-panel, .day-tabs, .day-overview, .course-period-control, .lesson-shell, .dashboard-shell, .data-status { width: calc(100% - 24px); }
+  .section-shell, .page-head, .katakana-placement, .assessment-intro, .quiz, .result-panel, .day-tabs, .day-overview, .course-period-control, .lesson-shell, .dashboard-shell, .data-status { width: calc(100% - 24px); }
   .section-shell { padding: 48px 0; }
   .module-card { grid-template-columns: auto 1fr; }
   .module-card .tag { grid-column: 2; justify-self: start; }
+  .katakana-placement { padding: 20px 16px; }
+  .katakana-start, .katakana-result-head { align-items: flex-start; flex-direction: column; }
+  .katakana-group-results { grid-template-columns: 1fr; }
   .quiz-topline { align-items: flex-start; gap: 8px; }
   .day-tabs { grid-template-columns: repeat(2, 1fr); }
   .day-overview dl { grid-template-columns: 1fr; gap: 10px; }
@@ -731,6 +769,15 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
         </div>
       </div>
 
+      <section id="katakana-placement" class="katakana-placement" aria-labelledby="katakana-placement-title">
+        <div class="section-heading">
+          <p class="eyebrow">Katakana placement</p>
+          <h2 id="katakana-placement-title">片假名快速摸底</h2>
+          <p>随机测试 46 个清音，认识的组直接跳过；不考五十音行序。</p>
+        </div>
+        <div id="katakana-test-host" aria-live="polite"></div>
+      </section>
+
       <div id="assessment-intro" class="assessment-intro">
         <div class="module-card">
           <span class="module-icon" aria-hidden="true">昼</span>
@@ -843,7 +890,9 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     currentQuestion: 0, answers: {}, completedDays: [], activeDay: 0,
     activePeriod: "morning",
     lessonAnswers: {}, lessonInputs: {}, lessonParts: {},
-    mastery: {}, events: [], assessmentRecorded: false, assessmentRun: 1
+    mastery: {}, events: [], assessmentRecorded: false, assessmentRun: 1,
+    katakanaStarted: false, katakanaComplete: false, katakanaCurrent: 0,
+    katakanaAnswers: {}, katakanaSkippedGroups: [], katakanaRun: 1
   };
 
   const questions = [
@@ -859,6 +908,21 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     { id: "shadow1", module: "night", skill: "跟读", type: "shadow", title: "跟读与自评", prompt: "先听两次，再跟读「おはよう」。按真实感受自评。", speech: "おはよう", options: ["还没跟读", "跟读了，但节奏不稳", "能完整跟上"], answer: "能完整跟上", explain: "跟读采用自评，不上传声音。能完成模仿就是首周的好起点。" }
   ];
 
+  const katakanaGroups = [
+    { id: "a-ka", title: "ア行・カ行", pairs: [["ア", "a"], ["イ", "i"], ["ウ", "u"], ["エ", "e"], ["オ", "o"], ["カ", "ka"], ["キ", "ki"], ["ク", "ku"], ["ケ", "ke"], ["コ", "ko"]] },
+    { id: "sa-ta", title: "サ行・タ行", pairs: [["サ", "sa"], ["シ", "shi"], ["ス", "su"], ["セ", "se"], ["ソ", "so"], ["タ", "ta"], ["チ", "chi"], ["ツ", "tsu"], ["テ", "te"], ["ト", "to"]] },
+    { id: "na-ha-ma", title: "ナ行・ハ行・マ行", pairs: [["ナ", "na"], ["ニ", "ni"], ["ヌ", "nu"], ["ネ", "ne"], ["ノ", "no"], ["ハ", "ha"], ["ヒ", "hi"], ["フ", "fu"], ["ヘ", "he"], ["ホ", "ho"], ["マ", "ma"], ["ミ", "mi"], ["ム", "mu"], ["メ", "me"], ["モ", "mo"]] },
+    { id: "ya-ra-wa", title: "ヤ行・ラ行・ワ行・ン", pairs: [["ヤ", "ya"], ["ユ", "yu"], ["ヨ", "yo"], ["ラ", "ra"], ["リ", "ri"], ["ル", "ru"], ["レ", "re"], ["ロ", "ro"], ["ワ", "wa"], ["ヲ", "o"], ["ン", "n"]] }
+  ];
+  const katakanaPairs = katakanaGroups.flatMap(group => group.pairs.map(pair => ({ groupId: group.id, kana: pair[0], sound: pair[1] })));
+  const katakanaSounds = [...new Set(katakanaPairs.map(item => item.sound))];
+  const katakanaQuestions = katakanaPairs.map((item, index) => {
+    const distractors = katakanaSounds.filter(sound => sound !== item.sound);
+    const choices = [item.sound, ...Array.from({ length: 3 }, (_, offset) => distractors[(index * 3 + offset * 5) % distractors.length])];
+    const rotation = (index * 3 + 1) % choices.length;
+    return { ...item, id: `katakana:${item.kana}`, options: choices.slice(rotation).concat(choices.slice(0, rotation)) };
+  });
+
   const lessons = [
     {
       day: "Day 1", title: "平假名起点：あ行・か行完整音形", focus: "あいうえお / かきくけこ / 双向快速回忆", goal: "系统掌握 10 个平假名，做到看字读音、看音找字", morning: "15–25 分钟", night: "15–20 分钟",
@@ -870,7 +934,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
       explainTitle: "元音是日语发音的骨架",
       explain: "あ・い・う・え・お 是五个基本元音。か行是在它们前加上 k：ka、ki、ku、ke、ko。看到假名先读音，再去想意思。",
       example: "あ a　い i　う u　え e　お o　／　か ka　き ki　く ku　け ke　こ ko", speech: "あ、い、う、え、お。か、き、く、け、こ。あお。いえ。かお。ここ。",
-      choice: { prompt: "哪个平假名读「ka」？", options: ["か", "け", "き", "く"], answer: "か", ok: "正确。平假名 か 读 ka。", bad: "回到か行顺序：か ka、き ki、く ku、け ke、こ ko。" },
+      choice: { prompt: "哪个平假名读「ka」？", options: ["か", "け", "き", "く"], answer: "か", ok: "正确。平假名 か 读 ka。", bad: "か 读 ka。考试需要随机看到就认出，不要求背行序。" },
       input: { prompt: "输入「ko」的平假名", answer: "こ", hint: "输入法键入 ko。" },
       listen: { prompt: "播放后选择听到的音。", speech: "か", options: ["か", "き", "く"], answer: "か" },
       shadow: "あいうえお。かきくけこ。あお。いえ。かお。ここ。"
@@ -1225,11 +1289,11 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
   ];
 
   Object.assign(lessonPacks[0], {
-    morningChecklist: ["按顺序认识 あ行、か行 10 个平假名", "完成 20 题双向快速回忆", "只读由已学假名组成的短词"],
+    morningChecklist: ["随机认识 あ行、か行 10 个平假名", "完成 20 题双向快速回忆", "只读由已学假名组成的短词"],
     nightChecklist: ["重复听清 あ行、か行", "跟读假名组和已学短词", "收尾小测检查当天核心点"],
     visualDrills: [
       { type: "choice", prompt: "下面哪一个是平假名「あ」？", options: ["あ", "お", "ぬ", "め"], answer: "あ", ok: "正确。先记住「あ」左弧右叉的轮廓。", bad: "再看轮廓：あ 左边像开口弧线，右边有交叉笔画。", hint: "先排除像圆圈更重的「お」。" },
-      { type: "choice", prompt: "哪一个读作「ku」？", options: ["け", "く", "こ", "き"], answer: "く", ok: "正确。く 读 ku。", bad: "か行顺序是 か、き、く、け、こ。", hint: "想一想 ka-ki-ku 的第三个。" },
+      { type: "choice", prompt: "哪一个读作「ku」？", options: ["け", "く", "こ", "き"], answer: "く", ok: "正确。く 读 ku。", bad: "く 读 ku；把字形和读音直接连接。", hint: "看字形直接回忆 ku，不必从 か 开始顺背。" },
       { type: "choice", prompt: "下面哪一组都属于今天学过的平假名？", options: ["あ・い・う", "さ・し・す", "な・に・ぬ"], answer: "あ・い・う", ok: "正确。今天学习的是 あ行和か行。", bad: "Day 1 只学 あ行和か行。", hint: "从五个基本元音开始。" }
     ],
     inputDrills: [
@@ -1241,7 +1305,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
       { type: "choice", prompt: "哪个短词读作「kao」？", options: ["かお", "ここ", "いえ"], answer: "かお", ok: "正确，か・お 连起来是 kao。", bad: "ka 对应 か，o 对应 お。", hint: "按 ka + o 找。" }
     ],
     reviewDrills: [
-      { type: "choice", prompt: "か行的正确顺序是？", options: ["か・き・く・け・こ", "か・く・き・こ・け", "き・か・け・く・こ"], answer: "か・き・く・け・こ", ok: "正确。", bad: "按元音 a-i-u-e-o 排列。", hint: "把 k 分别放到五个元音前。" }
+      { type: "choice", prompt: "随机看到「け」时，应该直接读成？", options: ["ke", "ku", "ko", "ki"], answer: "ke", ok: "正确。随机识别比背行序更重要。", bad: "け 读 ke；考试需要直接认出，不考背诵顺序。", hint: "回看上方か行表，但不要从头顺背。" }
     ],
     listenDrills: [
       { type: "listen", prompt: "播放后选择听到的假名。", speech: "く", options: ["き", "く", "け"], answer: "く", ok: "听对了。", bad: "这次听到的是「く」。", hint: "先听结尾元音是 u 还是 e。" },
@@ -1254,7 +1318,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
   });
 
   Object.assign(lessonPacks[1], {
-    morningChecklist: ["按顺序认识 さ行、た行 10 个平假名", "重点单独记住 し・ち・つ", "只读 Day 1–2 已学字符组成的词"],
+    morningChecklist: ["随机认识 さ行、た行 10 个平假名", "重点单独记住 し・ち・つ", "只读 Day 1–2 已学字符组成的词"],
     nightChecklist: ["听清 shi / chi / tsu 区别", "朗读已学假名和短词", "收尾小测检查音形连接"],
     phraseDrills: [
       { type: "choice", prompt: "哪个短词读作「sushi」？", options: ["すし", "いす", "たこ"], answer: "すし", ok: "正确，す・し。", bad: "su 是 す，shi 是 し。", hint: "按 su + shi 找。" },
@@ -1325,7 +1389,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     return freshState();
   }
   function freshState() {
-    return { ...defaultState, answers: {}, completedDays: [], lessonAnswers: {}, lessonInputs: {}, lessonParts: {}, mastery: {}, events: [] };
+    return { ...defaultState, answers: {}, completedDays: [], lessonAnswers: {}, lessonInputs: {}, lessonParts: {}, mastery: {}, events: [], katakanaAnswers: {}, katakanaSkippedGroups: [] };
   }
   function sanitizeState(raw) {
     const safe = raw && typeof raw === "object" ? raw : {};
@@ -1338,6 +1402,9 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
       lessonAnswers: safe.lessonAnswers && typeof safe.lessonAnswers === "object" ? safe.lessonAnswers : {},
       lessonInputs: safe.lessonInputs && typeof safe.lessonInputs === "object" ? safe.lessonInputs : {},
       lessonParts: safe.lessonParts && typeof safe.lessonParts === "object" ? safe.lessonParts : {},
+      katakanaCurrent: Number.isInteger(safe.katakanaCurrent) && safe.katakanaCurrent >= 0 && safe.katakanaCurrent < katakanaQuestions.length ? safe.katakanaCurrent : 0,
+      katakanaAnswers: safe.katakanaAnswers && typeof safe.katakanaAnswers === "object" ? safe.katakanaAnswers : {},
+      katakanaSkippedGroups: Array.isArray(safe.katakanaSkippedGroups) ? safe.katakanaSkippedGroups.filter(id => katakanaGroups.some(group => group.id === id)) : [],
       mastery: safe.mastery && typeof safe.mastery === "object" ? safe.mastery : {},
       events: Array.isArray(safe.events) ? safe.events.slice(-3000) : []
     };
@@ -1398,7 +1465,9 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
       return task ? { id, day, type: task.type === "listen" ? "listen" : task.type, title: `${lessons[day].day} · ${titles[section]}`, prompt: task.prompt, answer: task.answer, options: task.options || [], speech: task.speech || "", hint: task.hint || "" } : null;
     }
     const q = questions.find(x => `assessment:${x.id}` === id);
-    return q ? { id, day: -1, type: q.type, title: `测评 · ${q.skill}`, prompt: q.prompt, answer: q.answer, options: q.options || [], speech: q.speech || "", hint: q.explain } : null;
+    if (q) return { id, day: -1, type: q.type, title: `测评 · ${q.skill}`, prompt: q.prompt, answer: q.answer, options: q.options || [], speech: q.speech || "", hint: q.explain };
+    const katakana = katakanaQuestions.find(item => item.id === id);
+    return katakana ? { id, day: -1, type: "choice", title: "片假名摸底", prompt: `片假名「${katakana.kana}」怎么读？`, answer: katakana.sound, options: katakana.options, speech: "", hint: `${katakana.kana} 读 ${katakana.sound}` } : null;
   }
   function renderTaskGroup(dayIndex, section, title, description, tasks, stepLabel) {
     if (!tasks?.length) return "";
@@ -1441,7 +1510,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     state.view = view; saveState();
     $$(".view").forEach(el => el.classList.toggle("is-active", el.id === view));
     $$(".nav-btn").forEach(el => el.classList.toggle("is-active", el.dataset.view === view));
-    if (view === "assessment") syncAssessment();
+    if (view === "assessment") { syncAssessment(); renderKatakanaPlacement(); }
     if (view === "course") renderCourse();
     if (view === "review") renderReview();
     if (view === "report") renderReport();
@@ -1469,6 +1538,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     if (Number.isInteger(requestedDay) && requestedDay >= 1 && requestedDay <= lessons.length) state.activeDay = requestedDay - 1;
     const requestedPeriod = params.get("period");
     if (["morning", "night"].includes(requestedPeriod)) state.activePeriod = requestedPeriod;
+    if (params.get("test") === "katakana" && !state.katakanaComplete) state.katakanaStarted = true;
     saveState();
   }
 
@@ -1507,6 +1577,103 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     $("#assessment-result").classList.toggle("hidden", !state.assessmentComplete);
     if (state.assessmentStarted && !state.assessmentComplete) renderQuestion();
     if (state.assessmentComplete) renderResult();
+  }
+  function katakanaGroupResults() {
+    return katakanaGroups.map(group => {
+      const items = katakanaQuestions.filter(item => item.groupId === group.id);
+      const correct = items.filter(item => normalize(state.katakanaAnswers[item.id]) === normalize(item.sound)).length;
+      const percent = Math.round(correct / items.length * 100);
+      const wrong = items.filter(item => normalize(state.katakanaAnswers[item.id]) !== normalize(item.sound));
+      return { ...group, total: items.length, correct, percent, wrong, passed: percent >= 90 };
+    });
+  }
+  function captureKatakanaAnswer(requireAnswer = true) {
+    const question = katakanaQuestions[state.katakanaCurrent];
+    const value = $(`input[name="katakana-answer"]:checked`)?.value || "";
+    if (!value && requireAnswer) {
+      $("#katakana-validation").textContent = "请先选择读音。";
+      return false;
+    }
+    if (value) state.katakanaAnswers[question.id] = value;
+    saveState();
+    return true;
+  }
+  function finishKatakanaPlacement() {
+    katakanaQuestions.forEach(question => {
+      const value = state.katakanaAnswers[question.id] || "";
+      recordAnswer({
+        id: question.id,
+        source: `katakana-placement:${state.katakanaRun || 1}`,
+        answer: value,
+        correct: normalize(value) === normalize(question.sound),
+        durationMs: Date.now() - (attemptStarted[question.id] || Date.now())
+      });
+    });
+    const results = katakanaGroupResults();
+    state.katakanaSkippedGroups = results.filter(result => result.passed).map(result => result.id);
+    state.katakanaStarted = false;
+    state.katakanaComplete = true;
+    saveState();
+    renderKatakanaPlacement();
+    $("#katakana-placement").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  function renderKatakanaPlacement() {
+    const host = $("#katakana-test-host");
+    if (!host) return;
+    if (state.katakanaComplete) {
+      const results = katakanaGroupResults();
+      const totalCorrect = results.reduce((sum, result) => sum + result.correct, 0);
+      const passed = results.filter(result => result.passed);
+      host.innerHTML = `
+        <div class="katakana-result-head"><div><span class="tag">摸底完成</span><h3>${totalCorrect} / ${katakanaQuestions.length} 个片假名认对</h3><p>${passed.length ? `已自动标记 ${passed.length} 组可跳过；其余组只补错字和相似字。` : "暂不整组跳过；后续只针对错字补课，不要求重背行序。"}</p></div><strong>${Math.round(totalCorrect / katakanaQuestions.length * 100)}%</strong></div>
+        <div class="katakana-group-results">${results.map(result => `<article class="${result.passed ? "is-pass" : "needs-work"}"><div><span>${result.passed ? "可跳过" : "需要补"}</span><strong>${result.title}</strong></div><b>${result.correct} / ${result.total}</b><p>${result.wrong.length ? `待补：${result.wrong.map(item => item.kana).join("、")}` : "本组全部认出"}</p></article>`).join("")}</div>
+        <div class="inline-actions"><button id="retry-katakana" class="btn btn-secondary">重新测试</button><button id="continue-course" class="btn btn-primary">继续平假名课程</button></div>`;
+      $("#retry-katakana").addEventListener("click", () => {
+        state.katakanaStarted = true;
+        state.katakanaComplete = false;
+        state.katakanaCurrent = 0;
+        state.katakanaAnswers = {};
+        state.katakanaSkippedGroups = [];
+        state.katakanaRun = (state.katakanaRun || 1) + 1;
+        saveState();
+        renderKatakanaPlacement();
+      });
+      $("#continue-course").addEventListener("click", () => showView("course"));
+      return;
+    }
+    if (!state.katakanaStarted) {
+      host.innerHTML = `<div class="katakana-start"><div><span class="tag">约 5–8 分钟</span><h3>46 个片假名清音逐个摸底</h3><p>只考随机识别，不考行序。每组达到 90% 才跳过，答错字符会进入动态复习。</p></div><button id="start-katakana" class="btn btn-primary">开始片假名测试</button></div>`;
+      $("#start-katakana").addEventListener("click", () => {
+        state.katakanaStarted = true;
+        state.katakanaComplete = false;
+        state.katakanaCurrent = 0;
+        state.katakanaAnswers = {};
+        saveState();
+        renderKatakanaPlacement();
+      });
+      return;
+    }
+    const question = katakanaQuestions[state.katakanaCurrent];
+    const saved = state.katakanaAnswers[question.id] || "";
+    const done = Object.keys(state.katakanaAnswers).length;
+    startAttempt(question.id);
+    host.innerHTML = `
+      <div class="katakana-progress"><div><span>片假名摸底</span><strong>${state.katakanaCurrent + 1} / ${katakanaQuestions.length}</strong></div><div class="progress-track"><span style="width:${(state.katakanaCurrent + 1) / katakanaQuestions.length * 100}%"></span></div><small>已保存 ${done} 题</small></div>
+      <article class="question-card katakana-question"><p class="question-kicker">${katakanaGroups.find(group => group.id === question.groupId)?.title}</p><h2 lang="ja">${question.kana}</h2><div class="question-prompt">这个片假名怎么读？</div><div class="options">${question.options.map((option, index) => `<label class="option"><input type="radio" name="katakana-answer" value="${option}" ${saved === option ? "checked" : ""}><span><strong>${String.fromCharCode(65 + index)}.</strong> ${option}</span></label>`).join("")}</div><p id="katakana-validation" class="validation" role="alert"></p></article>
+      <div class="quiz-actions"><button id="katakana-prev" class="btn btn-secondary" ${state.katakanaCurrent === 0 ? "disabled" : ""}>上一题</button><button id="katakana-next" class="btn btn-primary">${state.katakanaCurrent === katakanaQuestions.length - 1 ? "提交测试" : "下一题"}</button></div>`;
+    $("#katakana-prev").addEventListener("click", () => {
+      captureKatakanaAnswer(false);
+      state.katakanaCurrent = Math.max(0, state.katakanaCurrent - 1);
+      saveState();
+      renderKatakanaPlacement();
+    });
+    $("#katakana-next").addEventListener("click", () => {
+      if (!captureKatakanaAnswer()) return;
+      if (state.katakanaCurrent === katakanaQuestions.length - 1) { finishKatakanaPlacement(); return; }
+      state.katakanaCurrent += 1;
+      saveState();
+      renderKatakanaPlacement();
+    });
   }
   function renderQuestion() {
     const q = questions[state.currentQuestion];
