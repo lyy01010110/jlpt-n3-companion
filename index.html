@@ -319,6 +319,15 @@ p { margin: 0 0 12px; }
 }
 .option:hover, .option:has(input:checked) { border-color: var(--page-brand); background: var(--page-brand-soft); }
 .option input { margin-top: 5px; accent-color: var(--page-brand); }
+.option-unknown {
+  border-style: dashed;
+  color: var(--page-text-secondary);
+  background: #f7f7f5;
+}
+.option-unknown:hover, .option-unknown:has(input:checked) {
+  border-color: var(--warning);
+  background: #fff8e6;
+}
 .text-answer, textarea {
   width: 100%;
   padding: 12px 14px;
@@ -771,9 +780,9 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
 
       <section id="katakana-placement" class="katakana-placement" aria-labelledby="katakana-placement-title">
         <div class="section-heading">
-          <p class="eyebrow">Katakana placement</p>
-          <h2 id="katakana-placement-title">片假名快速摸底</h2>
-          <p>随机测试 46 个清音，认识的组直接跳过；不考五十音行序。</p>
+          <p class="eyebrow">Gojuon placement</p>
+          <h2 id="katakana-placement-title">完整五十音摸底</h2>
+          <p>逐个测试 46 个清音的平假名和片假名；不考行序，不会可以直接选“不知道”。</p>
         </div>
         <div id="katakana-test-host" aria-live="polite"></div>
       </section>
@@ -884,6 +893,8 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
   const STORAGE_KEY = "jlptN3Companion.v3";
   const LEGACY_KEY = "jlptN3Companion.v2";
   const DATA_VERSION = 3;
+  const KANA_PLACEMENT_MODE = "gojuon-v2";
+  const UNKNOWN_ANSWER = "不知道";
   const defaultState = {
     version: DATA_VERSION,
     view: "home", assessmentStarted: false, assessmentComplete: false,
@@ -892,7 +903,8 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     lessonAnswers: {}, lessonInputs: {}, lessonParts: {},
     mastery: {}, events: [], assessmentRecorded: false, assessmentRun: 1,
     katakanaStarted: false, katakanaComplete: false, katakanaCurrent: 0,
-    katakanaAnswers: {}, katakanaSkippedGroups: [], katakanaRun: 1
+    katakanaAnswers: {}, katakanaSkippedGroups: [], katakanaRun: 1,
+    kanaPlacementMode: KANA_PLACEMENT_MODE
   };
 
   const questions = [
@@ -908,20 +920,40 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     { id: "shadow1", module: "night", skill: "跟读", type: "shadow", title: "跟读与自评", prompt: "先听两次，再跟读「おはよう」。按真实感受自评。", speech: "おはよう", options: ["还没跟读", "跟读了，但节奏不稳", "能完整跟上"], answer: "能完整跟上", explain: "跟读采用自评，不上传声音。能完成模仿就是首周的好起点。" }
   ];
 
-  const katakanaGroups = [
-    { id: "a-ka", title: "ア行・カ行", pairs: [["ア", "a"], ["イ", "i"], ["ウ", "u"], ["エ", "e"], ["オ", "o"], ["カ", "ka"], ["キ", "ki"], ["ク", "ku"], ["ケ", "ke"], ["コ", "ko"]] },
-    { id: "sa-ta", title: "サ行・タ行", pairs: [["サ", "sa"], ["シ", "shi"], ["ス", "su"], ["セ", "se"], ["ソ", "so"], ["タ", "ta"], ["チ", "chi"], ["ツ", "tsu"], ["テ", "te"], ["ト", "to"]] },
-    { id: "na-ha-ma", title: "ナ行・ハ行・マ行", pairs: [["ナ", "na"], ["ニ", "ni"], ["ヌ", "nu"], ["ネ", "ne"], ["ノ", "no"], ["ハ", "ha"], ["ヒ", "hi"], ["フ", "fu"], ["ヘ", "he"], ["ホ", "ho"], ["マ", "ma"], ["ミ", "mi"], ["ム", "mu"], ["メ", "me"], ["モ", "mo"]] },
-    { id: "ya-ra-wa", title: "ヤ行・ラ行・ワ行・ン", pairs: [["ヤ", "ya"], ["ユ", "yu"], ["ヨ", "yo"], ["ラ", "ra"], ["リ", "ri"], ["ル", "ru"], ["レ", "re"], ["ロ", "ro"], ["ワ", "wa"], ["ヲ", "o"], ["ン", "n"]] }
+  const kanaBaseGroups = [
+    { id: "a-ka", title: "あ行・か行", pairs: [["あ", "ア", "a"], ["い", "イ", "i"], ["う", "ウ", "u"], ["え", "エ", "e"], ["お", "オ", "o"], ["か", "カ", "ka"], ["き", "キ", "ki"], ["く", "ク", "ku"], ["け", "ケ", "ke"], ["こ", "コ", "ko"]] },
+    { id: "sa-ta", title: "さ行・た行", pairs: [["さ", "サ", "sa"], ["し", "シ", "shi"], ["す", "ス", "su"], ["せ", "セ", "se"], ["そ", "ソ", "so"], ["た", "タ", "ta"], ["ち", "チ", "chi"], ["つ", "ツ", "tsu"], ["て", "テ", "te"], ["と", "ト", "to"]] },
+    { id: "na-ha-ma", title: "な行・は行・ま行", pairs: [["な", "ナ", "na"], ["に", "ニ", "ni"], ["ぬ", "ヌ", "nu"], ["ね", "ネ", "ne"], ["の", "ノ", "no"], ["は", "ハ", "ha"], ["ひ", "ヒ", "hi"], ["ふ", "フ", "fu"], ["へ", "ヘ", "he"], ["ほ", "ホ", "ho"], ["ま", "マ", "ma"], ["み", "ミ", "mi"], ["む", "ム", "mu"], ["め", "メ", "me"], ["も", "モ", "mo"]] },
+    { id: "ya-ra-wa", title: "や行・ら行・わ行・ん", pairs: [["や", "ヤ", "ya"], ["ゆ", "ユ", "yu"], ["よ", "ヨ", "yo"], ["ら", "ラ", "ra"], ["り", "リ", "ri"], ["る", "ル", "ru"], ["れ", "レ", "re"], ["ろ", "ロ", "ro"], ["わ", "ワ", "wa"], ["を", "ヲ", "o"], ["ん", "ン", "n"]] }
   ];
-  const katakanaPairs = katakanaGroups.flatMap(group => group.pairs.map(pair => ({ groupId: group.id, kana: pair[0], sound: pair[1] })));
-  const katakanaSounds = [...new Set(katakanaPairs.map(item => item.sound))];
-  const katakanaQuestions = katakanaPairs.map((item, index) => {
-    const distractors = katakanaSounds.filter(sound => sound !== item.sound);
+  const kanaGroups = ["hiragana", "katakana"].flatMap(script => kanaBaseGroups.map(group => ({
+    id: `${script}:${group.id}`,
+    title: `${script === "hiragana" ? "平假名" : "片假名"} · ${group.title}`,
+    script,
+    pairs: group.pairs.map(pair => [script === "hiragana" ? pair[0] : pair[1], pair[2]])
+  })));
+  const kanaPairs = kanaGroups.flatMap(group => group.pairs.map(pair => ({
+    groupId: group.id,
+    script: group.script,
+    scriptLabel: group.script === "hiragana" ? "平假名" : "片假名",
+    kana: pair[0],
+    sound: pair[1]
+  })));
+  const kanaSounds = [...new Set(kanaPairs.map(item => item.sound))];
+  const kanaQuestionPool = kanaPairs.map((item, index) => {
+    const distractors = kanaSounds.filter(sound => sound !== item.sound);
     const choices = [item.sound, ...Array.from({ length: 3 }, (_, offset) => distractors[(index * 3 + offset * 5) % distractors.length])];
     const rotation = (index * 3 + 1) % choices.length;
-    return { ...item, id: `katakana:${item.kana}`, options: choices.slice(rotation).concat(choices.slice(0, rotation)) };
+    return {
+      ...item,
+      id: `kana:${item.script}:${item.kana}`,
+      options: choices.slice(rotation).concat(choices.slice(0, rotation), UNKNOWN_ANSWER)
+    };
   });
+  const kanaQuestions = Array.from(
+    { length: kanaQuestionPool.length },
+    (_, index) => kanaQuestionPool[(index * 37 + 11) % kanaQuestionPool.length]
+  );
 
   const lessons = [
     {
@@ -1393,6 +1425,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
   }
   function sanitizeState(raw) {
     const safe = raw && typeof raw === "object" ? raw : {};
+    const placementCompatible = safe.kanaPlacementMode === KANA_PLACEMENT_MODE;
     return {
       ...freshState(), ...safe, version: DATA_VERSION,
       activeDay: Number.isInteger(safe.activeDay) && safe.activeDay >= 0 && safe.activeDay < lessons.length ? safe.activeDay : 0,
@@ -1402,9 +1435,13 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
       lessonAnswers: safe.lessonAnswers && typeof safe.lessonAnswers === "object" ? safe.lessonAnswers : {},
       lessonInputs: safe.lessonInputs && typeof safe.lessonInputs === "object" ? safe.lessonInputs : {},
       lessonParts: safe.lessonParts && typeof safe.lessonParts === "object" ? safe.lessonParts : {},
-      katakanaCurrent: Number.isInteger(safe.katakanaCurrent) && safe.katakanaCurrent >= 0 && safe.katakanaCurrent < katakanaQuestions.length ? safe.katakanaCurrent : 0,
-      katakanaAnswers: safe.katakanaAnswers && typeof safe.katakanaAnswers === "object" ? safe.katakanaAnswers : {},
-      katakanaSkippedGroups: Array.isArray(safe.katakanaSkippedGroups) ? safe.katakanaSkippedGroups.filter(id => katakanaGroups.some(group => group.id === id)) : [],
+      katakanaStarted: placementCompatible ? Boolean(safe.katakanaStarted) : false,
+      katakanaComplete: placementCompatible ? Boolean(safe.katakanaComplete) : false,
+      katakanaCurrent: placementCompatible && Number.isInteger(safe.katakanaCurrent) && safe.katakanaCurrent >= 0 && safe.katakanaCurrent < kanaQuestions.length ? safe.katakanaCurrent : 0,
+      katakanaAnswers: placementCompatible && safe.katakanaAnswers && typeof safe.katakanaAnswers === "object" ? safe.katakanaAnswers : {},
+      katakanaSkippedGroups: placementCompatible && Array.isArray(safe.katakanaSkippedGroups) ? safe.katakanaSkippedGroups.filter(id => kanaGroups.some(group => group.id === id)) : [],
+      katakanaRun: placementCompatible && Number.isInteger(safe.katakanaRun) ? safe.katakanaRun : 1,
+      kanaPlacementMode: KANA_PLACEMENT_MODE,
       mastery: safe.mastery && typeof safe.mastery === "object" ? safe.mastery : {},
       events: Array.isArray(safe.events) ? safe.events.slice(-3000) : []
     };
@@ -1466,8 +1503,8 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     }
     const q = questions.find(x => `assessment:${x.id}` === id);
     if (q) return { id, day: -1, type: q.type, title: `测评 · ${q.skill}`, prompt: q.prompt, answer: q.answer, options: q.options || [], speech: q.speech || "", hint: q.explain };
-    const katakana = katakanaQuestions.find(item => item.id === id);
-    return katakana ? { id, day: -1, type: "choice", title: "片假名摸底", prompt: `片假名「${katakana.kana}」怎么读？`, answer: katakana.sound, options: katakana.options, speech: "", hint: `${katakana.kana} 读 ${katakana.sound}` } : null;
+    const kana = kanaQuestions.find(item => item.id === id);
+    return kana ? { id, day: -1, type: "choice", title: "五十音摸底", prompt: `${kana.scriptLabel}「${kana.kana}」怎么读？`, answer: kana.sound, options: kana.options, speech: "", hint: `${kana.kana} 读 ${kana.sound}` } : null;
   }
   function renderTaskGroup(dayIndex, section, title, description, tasks, stepLabel) {
     if (!tasks?.length) return "";
@@ -1510,7 +1547,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     state.view = view; saveState();
     $$(".view").forEach(el => el.classList.toggle("is-active", el.id === view));
     $$(".nav-btn").forEach(el => el.classList.toggle("is-active", el.dataset.view === view));
-    if (view === "assessment") { syncAssessment(); renderKatakanaPlacement(); }
+    if (view === "assessment") { syncAssessment(); renderKanaPlacement(); }
     if (view === "course") renderCourse();
     if (view === "review") renderReview();
     if (view === "report") renderReport();
@@ -1538,7 +1575,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     if (Number.isInteger(requestedDay) && requestedDay >= 1 && requestedDay <= lessons.length) state.activeDay = requestedDay - 1;
     const requestedPeriod = params.get("period");
     if (["morning", "night"].includes(requestedPeriod)) state.activePeriod = requestedPeriod;
-    if (params.get("test") === "katakana" && !state.katakanaComplete) state.katakanaStarted = true;
+    if (["kana", "katakana"].includes(params.get("test")) && !state.katakanaComplete) state.katakanaStarted = true;
     saveState();
   }
 
@@ -1578,55 +1615,57 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     if (state.assessmentStarted && !state.assessmentComplete) renderQuestion();
     if (state.assessmentComplete) renderResult();
   }
-  function katakanaGroupResults() {
-    return katakanaGroups.map(group => {
-      const items = katakanaQuestions.filter(item => item.groupId === group.id);
+  function kanaGroupResults() {
+    return kanaGroups.map(group => {
+      const items = kanaQuestions.filter(item => item.groupId === group.id);
       const correct = items.filter(item => normalize(state.katakanaAnswers[item.id]) === normalize(item.sound)).length;
       const percent = Math.round(correct / items.length * 100);
       const wrong = items.filter(item => normalize(state.katakanaAnswers[item.id]) !== normalize(item.sound));
-      return { ...group, total: items.length, correct, percent, wrong, passed: percent >= 90 };
+      const unknown = items.filter(item => state.katakanaAnswers[item.id] === UNKNOWN_ANSWER);
+      return { ...group, total: items.length, correct, percent, wrong, unknown, passed: percent >= 90 };
     });
   }
-  function captureKatakanaAnswer(requireAnswer = true) {
-    const question = katakanaQuestions[state.katakanaCurrent];
+  function captureKanaAnswer(requireAnswer = true) {
+    const question = kanaQuestions[state.katakanaCurrent];
     const value = $(`input[name="katakana-answer"]:checked`)?.value || "";
     if (!value && requireAnswer) {
-      $("#katakana-validation").textContent = "请先选择读音。";
+      $("#katakana-validation").textContent = "请选择读音；不会时可以直接选“不知道”。";
       return false;
     }
     if (value) state.katakanaAnswers[question.id] = value;
     saveState();
     return true;
   }
-  function finishKatakanaPlacement() {
-    katakanaQuestions.forEach(question => {
+  function finishKanaPlacement() {
+    kanaQuestions.forEach(question => {
       const value = state.katakanaAnswers[question.id] || "";
       recordAnswer({
         id: question.id,
-        source: `katakana-placement:${state.katakanaRun || 1}`,
+        source: `kana-placement:${state.katakanaRun || 1}`,
         answer: value,
         correct: normalize(value) === normalize(question.sound),
         durationMs: Date.now() - (attemptStarted[question.id] || Date.now())
       });
     });
-    const results = katakanaGroupResults();
+    const results = kanaGroupResults();
     state.katakanaSkippedGroups = results.filter(result => result.passed).map(result => result.id);
     state.katakanaStarted = false;
     state.katakanaComplete = true;
     saveState();
-    renderKatakanaPlacement();
+    renderKanaPlacement();
     $("#katakana-placement").scrollIntoView({ behavior: "smooth", block: "start" });
   }
-  function renderKatakanaPlacement() {
+  function renderKanaPlacement() {
     const host = $("#katakana-test-host");
     if (!host) return;
     if (state.katakanaComplete) {
-      const results = katakanaGroupResults();
+      const results = kanaGroupResults();
       const totalCorrect = results.reduce((sum, result) => sum + result.correct, 0);
+      const totalUnknown = results.reduce((sum, result) => sum + result.unknown.length, 0);
       const passed = results.filter(result => result.passed);
       host.innerHTML = `
-        <div class="katakana-result-head"><div><span class="tag">摸底完成</span><h3>${totalCorrect} / ${katakanaQuestions.length} 个片假名认对</h3><p>${passed.length ? `已自动标记 ${passed.length} 组可跳过；其余组只补错字和相似字。` : "暂不整组跳过；后续只针对错字补课，不要求重背行序。"}</p></div><strong>${Math.round(totalCorrect / katakanaQuestions.length * 100)}%</strong></div>
-        <div class="katakana-group-results">${results.map(result => `<article class="${result.passed ? "is-pass" : "needs-work"}"><div><span>${result.passed ? "可跳过" : "需要补"}</span><strong>${result.title}</strong></div><b>${result.correct} / ${result.total}</b><p>${result.wrong.length ? `待补：${result.wrong.map(item => item.kana).join("、")}` : "本组全部认出"}</p></article>`).join("")}</div>
+        <div class="katakana-result-head"><div><span class="tag">摸底完成</span><h3>${totalCorrect} / ${kanaQuestions.length} 个五十音认对</h3><p>${passed.length ? `已标记 ${passed.length} 组可跳过；其余组只补错字和相似字。` : "暂不整组跳过；后续只针对错字补课，不要求重背行序。"}${totalUnknown ? ` 其中 ${totalUnknown} 题选择了“不知道”。` : ""}</p></div><strong>${Math.round(totalCorrect / kanaQuestions.length * 100)}%</strong></div>
+        <div class="katakana-group-results">${results.map(result => `<article class="${result.passed ? "is-pass" : "needs-work"}"><div><span>${result.passed ? "可跳过" : "需要补"}</span><strong>${result.title}</strong></div><b>${result.correct} / ${result.total}</b><p>${result.wrong.length ? `待补：${result.wrong.map(item => item.kana).join("、")}${result.unknown.length ? `（${result.unknown.length} 个不知道）` : ""}` : "本组全部认出"}</p></article>`).join("")}</div>
         <div class="inline-actions"><button id="retry-katakana" class="btn btn-secondary">重新测试</button><button id="continue-course" class="btn btn-primary">继续平假名课程</button></div>`;
       $("#retry-katakana").addEventListener("click", () => {
         state.katakanaStarted = true;
@@ -1636,43 +1675,43 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
         state.katakanaSkippedGroups = [];
         state.katakanaRun = (state.katakanaRun || 1) + 1;
         saveState();
-        renderKatakanaPlacement();
+        renderKanaPlacement();
       });
       $("#continue-course").addEventListener("click", () => showView("course"));
       return;
     }
     if (!state.katakanaStarted) {
-      host.innerHTML = `<div class="katakana-start"><div><span class="tag">约 5–8 分钟</span><h3>46 个片假名清音逐个摸底</h3><p>只考随机识别，不考行序。每组达到 90% 才跳过，答错字符会进入动态复习。</p></div><button id="start-katakana" class="btn btn-primary">开始片假名测试</button></div>`;
+      host.innerHTML = `<div class="katakana-start"><div><span class="tag">约 10–15 分钟</span><h3>92 题完整五十音摸底</h3><p>46 个清音的平假名和片假名都会测，不考行序。不会就选“不知道”，每组达到 90% 才建议跳过。</p></div><button id="start-katakana" class="btn btn-primary">开始五十音测试</button></div>`;
       $("#start-katakana").addEventListener("click", () => {
         state.katakanaStarted = true;
         state.katakanaComplete = false;
         state.katakanaCurrent = 0;
         state.katakanaAnswers = {};
         saveState();
-        renderKatakanaPlacement();
+        renderKanaPlacement();
       });
       return;
     }
-    const question = katakanaQuestions[state.katakanaCurrent];
+    const question = kanaQuestions[state.katakanaCurrent];
     const saved = state.katakanaAnswers[question.id] || "";
     const done = Object.keys(state.katakanaAnswers).length;
     startAttempt(question.id);
     host.innerHTML = `
-      <div class="katakana-progress"><div><span>片假名摸底</span><strong>${state.katakanaCurrent + 1} / ${katakanaQuestions.length}</strong></div><div class="progress-track"><span style="width:${(state.katakanaCurrent + 1) / katakanaQuestions.length * 100}%"></span></div><small>已保存 ${done} 题</small></div>
-      <article class="question-card katakana-question"><p class="question-kicker">${katakanaGroups.find(group => group.id === question.groupId)?.title}</p><h2 lang="ja">${question.kana}</h2><div class="question-prompt">这个片假名怎么读？</div><div class="options">${question.options.map((option, index) => `<label class="option"><input type="radio" name="katakana-answer" value="${option}" ${saved === option ? "checked" : ""}><span><strong>${String.fromCharCode(65 + index)}.</strong> ${option}</span></label>`).join("")}</div><p id="katakana-validation" class="validation" role="alert"></p></article>
-      <div class="quiz-actions"><button id="katakana-prev" class="btn btn-secondary" ${state.katakanaCurrent === 0 ? "disabled" : ""}>上一题</button><button id="katakana-next" class="btn btn-primary">${state.katakanaCurrent === katakanaQuestions.length - 1 ? "提交测试" : "下一题"}</button></div>`;
+      <div class="katakana-progress"><div><span>完整五十音摸底</span><strong>${state.katakanaCurrent + 1} / ${kanaQuestions.length}</strong></div><div class="progress-track"><span style="width:${(state.katakanaCurrent + 1) / kanaQuestions.length * 100}%"></span></div><small>已保存 ${done} 题 · 不会可以选“不知道”</small></div>
+      <article class="question-card katakana-question"><p class="question-kicker">${kanaGroups.find(group => group.id === question.groupId)?.title}</p><h2 lang="ja">${question.kana}</h2><div class="question-prompt">这个${question.scriptLabel}怎么读？</div><div class="options">${question.options.map((option, index) => `<label class="option${option === UNKNOWN_ANSWER ? " option-unknown" : ""}"><input type="radio" name="katakana-answer" value="${option}" ${saved === option ? "checked" : ""}><span><strong>${String.fromCharCode(65 + index)}.</strong> ${option}</span></label>`).join("")}</div><p id="katakana-validation" class="validation" role="alert"></p></article>
+      <div class="quiz-actions"><button id="katakana-prev" class="btn btn-secondary" ${state.katakanaCurrent === 0 ? "disabled" : ""}>上一题</button><button id="katakana-next" class="btn btn-primary">${state.katakanaCurrent === kanaQuestions.length - 1 ? "提交测试" : "下一题"}</button></div>`;
     $("#katakana-prev").addEventListener("click", () => {
-      captureKatakanaAnswer(false);
+      captureKanaAnswer(false);
       state.katakanaCurrent = Math.max(0, state.katakanaCurrent - 1);
       saveState();
-      renderKatakanaPlacement();
+      renderKanaPlacement();
     });
     $("#katakana-next").addEventListener("click", () => {
-      if (!captureKatakanaAnswer()) return;
-      if (state.katakanaCurrent === katakanaQuestions.length - 1) { finishKatakanaPlacement(); return; }
+      if (!captureKanaAnswer()) return;
+      if (state.katakanaCurrent === kanaQuestions.length - 1) { finishKanaPlacement(); return; }
       state.katakanaCurrent += 1;
       saveState();
-      renderKatakanaPlacement();
+      renderKanaPlacement();
     });
   }
   function renderQuestion() {
