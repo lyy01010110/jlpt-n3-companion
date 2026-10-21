@@ -485,6 +485,17 @@ p { margin: 0 0 12px; }
 .period-switch button span, .period-switch button strong { display: block; }
 .period-switch button strong { font-size: 11px; }
 .period-switch button.is-active { border-color: var(--page-brand); background: var(--page-brand-soft); color: var(--page-brand); }
+.intensity-status {
+  display: grid;
+  gap: 2px;
+  min-width: 154px;
+  padding: 7px 10px;
+  border-left: 3px solid var(--page-border);
+  color: var(--page-text-muted);
+}
+.intensity-status span { font-size: 11px; font-weight: 700; }
+.intensity-status strong { font-size: 12px; }
+.intensity-status.is-active { border-left-color: var(--page-brand); color: var(--page-brand); }
 .lesson-shell.period-morning [data-period-section="night"],
 .lesson-shell.period-night [data-period-section="morning"] { display: none; }
 .lesson-shell { margin-top: 28px; margin-bottom: 72px; border: 1px solid var(--page-border); border-radius: var(--radius); background: white; overflow: hidden; }
@@ -551,6 +562,16 @@ p { margin: 0 0 12px; }
 .task-stack { display: grid; gap: 14px; margin-top: 18px; }
 .subtask-card { padding: 16px; border: 1px solid var(--page-border); border-radius: 10px; background: white; }
 .subtask-kicker { margin-bottom: 6px; color: var(--page-text-muted); font-size: 12px; }
+.task-level {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--page-brand-soft);
+  color: var(--page-brand);
+  font-size: 10px;
+  font-weight: 800;
+}
 .subtask-card h4 { margin: 0 0 8px; font-size: 16px; }
 .practice.compact { margin-bottom: 12px; }
 .audio-box.compact { margin: 10px 0 12px; padding: 12px 14px; }
@@ -742,6 +763,8 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
   .day-overview dl { grid-template-columns: 1fr; gap: 10px; }
   .course-period-control { top: 112px; align-items: stretch; flex-direction: column; gap: 8px; }
   .course-period-control > p { padding: 0 4px; }
+  .intensity-status { min-width: 0; border-left: 0; border-top: 3px solid var(--page-border); }
+  .intensity-status.is-active { border-top-color: var(--page-brand); }
   .period-switch { grid-template-columns: 1fr 1fr; width: 100%; }
   .period-switch button { min-width: 0; }
   .lesson-head, .lesson-finish, .part-finish, .session-banner { align-items: flex-start; flex-direction: column; }
@@ -979,11 +1002,13 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
   const DATA_VERSION = 3;
   const KANA_PLACEMENT_MODE = "gojuon-v2";
   const UNKNOWN_ANSWER = "不知道";
+  const INTENSIVE_START_DATE = "2026-10-22";
   const defaultState = {
     version: DATA_VERSION,
     view: "home", assessmentStarted: false, assessmentComplete: false,
     currentQuestion: 0, answers: {}, completedDays: [], activeDay: 0,
     activePeriod: "morning",
+    courseIntensity: "intensive", intensiveStartDate: INTENSIVE_START_DATE,
     lessonAnswers: {}, lessonInputs: {}, lessonParts: {},
     mastery: {}, events: [], assessmentRecorded: false, assessmentRun: 1,
     katakanaStarted: false, katakanaComplete: false, katakanaCurrent: 0,
@@ -1493,6 +1518,104 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     ]
   });
 
+  // ── 强化课程：在假名底座上逐日加入词汇、句型、短阅读与 JLPT 桥接 ──
+  const intensiveModules = [
+    {
+      title: "词汇与句子骨架",
+      description: "从单个假名切换到真实词汇和最短句，开始建立读句速度。",
+      checklist: ["完成 5 题强化挑战", "把假名识别放进真实词汇", "用最短句确认「は / です」的作用"],
+      drills: [
+        { level: "N5 基础", type: "choice", prompt: "「ここはいえです」最自然的意思是？", options: ["这里是家", "这是蓝色", "早上好", "请进"], answer: "这里是家", ok: "正确。ここ = 这里，いえ = 家。", bad: "逐块读：ここ / は / いえ / です。", hint: "先找 ここ 和 いえ。" },
+        { level: "N5 基础", type: "choice", prompt: "句子「わたしは学生です」里提示主题的是？", options: ["は", "を", "に", "で"], answer: "は", ok: "正确。这里的 は 提示句子主题。", bad: "「わたしは」先把“我”设为主题。", hint: "写作 は，在这里读 wa。" },
+        { level: "词汇", type: "choice", prompt: "哪一个词表示“家”？", options: ["いえ", "あお", "かお", "ここ"], answer: "いえ", ok: "正确。いえ = 家。", bad: "いえ 是“家”。", hint: "逐字读 i-e。" },
+        { level: "输入", type: "input", prompt: "输入日语判断句末的礼貌表达「desu」。", answer: "です", ok: "输入正确。", bad: "desu 对应「です」。", hint: "输入法键入 desu。" },
+        { level: "短阅读", type: "choice", prompt: "「ここは あおい いえです。」哪项正确？", options: ["这里是蓝色的房子", "这里没有房子", "房子在早上", "这是我的脸"], answer: "这里是蓝色的房子", ok: "正确。先抓 ここ、あおい、いえ。", bad: "关键词：ここ = 这里，あおい = 蓝色的，いえ = 家。", hint: "按词块而不是逐个翻译。" }
+      ]
+    },
+    {
+      title: "助词与高频动作",
+      description: "把已认识的文字放进「谁做什么」的句子，开始形成阅读骨架。",
+      checklist: ["完成 5 题强化挑战", "区分 は / を / に", "记住 3 个高频动作词"],
+      drills: [
+        { level: "N5 基础", type: "choice", prompt: "「わたしは すしを たべます」表示？", options: ["我吃寿司", "我买寿司", "我喜欢早晨", "我去学校"], answer: "我吃寿司", ok: "正确。すしを たべます = 吃寿司。", bad: "たべます 是“吃”，を 标出动作对象。", hint: "先抓 すし 和 たべます。" },
+        { level: "N5 基础", type: "choice", prompt: "「学校に いきます」中表示目的地的是？", options: ["に", "を", "は", "の"], answer: "に", ok: "正确。に 可标示移动目的地。", bad: "学校に = 去往学校。", hint: "和 いきます 搭配。" },
+        { level: "词汇", type: "choice", prompt: "哪一个动词表示“看”？", options: ["みます", "ききます", "たべます", "いきます"], answer: "みます", ok: "正确。みます = 看。", bad: "みます 表示“看”。", hint: "电影、电视常和它搭配。" },
+        { level: "输入", type: "input", prompt: "输入“去”的礼貌形「ikimasu」。", answer: "いきます", ok: "输入正确。", bad: "ikimasu 对应「いきます」。", hint: "输入法键入 ikimasu。" },
+        { level: "N4 桥接", type: "choice", prompt: "「あした 学校に いきます。」最自然的意思是？", options: ["明天去学校", "昨天去了学校", "今天不去学校", "学校很安静"], answer: "明天去学校", ok: "正确。あした = 明天。", bad: "抓时间词 あした，再看 いきます。", hint: "句末是非过去肯定。" }
+      ]
+    },
+    {
+      title: "形容词与肯定否定",
+      description: "从单词识别进到句子变形，训练考试常见的正误判断。",
+      checklist: ["完成 5 题强化挑战", "区分现在肯定与否定", "完成一段两句短阅读"],
+      drills: [
+        { level: "N5 基础", type: "choice", prompt: "「この本は おもしろいです」表示？", options: ["这本书很有趣", "这本书很贵", "这不是书", "我不看书"], answer: "这本书很有趣", ok: "正确。おもしろい = 有趣。", bad: "关键词是 おもしろい。", hint: "この本 = 这本书。" },
+        { level: "N4 桥接", type: "choice", prompt: "「きょうは さむくないです」表示？", options: ["今天不冷", "今天很冷", "昨天不冷", "明天很热"], answer: "今天不冷", ok: "正确。〜くない 表示い形容词否定。", bad: "さむい → さむくない。", hint: "注意 ない。" },
+        { level: "词汇", type: "choice", prompt: "哪一个词表示“安静的”？", options: ["しずか", "にぎやか", "おおきい", "あたらしい"], answer: "しずか", ok: "正确。しずか = 安静。", bad: "しずか 是な形容词。", hint: "和热闹相反。" },
+        { level: "输入", type: "input", prompt: "输入“不是学生”：学生ではありません。只填否定部分。", answer: "ではありません", ok: "输入正确。", bad: "礼貌否定是「ではありません」。", hint: "输入 dewaarimasen。" },
+        { level: "短阅读", type: "choice", prompt: "「この町は しずかです。でも、駅は にぎやかです。」哪项正确？", options: ["小镇安静，但车站热闹", "小镇和车站都安静", "车站很远", "小镇没有车站"], answer: "小镇安静，但车站热闹", ok: "正确。でも 表示转折。", bad: "前句 しずか，后句 にぎやか，中间 でも 转折。", hint: "对比两个形容词。" }
+      ]
+    },
+    {
+      title: "时间、原因与连接",
+      description: "进入 N4 到 N3 的句间关系，开始根据连接词理解整段意思。",
+      checklist: ["完成 5 题强化挑战", "区分 から / ので", "完成因果关系判断"],
+      drills: [
+        { level: "N4 桥接", type: "choice", prompt: "「雨ですから、出かけません。」表示？", options: ["因为下雨，所以不出门", "虽然下雨，但要出门", "出门后下雨", "不知道是否下雨"], answer: "因为下雨，所以不出门", ok: "正确。から 给出原因。", bad: "前半是原因，后半是结果。", hint: "先看 から。" },
+        { level: "N4 桥接", type: "choice", prompt: "「時間がないので、急ぎます。」最自然的意思是？", options: ["因为没时间，所以赶快", "因为有时间，所以休息", "虽然没时间，但不着急", "到时间后再出发"], answer: "因为没时间，所以赶快", ok: "正确。ので 连接原因和结果。", bad: "時間がない = 没时间，急ぎます = 赶快。", hint: "ので 前面是原因。" },
+        { level: "词汇", type: "choice", prompt: "哪一个词表示“准备”？", options: ["じゅんび", "よてい", "りゆう", "けっか"], answer: "じゅんび", ok: "正确。じゅんび = 准备。", bad: "じゅんび 表示准备。", hint: "出发前要做的事。" },
+        { level: "N3 桥接", type: "choice", prompt: "「日本へ行くために、日本語を勉強しています。」表示？", options: ["为了去日本而学习日语", "去了日本以后才学日语", "因为不会日语所以不去日本", "在日本教日语"], answer: "为了去日本而学习日语", ok: "正确。〜ために 可表示目的。", bad: "前项是目标，后项是为目标采取的行动。", hint: "这里的 ために 是“为了”。" },
+        { level: "输入", type: "input", prompt: "输入表示原因的连接词「node」。", answer: "ので", ok: "输入正确。", bad: "node 对应「ので」。", hint: "输入法键入 node。" }
+      ]
+    },
+    {
+      title: "变化、决定与 N3 核心句型",
+      description: "正式接入 N3 高频表达，并按表现决定是否开放 N2 预览题。",
+      checklist: ["完成 N3 句型辨析", "区分 ようになる / ことにする", "达到门槛后尝试 N2 预览"],
+      drills: [
+        { level: "N3 核心", type: "choice", prompt: "「日本語が 話せるようになりました。」表示？", options: ["变得会说日语了", "决定不说日语", "一直都会说日语", "想听别人说日语"], answer: "变得会说日语了", ok: "正确。〜ようになる 表示能力或状态变化。", bad: "关注“从不会到会”的变化。", hint: "なる = 变成。" },
+        { level: "N3 核心", type: "choice", prompt: "「毎日、日本語を勉強することにしました。」表示？", options: ["决定每天学习日语", "每天不得不学习日语", "忘记学习日语", "以前每天都学日语"], answer: "决定每天学习日语", ok: "正确。〜ことにする 表示自己作出决定。", bad: "这是说话人主动决定。", hint: "しました 表示决定已经作出。" },
+        { level: "N3 核心", type: "choice", prompt: "「忘れないように、メモします。」表示？", options: ["为了不忘而记笔记", "忘记后才记笔记", "因为没有笔记所以忘了", "不想看笔记"], answer: "为了不忘而记笔记", ok: "正确。〜ように 可表示目标。", bad: "忘れない 是“不忘”，后面是为此采取的动作。", hint: "先看否定形 忘れない。" },
+        { level: "短阅读", type: "choice", prompt: "「前は漢字が読めませんでした。今は少し読めるようになりました。」哪项正确？", options: ["以前不会读汉字，现在稍微会了", "以前和现在都不会", "以前比现在读得好", "现在完全不会读"], answer: "以前不会读汉字，现在稍微会了", ok: "正确。前后状态发生变化。", bad: "前句 ませんでした，后句 ようになりました。", hint: "比较 前は 和 今は。" },
+        { level: "N2 预览", gate: "n2", type: "choice", prompt: "「日本語が話せるからといって、漢字も読めるわけではない。」表示？", options: ["会说日语并不意味着也会读汉字", "只要会汉字就一定会说日语", "不会说日语但会读汉字", "日语和汉字完全没有关系"], answer: "会说日语并不意味着也会读汉字", ok: "正确。〜わけではない 表示并非当然如此。", bad: "前项成立，不代表后项必然成立。", hint: "抓住 からといって 和 わけではない。" }
+      ]
+    },
+    {
+      title: "N3 短阅读与 N2 前置",
+      description: "把词汇、句型和连接关系放进小段落，训练考试式信息定位。",
+      checklist: ["完成 2 段短阅读", "先定位连接词再作答", "达到门槛后完成 N2 推断题"],
+      drills: [
+        { level: "N3 阅读", type: "choice", prompt: "「電車が遅れたため、会議に間に合いませんでした。」原因是什么？", options: ["电车晚点", "会议取消", "忘记时间", "走错了路"], answer: "电车晚点", ok: "正确。ため 前是原因。", bad: "电车晚点导致没赶上会议。", hint: "定位 ため 前面的内容。" },
+        { level: "N3 阅读", type: "choice", prompt: "「この店は駅から遠い。しかし、料理がおいしいので、客が多い。」哪项正确？", options: ["店虽远但客人多", "店很近且没有客人", "料理不好吃", "客人都在车站"], answer: "店虽远但客人多", ok: "正确。しかしか提示转折，ので提示原因。", bad: "远是缺点，但好吃带来很多客人。", hint: "先找 しかし 和 ので。" },
+        { level: "N3 词汇", type: "choice", prompt: "「確認する」最接近哪个意思？", options: ["确认", "拒绝", "比较", "说明"], answer: "确认", ok: "正确。確認する = 确认。", bad: "確認する 表示检查并确认。", hint: "考试说明中很常见。" },
+        { level: "N3 句型", type: "choice", prompt: "「忙しくても、復習するつもりです。」表示？", options: ["即使忙也打算复习", "因为忙所以不复习", "复习后会变忙", "不知道是否要复习"], answer: "即使忙也打算复习", ok: "正确。〜ても 表示让步，つもり 表示打算。", bad: "忙并没有改变“打算复习”。", hint: "关注 ても 和 つもり。" },
+        { level: "N2 预览", gate: "n2", type: "choice", prompt: "「努力したからこそ、合格できた。」强调什么？", options: ["正因为努力才通过", "虽然努力但没通过", "无需努力也能通过", "通过后才开始努力"], answer: "正因为努力才通过", ok: "正确。〜からこそ 强调正是该原因。", bad: "这里强化“努力”与“通过”的因果关系。", hint: "こそ 带有强调。" }
+      ]
+    }
+  ];
+
+  function beijingDateKey() {
+    return new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  }
+  function isIntensiveCourseActive() {
+    const preview = new URLSearchParams(location.search).get("previewIntensive") === "1";
+    return state.courseIntensity === "intensive" && (preview || beijingDateKey() >= state.intensiveStartDate);
+  }
+  function n2PreviewReady() {
+    const recent = state.events.filter(event => event.source === "course").slice(-60);
+    if (state.completedDays.length < 2 || recent.length < 30) return false;
+    const accuracy = recent.filter(event => event.correct).length / recent.length;
+    const hintRate = recent.filter(event => event.hint).length / recent.length;
+    return accuracy >= 0.9 && hintRate <= 0.15;
+  }
+  function intensiveModule(day) {
+    const module = intensiveModules[Math.min(day, intensiveModules.length - 1)];
+    return {
+      ...module,
+      drills: module.drills.filter(task => task.gate !== "n2" || n2PreviewReady())
+    };
+  }
+
   // ── 个性化课件：根据五十音摸底结果生成 ──────────────────────────
   function buildPersonalizedCourse() {
     const results = kanaGroupResults();
@@ -1659,8 +1782,18 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
   function activePack(day) {
     const { lessons, packs } = activeCourse();
     const pack = packs[day] || { morningChecklist: [], nightChecklist: [], visualDrills: [], inputDrills: [], phraseDrills: [], reviewDrills: [], listenDrills: [], wrapUp: [] };
-    if (packs === defaultPacks) return { ...pack, rapidDrills: buildRapidDrills(day) };
-    return { ...pack, rapidDrills: buildPersonalizedRapidDrills(lessons[day], day) };
+    const base = packs === defaultPacks
+      ? { ...pack, rapidDrills: buildRapidDrills(day) }
+      : { ...pack, rapidDrills: buildPersonalizedRapidDrills(lessons[day], day) };
+    if (!isIntensiveCourseActive()) return { ...base, challengeDrills: [] };
+    const intensive = intensiveModule(day);
+    return {
+      ...base,
+      morningChecklist: [...base.morningChecklist, ...intensive.checklist],
+      challengeDrills: intensive.drills,
+      intensiveTitle: intensive.title,
+      intensiveDescription: intensive.description
+    };
   }
   function buildPersonalizedRapidDrills(lesson, day) {
     if (!lesson) return [];
@@ -1728,6 +1861,8 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
       ...freshState(), ...safe, version: DATA_VERSION,
       activeDay: Number.isInteger(safe.activeDay) && safe.activeDay >= 0 && safe.activeDay < defaultLessons.length ? safe.activeDay : 0,
       activePeriod: ["morning", "night"].includes(safe.activePeriod) ? safe.activePeriod : "morning",
+      courseIntensity: ["standard", "intensive"].includes(safe.courseIntensity) ? safe.courseIntensity : "intensive",
+      intensiveStartDate: /^\d{4}-\d{2}-\d{2}$/.test(safe.intensiveStartDate || "") ? safe.intensiveStartDate : INTENSIVE_START_DATE,
       answers: safe.answers && typeof safe.answers === "object" ? safe.answers : {},
       completedDays: Array.isArray(safe.completedDays) ? [...new Set(safe.completedDays.filter(n => Number.isInteger(n) && n >= 0 && n < 6))] : [],
       lessonAnswers: safe.lessonAnswers && typeof safe.lessonAnswers === "object" ? safe.lessonAnswers : {},
@@ -1757,9 +1892,9 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
   function lessonPack(day) { return activePack(day); }
   function periodTaskIds(day, period) {
     const pack = lessonPack(day);
-    const sections = period === "night" ? ["listenx", "wrap"] : ["rapid", "visual", "inputx", "phrase", "review"];
+    const sections = period === "night" ? ["listenx", "wrap"] : ["rapid", "visual", "inputx", "phrase", "review", "challenge"];
     const ids = period === "night" ? [itemId(day, "listen")] : [itemId(day, "choice"), itemId(day, "input")];
-    const sourceKeys = { rapid: "rapidDrills", visual: "visualDrills", inputx: "inputDrills", phrase: "phraseDrills", review: "reviewDrills", listenx: "listenDrills", wrap: "wrapUp" };
+    const sourceKeys = { rapid: "rapidDrills", visual: "visualDrills", inputx: "inputDrills", phrase: "phraseDrills", review: "reviewDrills", challenge: "challengeDrills", listenx: "listenDrills", wrap: "wrapUp" };
     sections.forEach(section => pack[sourceKeys[section]].forEach((_, index) => ids.push(lessonTaskId(day, section, index))));
     return ids;
   }
@@ -1779,6 +1914,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
       inputx: pack.inputDrills,
       phrase: pack.phraseDrills,
       review: pack.reviewDrills,
+      challenge: pack.challengeDrills,
       listenx: pack.listenDrills,
       wrap: pack.wrapUp
     };
@@ -1790,11 +1926,11 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
       const lesson = activeLessons()[Number(match[1]) - 1], type = match[2], task = lesson[type];
       return { id, day: Number(match[1]) - 1, type, title: `${lesson.day} · ${type === "choice" ? "音形选择" : type === "input" ? "基础输入" : "听辨"}`, prompt: task.prompt, answer: task.answer, options: task.options || [], speech: task.speech || "", hint: type === "input" ? task.hint : "" };
     }
-    const extra = /^lesson:(\d+):(rapid|visual|inputx|phrase|review|listenx|wrap):(\d+)$/.exec(id);
+    const extra = /^lesson:(\d+):(rapid|visual|inputx|phrase|review|challenge|listenx|wrap):(\d+)$/.exec(id);
     if (extra) {
       const day = Number(extra[1]) - 1, section = extra[2], index = Number(extra[3]);
       const task = lessonTaskLookup(day, section, index);
-      const titles = { rapid: "双向快速回忆", visual: "辨形加练", inputx: "输入加练", phrase: "词例解码", review: "错项回收", listenx: "听辨加练", wrap: "收尾小测" };
+      const titles = { rapid: "双向快速回忆", visual: "辨形加练", inputx: "输入加练", phrase: "词例解码", review: "错项回收", challenge: "强化挑战", listenx: "听辨加练", wrap: "收尾小测" };
       return task ? { id, day, type: task.type === "listen" ? "listen" : task.type, title: `${activeLessons()[day].day} · ${titles[section]}`, prompt: task.prompt, answer: task.answer, options: task.options || [], speech: task.speech || "", hint: task.hint || "" } : null;
     }
     const q = questions.find(x => `assessment:${x.id}` === id);
@@ -1807,7 +1943,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     return `<div class="lesson-step lesson-group"><div class="step-label">${stepLabel}</div><h3>${title}</h3><p>${description}</p><div class="task-stack">${tasks.map((task, taskIndex) => {
       const id = lessonTaskId(dayIndex, section, taskIndex);
       const saved = task.type === "input" ? (state.lessonInputs[id] || "") : (state.lessonAnswers[id] || "");
-      return `<article class="subtask-card"><p class="subtask-kicker">练习 ${taskIndex + 1}</p><h4>${task.prompt}</h4>${task.type === "listen" ? `<div class="audio-box compact"><button class="btn btn-secondary btn-small" type="button" data-play-task="${id}">播放</button><span>可重复播放。</span></div>` : ""}${task.type === "input" ? `<input class="text-answer subtask-input" lang="ja" autocomplete="off" data-task-input="${id}" placeholder="${escapeHtml(task.hint || "")}" value="${escapeHtml(saved)}">` : `<fieldset class="practice compact">${task.options.map(option => `<label><input type="radio" name="${id}" value="${escapeHtml(option)}" ${saved === option ? "checked" : ""}> ${escapeHtml(option)}</label>`).join("")}</fieldset>`}<div class="subtask-actions">${task.hint ? `<button type="button" class="btn btn-quiet btn-small" data-show-hint="${id}">提示</button>` : ""}<button type="button" class="btn btn-secondary btn-small" data-check-task="${id}">检查本题</button></div><p id="feedback-${domSafeId(id)}" class="feedback" role="status"></p></article>`;
+      return `<article class="subtask-card"><p class="subtask-kicker">练习 ${taskIndex + 1}${task.level ? `<span class="task-level">${task.level}</span>` : ""}</p><h4>${task.prompt}</h4>${task.type === "listen" ? `<div class="audio-box compact"><button class="btn btn-secondary btn-small" type="button" data-play-task="${id}">播放</button><span>可重复播放。</span></div>` : ""}${task.type === "input" ? `<input class="text-answer subtask-input" lang="ja" autocomplete="off" data-task-input="${id}" placeholder="${escapeHtml(task.hint || "")}" value="${escapeHtml(saved)}">` : `<fieldset class="practice compact">${task.options.map(option => `<label><input type="radio" name="${id}" value="${escapeHtml(option)}" ${saved === option ? "checked" : ""}> ${escapeHtml(option)}</label>`).join("")}</fieldset>`}<div class="subtask-actions">${task.hint ? `<button type="button" class="btn btn-quiet btn-small" data-show-hint="${id}">提示</button>` : ""}<button type="button" class="btn btn-secondary btn-small" data-check-task="${id}">检查本题</button></div><p id="feedback-${domSafeId(id)}" class="feedback" role="status"></p></article>`;
     }).join("")}</div></div>`;
   }
   function recordAnswer({ id, source, answer, correct, hint = false, durationMs = 0 }) {
@@ -2101,11 +2237,14 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     const lesson = lessonsNow[state.activeDay], parts = state.lessonParts[state.activeDay] || {};
     const morningProgress = periodProgress(state.activeDay, "morning");
     const nightProgress = periodProgress(state.activeDay, "night");
+    const intensiveActive = isIntensiveCourseActive();
+    const morningTime = intensiveActive ? "30–40 分钟" : lesson.morning;
+    const nightTime = intensiveActive ? "20–25 分钟" : lesson.night;
     const pet = currentCompanionLevel();
     const courseLines = ["今天系统学 あ行和か行；完成快且准确就可以前进。", "今天系统学 さ行和た行，重点单独记 shi、chi、tsu。", "字符会变多，但我们只抓相似字和最短回应。", "清音快收齐了，给每个假名留一拍。", "小っ是一拍安静的停顿，我们一起听清。", "今天随机复现全部平假名，不依赖顺序猜答案。"];
     const companionLine = courseLines[state.activeDay % courseLines.length];
-    $("#day-overview").innerHTML = `<div class="day-overview-main"><dl><div><dt>今日重点</dt><dd>${lesson.focus}</dd></div><div><dt>上午 · 无声</dt><dd>${lesson.morning}</dd></div><div><dt>晚间 · 有声</dt><dd>${lesson.night}</dd></div></dl><div class="part-status"><span class="${parts.morning ? "done" : ""}">上午 ${parts.morning ? "已完成" : "待完成"}</span><span class="${parts.night ? "done" : ""}">晚间 ${parts.night ? "已完成" : "待完成"}</span></div></div><aside class="course-companion">${renderCompanionAvatar(pet, "avatar-compact")}<div><strong>${pet.name} · 陪学提示</strong><p>${companionLine}</p></div></aside>`;
-    $("#course-period-control").innerHTML = `<div class="period-switch" role="tablist" aria-label="学习时段"><button type="button" role="tab" aria-selected="${state.activePeriod === "morning"}" class="${state.activePeriod === "morning" ? "is-active" : ""}" data-period="morning"><span>上午 · 无声</span><strong>${morningProgress.done} / ${morningProgress.total} 题</strong></button><button type="button" role="tab" aria-selected="${state.activePeriod === "night"}" class="${state.activePeriod === "night" ? "is-active" : ""}" data-period="night"><span>晚间 · 有声</span><strong>${nightProgress.done} / ${nightProgress.total} 题</strong></button></div><p>${state.activePeriod === "morning" ? "当前仅显示上午课，不会播放声音。" : "请打开声音；录音仅保留在当前页面内存中。"}</p>`;
+    $("#day-overview").innerHTML = `<div class="day-overview-main"><dl><div><dt>今日重点</dt><dd>${lesson.focus}</dd></div><div><dt>上午 · 无声</dt><dd>${morningTime}</dd></div><div><dt>晚间 · 有声</dt><dd>${nightTime}</dd></div></dl><div class="part-status"><span class="${parts.morning ? "done" : ""}">上午 ${parts.morning ? "已完成" : "待完成"}</span><span class="${parts.night ? "done" : ""}">晚间 ${parts.night ? "已完成" : "待完成"}</span></div></div><aside class="course-companion">${renderCompanionAvatar(pet, "avatar-compact")}<div><strong>${pet.name} · 陪学提示</strong><p>${companionLine}</p></div></aside>`;
+    $("#course-period-control").innerHTML = `<div class="period-switch" role="tablist" aria-label="学习时段"><button type="button" role="tab" aria-selected="${state.activePeriod === "morning"}" class="${state.activePeriod === "morning" ? "is-active" : ""}" data-period="morning"><span>上午 · 无声</span><strong>${morningProgress.done} / ${morningProgress.total} 题</strong></button><button type="button" role="tab" aria-selected="${state.activePeriod === "night"}" class="${state.activePeriod === "night" ? "is-active" : ""}" data-period="night"><span>晚间 · 有声</span><strong>${nightProgress.done} / ${nightProgress.total} 题</strong></button></div><div class="intensity-status ${intensiveActive ? "is-active" : ""}"><span>强化模式</span><strong>${intensiveActive ? "已启用 · N2 按表现解锁" : "10 月 22 日启用"}</strong></div><p>${state.activePeriod === "morning" ? "当前仅显示上午课，不会播放声音。" : "请打开声音；录音仅保留在当前页面内存中。"}</p>`;
     $$("[data-period]", $("#course-period-control")).forEach(btn => btn.addEventListener("click", () => {
       state.activePeriod = btn.dataset.period;
       saveState();
@@ -2123,13 +2262,16 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     const parts = state.lessonParts[index] || {};
     const isDone = state.completedDays.includes(index);
     const pack = lessonPack(index);
+    const intensiveActive = isIntensiveCourseActive();
+    const morningTime = intensiveActive ? "30–40 分钟" : lesson.morning;
+    const nightTime = intensiveActive ? "20–25 分钟" : lesson.night;
     $("#lesson-host").className = `lesson-shell period-${state.activePeriod || "morning"}`;
     $("#lesson-host").innerHTML = `
-      <div class="lesson-head"><div><span class="tag">完整互动课件 · ${lesson.day}</span><h2>${lesson.title}</h2></div><span class="lesson-time">${lesson.morning} + ${lesson.night}</span></div>
+      <div class="lesson-head"><div><span class="tag">${intensiveActive ? "强化互动课件" : "完整互动课件"} · ${lesson.day}</span><h2>${lesson.title}</h2></div><span class="lesson-time">${morningTime} + ${nightTime}</span></div>
       <div class="lesson-objectives"><strong>本课目标</strong><p>${lesson.goal}</p><div class="context-grid"><div><b>为什么学</b><p>${lesson.purpose}</p></div><div><b>与 N3 考试的关系</b><p>${lesson.exam}</p></div><div><b>针对这次测评</b><p>${lesson.assessmentLink}</p></div><div><b>易错提醒</b><p>${lesson.trap}</p></div></div></div>
       <div class="lesson-step phrase-step"><div class="step-label">0 · 今日可读内容</div><h3>${lesson.phrase.title}</h3><p>${lesson.phrase.body}</p><div class="example-box"><p lang="ja">${lesson.phrase.example}</p><small>先逐字读准；只有组成假名全部学过后，才加入完整表达。</small></div></div>
       <div data-period-section="morning">
-      <div class="session-banner morning"><strong>上午 · 无声学习（${lesson.morning}）</strong><span>系统认形 · 20 题双向回忆 · 输入与词例解码</span></div>
+      <div class="session-banner morning"><strong>上午 · 无声学习（${morningTime}）</strong><span>${intensiveActive ? "系统认形 · 双向回忆 · 词汇句型 · 短阅读" : "系统认形 · 20 题双向回忆 · 输入与词例解码"}</span></div>
       <div class="lesson-step checklist-step"><div class="step-label">上午安排</div><h3>今天上午要完成什么</h3><ul class="task-checklist">${pack.morningChecklist.map(item => `<li>${item}</li>`).join("")}</ul></div>
       <div class="lesson-step"><div class="step-label">1 · 系统教学</div><h3>${lesson.explainTitle}</h3><p>${lesson.explain}</p>${renderKanaGrid(lesson)}<div class="example-box"><p lang="ja">${lesson.example}</p><small>上午先默读、指认或书写，不播放声音。</small></div></div>
       <div class="lesson-step"><div class="step-label">2 · 音形练习</div><h3>${lesson.choice.prompt}</h3><fieldset class="practice">${lesson.choice.options.map(option => `<label><input type="radio" name="lesson-choice" value="${option}" ${state.lessonAnswers[itemId(index, "choice")] === option ? "checked" : ""}> ${option}</label>`).join("")}</fieldset><button class="btn btn-secondary" id="check-choice">检查答案</button><p id="choice-feedback" class="feedback" role="status"></p></div>
@@ -2139,10 +2281,11 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
       ${renderTaskGroup(index, "inputx", "输入加练", "用输入反向加固视觉识别，别只停在“好像认识”。", pack.inputDrills, "6 · 输入加练")}
       ${renderTaskGroup(index, "phrase", "词例解码", "只使用已学过的假名，逐字读出后再连接词义。", pack.phraseDrills, "7 · 词例解码")}
       ${renderTaskGroup(index, "review", "错项回收", "把最近容易混淆的点再回收一次，防止今天学完明天又忘。", pack.reviewDrills, "8 · 错项回收")}
+      ${renderTaskGroup(index, "challenge", `强化区 · ${pack.intensiveTitle || ""}`, pack.intensiveDescription || "", pack.challengeDrills, "9 · JLPT 强化挑战")}
       <div class="part-finish"><div><strong>上午段状态</strong><p>完成讲解、选择和输入后标记。</p></div><button class="btn ${parts.morning ? "btn-secondary" : "btn-primary"}" data-part="morning">${parts.morning ? "上午已完成 · 取消" : "标记上午完成"}</button></div>
       </div>
       <div data-period-section="night">
-      <div class="session-banner night"><strong>晚间 · 有声学习（${lesson.night}）</strong><span>听辨 · 朗读 · 跟读与回听；准确且流畅即可结束</span></div>
+      <div class="session-banner night"><strong>晚间 · 有声学习（${nightTime}）</strong><span>听辨 · 朗读 · 跟读与回听；准确且流畅即可结束</span></div>
       <div class="lesson-step checklist-step"><div class="step-label">晚间安排</div><h3>今天晚上要完成什么</h3><ul class="task-checklist">${pack.nightChecklist.map(item => `<li>${item}</li>`).join("")}</ul></div>
       <div class="lesson-step"><div class="step-label">4 · 听辨</div><h3>${lesson.listen.prompt}</h3><div class="audio-box"><button class="btn btn-secondary" id="play-listen">播放听辨音</button><span>可重复播放，先不看答案。</span></div><fieldset class="practice">${lesson.listen.options.map(option => `<label><input type="radio" name="lesson-listen" value="${option}" ${state.lessonAnswers[itemId(index, "listen")] === option ? "checked" : ""}> ${option}</label>`).join("")}</fieldset><button class="btn btn-secondary" id="check-listen">检查听辨</button><p id="listen-feedback" class="feedback" role="status"></p></div>
       <div class="lesson-step"><div class="step-label">5 · 朗读与跟读</div><h3>先听示范，再独立朗读，最后跟读</h3><p lang="ja" class="shadow-text">${lesson.shadow}</p><div class="inline-actions"><button class="btn btn-secondary" id="play-model">播放示范</button><button class="btn btn-quiet" id="lesson-record">开始临时录音</button><button class="btn btn-quiet hidden" id="lesson-playback">回放</button></div><p id="record-status" class="feedback">建议：先慢速朗读一遍，再跟着示范读一遍。录音只在当前页面内存中。</p></div>
@@ -2153,8 +2296,8 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
       <div class="lesson-finish"><div><strong>${lesson.day} 完成状态</strong><p>${parts.morning && parts.night ? "上午与晚间均已完成，可以收尾。" : "完成上午与晚间两段后再标记整日完成。"}</p></div><button id="complete-day" class="btn ${isDone ? "btn-secondary" : "btn-primary"}" ${!isDone && !(parts.morning && parts.night) ? "disabled" : ""}>${isDone ? "已完成 · 点击取消" : "标记本日完成"}</button></div>`;
 
     ["choice", "input", "listen"].forEach(type => startAttempt(itemId(index, type)));
-    ["rapid", "visual", "inputx", "phrase", "review", "listenx", "wrap"].forEach(section => {
-      lessonPack(index)[{ rapid: "rapidDrills", visual: "visualDrills", inputx: "inputDrills", phrase: "phraseDrills", review: "reviewDrills", listenx: "listenDrills", wrap: "wrapUp" }[section]].forEach((_, taskIndex) => startAttempt(lessonTaskId(index, section, taskIndex)));
+    ["rapid", "visual", "inputx", "phrase", "review", "challenge", "listenx", "wrap"].forEach(section => {
+      lessonPack(index)[{ rapid: "rapidDrills", visual: "visualDrills", inputx: "inputDrills", phrase: "phraseDrills", review: "reviewDrills", challenge: "challengeDrills", listenx: "listenDrills", wrap: "wrapUp" }[section]].forEach((_, taskIndex) => startAttempt(lessonTaskId(index, section, taskIndex)));
     });
     $("#check-choice").addEventListener("click", () => checkLessonAnswer(index, "choice", $(`input[name="lesson-choice"]:checked`)?.value, "#choice-feedback", lesson.choice.ok, lesson.choice.bad));
     $("#lesson-input").addEventListener("input", e => { state.lessonInputs[index] = e.target.value; saveState(); });
@@ -2171,7 +2314,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     $$("[data-play-task]", $("#lesson-host")).forEach(btn => btn.addEventListener("click", () => { const meta = itemMeta(btn.dataset.playTask); if (meta?.speech) speak(meta.speech); }));
     $$("[data-show-hint]", $("#lesson-host")).forEach(btn => btn.addEventListener("click", () => {
       const meta = itemMeta(btn.dataset.showHint);
-      const match = /^lesson:(\d+):(rapid|visual|inputx|phrase|review|listenx|wrap):(\d+)$/.exec(btn.dataset.showHint);
+      const match = /^lesson:(\d+):(rapid|visual|inputx|phrase|review|challenge|listenx|wrap):(\d+)$/.exec(btn.dataset.showHint);
       const task = match ? lessonTaskLookup(Number(match[1]) - 1, match[2], Number(match[3])) : null;
       hintedThisRender.add(btn.dataset.showHint);
       $(`#feedback-${domSafeId(btn.dataset.showHint)}`).textContent = task?.hint || meta?.hint || "先按今天讲解中的音和值再看一遍。";
