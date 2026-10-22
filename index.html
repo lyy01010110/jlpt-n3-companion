@@ -39,13 +39,25 @@
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html {
+  max-width: 100%;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  overscroll-behavior-x: none;
+}
 body {
   margin: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+  touch-action: pan-y;
   color: var(--page-text);
   background: var(--page-bg);
   font: 14px/1.7 var(--font);
 }
+main, .view { width: 100%; min-width: 0; }
+img, svg, canvas { max-width: 100%; }
 button, input, textarea { font: inherit; }
 button { color: inherit; }
 button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible {
@@ -852,8 +864,16 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
 }
 
 @media (max-width: 560px) {
+  .topbar, .topbar > *, .main-nav, main, .view,
+  .hero > *, .companion-card > *, .page-head > *,
+  .day-overview > *, .course-period-control > *,
+  .lesson-head > *, .lesson-finish > *, .part-finish > *,
+  .weekly-quiz-intro > *, .weekly-quiz-result > *,
+  .report-grid > *, .panel-heading > *, .evolution-report > *,
+  .accessory-heading > * { min-width: 0; }
   .topbar > .btn { display: none; }
-  .brand span:last-child { font-size: 12px; }
+  .brand { overflow: hidden; }
+  .brand span:last-child { min-width: 0; overflow: hidden; font-size: 12px; text-overflow: ellipsis; }
   .main-nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .nav-btn { width: 100%; padding: 7px 3px; font-size: 12px; white-space: nowrap; }
   .hero { width: calc(100% - 24px); margin-top: 12px; padding: 28px 22px; }
@@ -869,7 +889,8 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
   .katakana-start, .katakana-result-head { align-items: flex-start; flex-direction: column; }
   .katakana-group-results { grid-template-columns: 1fr; }
   .quiz-topline { align-items: flex-start; gap: 8px; }
-  .day-tabs { grid-template-columns: repeat(2, 1fr); }
+  .day-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .day-tab { min-width: 0; }
   .day-overview dl { grid-template-columns: 1fr; gap: 10px; }
   .course-period-control { top: 112px; align-items: stretch; flex-direction: column; gap: 8px; }
   .course-period-control > p { padding: 0 4px; }
@@ -882,7 +903,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
   .lesson-head-status > div:nth-child(2) { justify-content: space-between; }
   .lesson-step { padding: 24px 18px; }
   .lesson-objectives, .lesson-head, .lesson-finish { padding-left: 18px; padding-right: 18px; }
-  .kana-row { grid-template-columns: repeat(5, minmax(44px, 1fr)); gap: 5px; }
+  .kana-row { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; }
   .kana-cell { min-height: 66px; }
   .kana-cell strong { font-size: 22px; }
   .context-grid { grid-template-columns: 1fr; }
@@ -890,10 +911,20 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
   .course-progress-map { grid-template-columns: 1fr; }
   .day-progress-bars { grid-template-columns: 1fr; }
   .progress-facts { flex-direction: column; gap: 2px; }
-  .evolution-report { grid-template-columns: 1fr 120px; }
-  .evolution-report .avatar-report { width: 120px; height: 120px; }
+  .panel-heading, .accessory-heading { flex-wrap: wrap; gap: 8px 14px; }
+  .panel-heading > strong { white-space: normal; }
+  .activity-chart { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+  .chart-bars { width: 100%; max-width: 26px; }
+  .chart-total { left: 1px; width: calc(100% - 2px); }
+  .chart-correct { left: 30%; width: 40%; }
+  .chart-day span { font-size: 9px; }
+  .chart-legend { justify-content: flex-start; flex-wrap: wrap; gap: 8px 14px; }
+  .evolution-report { grid-template-columns: minmax(0, 1fr) 96px; gap: 12px; }
+  .evolution-report .avatar-report { width: 96px; height: 96px; }
   .equipment-slots { grid-template-columns: repeat(2, 1fr); }
   .accessory-grid { grid-template-columns: repeat(2, 1fr); }
+  .weak-list > div { grid-template-columns: minmax(0, 1fr) auto; }
+  .weak-list .metric-track { grid-column: 1 / -1; grid-row: 2; }
   .review-card-head { flex-direction: column; }
   .review-actions { align-items: stretch; flex-direction: column-reverse; }
   .review-actions .btn { width: 100%; }
