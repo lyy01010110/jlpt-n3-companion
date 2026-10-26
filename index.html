@@ -551,6 +551,9 @@ p { margin: 0 0 12px; }
   grid-template-columns: repeat(5, minmax(54px, 1fr));
   gap: 8px;
 }
+.vocabulary-grid .kana-row { grid-template-columns: repeat(5, minmax(100px, 1fr)); }
+.vocabulary-grid .kana-cell { padding: 8px; text-align: center; }
+.vocabulary-grid .kana-cell strong { font-size: 18px; overflow-wrap: anywhere; }
 .kana-cell {
   min-height: 76px;
   display: grid;
@@ -904,6 +907,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
   .lesson-step { padding: 24px 18px; }
   .lesson-objectives, .lesson-head, .lesson-finish { padding-left: 18px; padding-right: 18px; }
   .kana-row { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; }
+  .vocabulary-grid .kana-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .kana-cell { min-height: 66px; }
   .kana-cell strong { font-size: 22px; }
   .context-grid { grid-template-columns: 1fr; }
@@ -967,8 +971,8 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
       <div class="hero">
         <div class="hero-copy">
           <p class="eyebrow">本周按掌握度约 35–50 分钟 · 上午无声 · 晚间有声</p>
-          <h1 id="home-title">目标是 N3，第一周先把假名与发音走稳</h1>
-          <p class="lead">为只认识部分假名的学习者设计：先系统学习平假名，每日上午用 20 题双向快速回忆检查掌握度，晚间再听辨和跟读。完成快且准确时可直接前进，不按固定时长拖延。</p>
+          <h1 id="home-title">目标是 N3，本周开始把假名放进真实句子</h1>
+          <p class="lead">承接上周的假名基础，本周依次学习句子骨架、助词、高频动作、肯定否定、原因连接和 N3 核心句型；周六用短阅读与每周测验收尾。</p>
           <div class="hero-actions">
             <button class="btn btn-primary" data-go="course">进入本周课程</button>
           </div>
@@ -1145,13 +1149,14 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
   const KANA_PLACEMENT_MODE = "gojuon-v2";
   const UNKNOWN_ANSWER = "不知道";
   const INTENSIVE_START_DATE = "2026-10-22";
+  const WEEK_TWO_START_DATE = "2026-10-26";
   const defaultState = {
     version: DATA_VERSION,
     view: "home", assessmentStarted: false, assessmentComplete: false,
     currentQuestion: 0, answers: {}, completedDays: [], activeDay: 0,
     activePeriod: "morning",
     courseIntensity: "intensive", intensiveStartDate: INTENSIVE_START_DATE,
-    lessonAnswers: {}, lessonInputs: {}, lessonParts: {},
+    lessonAnswers: {}, lessonInputs: {}, lessonParts: {}, completedDaysByCourse: {},
     mastery: {}, events: [], assessmentRecorded: false, assessmentRun: 1,
     katakanaStarted: false, katakanaComplete: false, katakanaCurrent: 0,
     katakanaAnswers: {}, katakanaSkippedGroups: [], katakanaRun: 1,
@@ -1369,6 +1374,9 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
 
   function renderKanaGrid(dayOrLesson) {
     const lesson = typeof dayOrLesson === "number" ? activeLessons()[dayOrLesson] : dayOrLesson;
+    if (lesson?.reviewItems?.length) {
+      return `<div class="kana-grid vocabulary-grid" aria-label="本课核心词块"><div class="kana-row">${lesson.reviewItems.map(([word, meaning]) => `<div class="kana-cell"><strong lang="ja">${word}</strong><span>${meaning}</span></div>`).join("")}</div></div>`;
+    }
     const group = systematicKana.find(g => lesson?.title?.includes(g.title)) || systematicKana[typeof dayOrLesson === "number" ? dayOrLesson : 0] || systematicKana[0];
     return `<div class="kana-grid" aria-label="${group.title}五十音表">${group.rows.map(row => `<div class="kana-row">${row.map(([kana, romaji]) => `<div class="kana-cell"><strong lang="ja">${kana}</strong><span>${romaji}</span></div>`).join("")}</div>`).join("")}</div>`;
   }
@@ -1737,8 +1745,129 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     }
   ];
 
+  // 第二周：基于“首周已学至周五”的已知进度推进，不虚构手机端错题数据。
+  const weekTwoLessons = [
+    {
+      ...defaultLessons[5],
+      day: "周一", title: "首周收尾：随机假名复现 + 句子骨架",
+      focus: "混合假名 / は / です / 短句分块", goal: "补齐首周闭环，并能读懂最短判断句",
+      purpose: "先确认上周音形基础没有回生，再把假名放进真实句子。",
+      exam: "JLPT 阅读的第一步是快速切分词块，而不是逐字停顿。",
+      assessmentLink: "手机端具体记录暂未同步；本课依据你已学至上周五的进度安排。",
+      trap: "助词「は」在这里读 wa；不要按字面读成 ha。",
+      phrase: { title: "今日句子骨架", body: "「A は B です」表示“A是B”。先按三块读，不必展开语法术语。", example: "ここは いえです。" },
+      explainTitle: "从假名识别进入词块阅读",
+      explain: "先随机认读上周假名，再把「ここ / は / いえ / です」连成一句。阅读时优先找已知词块。",
+      example: "ここ｜は｜いえ｜です",
+      reviewItems: [["ここ", "这里"], ["いえ", "家"], ["あおい", "蓝色的"], ["は", "主题"], ["です", "是"]],
+      speech: "ここは、いえです。",
+      choice: { prompt: "「ここはいえです」最自然的意思是？", options: ["这里是家", "这是早晨", "我去学校", "房子很远"], answer: "这里是家", ok: "正确。ここ = 这里，いえ = 家。", bad: "按词块读：ここ / は / いえ / です。" },
+      input: { prompt: "输入日语判断句末的礼貌表达「desu」。", answer: "です", hint: "输入法键入 desu。" },
+      listen: { prompt: "播放后选择听到的句子。", speech: "ここはいえです", options: ["ここはいえです", "あしたいきます", "きょうはさむいです"], answer: "ここはいえです" },
+      shadow: "ここは いえです。ここは あおい いえです。"
+    },
+    {
+      ...defaultLessons[1],
+      day: "周二", title: "助词与高频动作：谁、做什么、去哪里",
+      focus: "は / を / に / たべます / いきます", goal: "读懂最短动作句并区分三个基础助词",
+      purpose: "建立「主题 + 对象或地点 + 动作」的阅读骨架。",
+      exam: "助词是定位句子成分的路标，先抓路标能明显降低阅读压力。",
+      assessmentLink: "承接周一的「は / です」，今天加入动作和目的地。",
+      trap: "「を」标动作对象，「に」可标移动目的地，不要混用。",
+      phrase: { title: "动作句骨架", body: "「すしを たべます」是吃寿司；「学校に いきます」是去学校。", example: "わたしは すしを たべます。" },
+      explainTitle: "用助词确定词块关系",
+      explain: "先找句末动词，再向前看「を」前的对象和「に」前的目的地。",
+      example: "すしを｜たべます　学校に｜いきます",
+      reviewItems: [["すし", "寿司"], ["たべます", "吃"], ["学校", "学校"], ["いきます", "去"], ["みます", "看"]],
+      speech: "わたしは、すしを、たべます。",
+      choice: { prompt: "「わたしは すしを たべます」表示？", options: ["我吃寿司", "我去学校", "我看书", "我不吃饭"], answer: "我吃寿司", ok: "正确。たべます = 吃。", bad: "抓住 すしを 和 たべます。" },
+      input: { prompt: "输入“去”的礼貌形「ikimasu」。", answer: "いきます", hint: "输入法键入 ikimasu。" },
+      listen: { prompt: "播放后选择听到的动作。", speech: "いきます", options: ["いきます", "みます", "たべます"], answer: "いきます" },
+      shadow: "学校に いきます。すしを たべます。"
+    },
+    {
+      ...defaultLessons[2],
+      day: "周三", title: "形容词与肯定否定：描述人和事物",
+      focus: "おもしろい / しずか / 〜くない / ではありません", goal: "区分现在肯定与否定，并读懂两句对比",
+      purpose: "从名词和动作扩展到状态描述，建立正反判断能力。",
+      exam: "否定形式是选择题高频干扰点，看到「ない / ありません」要立即标记。",
+      assessmentLink: "在前两天句子骨架上加入描述和否定。",
+      trap: "「さむくない」是不冷，不要只看到「さむ」就选冷。",
+      phrase: { title: "描述与否定", body: "い形容词常用「〜くない」否定；名词礼貌否定可用「ではありません」。", example: "きょうは さむくないです。" },
+      explainTitle: "先圈出否定标记",
+      explain: "读句子时先找「ない」或「ありません」，再判断它否定的是哪个词。",
+      example: "さむい → さむくない　学生です → 学生ではありません",
+      reviewItems: [["おもしろい", "有趣"], ["さむい", "冷"], ["しずか", "安静"], ["にぎやか", "热闹"], ["あたらしい", "新的"]],
+      speech: "きょうは、さむくないです。",
+      choice: { prompt: "「きょうは さむくないです」表示？", options: ["今天不冷", "今天很冷", "昨天不冷", "明天很热"], answer: "今天不冷", ok: "正确。〜くない是否定。", bad: "注意句中的「ない」。" },
+      input: { prompt: "输入“不是学生”的礼貌否定部分。", answer: "ではありません", hint: "输入 dewaarimasen。" },
+      listen: { prompt: "播放后选择听到的描述。", speech: "しずかです", options: ["しずかです", "にぎやかです", "さむくないです"], answer: "しずかです" },
+      shadow: "この町は しずかです。でも、駅は にぎやかです。"
+    },
+    {
+      ...defaultLessons[3],
+      day: "周四", title: "时间、原因与连接：读懂前因后果",
+      focus: "から / ので / ために / 时间词", goal: "根据连接词判断原因、结果和目的",
+      purpose: "开始从单句进入句间关系，训练考试式信息定位。",
+      exam: "N4/N3阅读经常直接考连接关系，先定位连接词比逐字翻译更有效。",
+      assessmentLink: "承接周三的两句对比，今天增加原因和目的。",
+      trap: "「ために」可表示目的；「ため」也可能表示原因，要结合前后动作判断。",
+      phrase: { title: "原因到结果", body: "「雨ですから、出かけません」先给原因，再给结果。", example: "雨ですから、出かけません。" },
+      explainTitle: "先找连接词，再读两边",
+      explain: "看到「から / ので」先把前半标为原因、后半标为结果；看到「ために」检查是否表示目的。",
+      example: "時間がない｜ので｜急ぎます",
+      reviewItems: [["きょう", "今天"], ["あした", "明天"], ["から", "因为"], ["ので", "因为"], ["ために", "为了"]],
+      speech: "時間がないので、急ぎます。",
+      choice: { prompt: "「時間がないので、急ぎます」表示？", options: ["因为没时间所以赶快", "因为有时间所以休息", "虽然没时间但不着急", "到时间后再出发"], answer: "因为没时间所以赶快", ok: "正确。ので 前是原因。", bad: "時間がない = 没时间，急ぎます = 赶快。" },
+      input: { prompt: "输入表示原因的连接词「node」。", answer: "ので", hint: "输入法键入 node。" },
+      listen: { prompt: "播放后选择听到的连接词。", speech: "ので", options: ["ので", "から", "でも"], answer: "ので" },
+      shadow: "雨ですから、出かけません。時間がないので、急ぎます。"
+    },
+    {
+      ...defaultLessons[4],
+      day: "周五", title: "N3核心句型：变化、决定与目标",
+      focus: "ようになる / ことにする / ように", goal: "区分状态变化、主动决定和行动目标",
+      purpose: "正式接入N3高频表达，用语义差异而不是死背中文判断。",
+      exam: "这三组表达在N3语法和阅读中高频出现，关键是辨认主语是否主动决定。",
+      assessmentLink: "你已完成一周基础桥接，今天进入N3核心句型。",
+      trap: "「ようになる」多为能力或状态变化；「ことにする」是主动决定。",
+      phrase: { title: "变化与决定", body: "「話せるようになりました」是变得会说；「勉強することにしました」是决定学习。", example: "日本語が 話せるようになりました。" },
+      explainTitle: "判断是变化还是决定",
+      explain: "先看句尾：なる表示变化，する表示主动采取决定；「ように」还可表示为了达到某目标。",
+      example: "話せるようになる　勉強することにする",
+      reviewItems: [["話せる", "会说"], ["ようになる", "变得"], ["ことにする", "决定"], ["忘れない", "不忘"], ["メモ", "笔记"]],
+      speech: "日本語が、話せるようになりました。",
+      choice: { prompt: "「日本語が 話せるようになりました」表示？", options: ["变得会说日语了", "决定不说日语", "一直都会说日语", "想听别人说日语"], answer: "变得会说日语了", ok: "正确。ようになる表示变化。", bad: "关注从不会到会的状态变化。" },
+      input: { prompt: "输入表示“决定做……”的句型核心「kotonisuru」。", answer: "ことにする", hint: "输入 kotonisuru。" },
+      listen: { prompt: "播放后选择听到的句型。", speech: "ことにしました", options: ["ことにしました", "ようになりました", "つもりです"], answer: "ことにしました" },
+      shadow: "毎日、日本語を勉強することにしました。"
+    },
+    {
+      ...defaultLessons[5],
+      day: "周六", title: "N3短阅读：连接词与信息定位",
+      focus: "ため / しかし / ので / ても / つもり", goal: "完成两段短阅读并参加本周测验",
+      purpose: "把本周词汇、助词和句型放进小段落，检查能否快速定位关键信息。",
+      exam: "N3阅读不要求逐字翻译，先找时间、转折、原因和结论。",
+      assessmentLink: "本课结束后参加每周测验，结果用于下周课程调整。",
+      trap: "「しかし」后通常是作者真正要强调的转折信息。",
+      phrase: { title: "短阅读定位法", body: "先圈连接词，再找题目问的是原因、结果还是作者结论。", example: "駅から遠い。しかし、料理がおいしいので、客が多い。" },
+      explainTitle: "用连接词搭起段落骨架",
+      explain: "先标出「しかし / ので / ため / ても」，再读它们两边的信息，最后回到题干定位答案。",
+      example: "远｜しかし｜好吃｜ので｜客人多",
+      reviewItems: [["遅れる", "晚点"], ["会議", "会议"], ["しかし", "但是"], ["確認する", "确认"], ["つもり", "打算"]],
+      speech: "この店は駅から遠い。しかし、料理がおいしいので、客が多いです。",
+      choice: { prompt: "「この店は駅から遠い。しかし、料理がおいしいので、客が多い。」哪项正确？", options: ["店虽远但客人多", "店很近且没有客人", "料理不好吃", "客人都在车站"], answer: "店虽远但客人多", ok: "正确。先抓しかし和ので。", bad: "远是缺点，但好吃带来很多客人。" },
+      input: { prompt: "输入表示“打算”的词「tsumori」。", answer: "つもり", hint: "输入法键入 tsumori。" },
+      listen: { prompt: "播放后选择听到的连接词。", speech: "しかし", options: ["しかし", "だから", "そして"], answer: "しかし" },
+      shadow: "忙しくても、復習するつもりです。"
+    }
+  ];
+
   function beijingDateKey() {
     return new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  }
+  function currentCourseKey() {
+    return beijingDateKey() >= WEEK_TWO_START_DATE ? "week2" : "week1";
   }
   function isIntensiveCourseActive() {
     const preview = new URLSearchParams(location.search).get("previewIntensive") === "1";
@@ -1746,7 +1875,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
   }
   function n2PreviewReady() {
     const recent = state.events.filter(event => event.source === "course").slice(-60);
-    if (state.completedDays.length < 2 || recent.length < 30) return false;
+    if (studiedCourseDayCount() < 2 || recent.length < 30) return false;
     const accuracy = recent.filter(event => event.correct).length / recent.length;
     const hintRate = recent.filter(event => event.hint).length / recent.length;
     return accuracy >= 0.9 && hintRate <= 0.15;
@@ -1914,12 +2043,18 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     };
   }
 
-  function activeCourse() {
+  function weekOneCourse() {
     if (state.katakanaComplete && state.kanaPlacementMode === KANA_PLACEMENT_MODE) {
       const built = buildPersonalizedCourse();
       if (built.lessons.length) return built;
     }
     return { lessons: defaultLessons, packs: defaultPacks };
+  }
+  function courseForKey(key) {
+    return key === "week2" ? { lessons: weekTwoLessons, packs: defaultPacks } : weekOneCourse();
+  }
+  function activeCourse() {
+    return courseForKey(currentCourseKey());
   }
   function activeLessons() { return activeCourse().lessons; }
   function activePack(day) {
@@ -1986,7 +2121,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     return freshState();
   }
   function freshState() {
-    return { ...defaultState, answers: {}, completedDays: [], lessonAnswers: {}, lessonInputs: {}, lessonParts: {}, mastery: {}, events: [], katakanaAnswers: {}, katakanaSkippedGroups: [], equippedAccessories: {}, weeklyQuiz: { current: null, history: [] } };
+    return { ...defaultState, answers: {}, completedDays: [], completedDaysByCourse: {}, lessonAnswers: {}, lessonInputs: {}, lessonParts: {}, mastery: {}, events: [], katakanaAnswers: {}, katakanaSkippedGroups: [], equippedAccessories: {}, weeklyQuiz: { current: null, history: [] } };
   }
   function sanitizeState(raw) {
     const safe = raw && typeof raw === "object" ? raw : {};
@@ -2008,6 +2143,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
       intensiveStartDate: /^\d{4}-\d{2}-\d{2}$/.test(safe.intensiveStartDate || "") ? safe.intensiveStartDate : INTENSIVE_START_DATE,
       answers: safe.answers && typeof safe.answers === "object" ? safe.answers : {},
       completedDays: Array.isArray(safe.completedDays) ? [...new Set(safe.completedDays.filter(n => Number.isInteger(n) && n >= 0 && n < 6))] : [],
+      completedDaysByCourse: safe.completedDaysByCourse && typeof safe.completedDaysByCourse === "object" ? safe.completedDaysByCourse : {},
       lessonAnswers: safe.lessonAnswers && typeof safe.lessonAnswers === "object" ? safe.lessonAnswers : {},
       lessonInputs: safe.lessonInputs && typeof safe.lessonInputs === "object" ? safe.lessonInputs : {},
       lessonParts: safe.lessonParts && typeof safe.lessonParts === "object" ? safe.lessonParts : {},
@@ -2033,8 +2169,15 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
   }
   function normalize(value) { return String(value).trim().replace(/\s+/g, "").replace(/[，。！？、,.!?]/g, "").toLowerCase(); }
   function nowIso() { return new Date().toISOString(); }
-  function itemId(day, type) { return `lesson:${day + 1}:${type}`; }
-  function lessonTaskId(day, section, index) { return `lesson:${day + 1}:${section}:${index}`; }
+  function courseIdPrefix(key = currentCourseKey()) { return key === "week1" ? "lesson" : `lesson:${key}`; }
+  function itemId(day, type) { return `${courseIdPrefix()}:${day + 1}:${type}`; }
+  function lessonTaskId(day, section, index) { return `${courseIdPrefix()}:${day + 1}:${section}:${index}`; }
+  function lessonPartKey(day) { return currentCourseKey() === "week1" ? String(day) : `${currentCourseKey()}:${day}`; }
+  function currentCompletedDays() {
+    return currentCourseKey() === "week1"
+      ? state.completedDays
+      : (Array.isArray(state.completedDaysByCourse[currentCourseKey()]) ? state.completedDaysByCourse[currentCourseKey()] : []);
+  }
   function domSafeId(value) { return value.replace(/[^a-z0-9_-]/gi, "-"); }
   function lessonPack(day) { return activePack(day); }
   function periodTaskIds(day, period) {
@@ -2067,7 +2210,10 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     const days = activeLessons().map((_, day) => courseDayProgress(day));
     const done = days.reduce((sum, day) => sum + day.done, 0);
     const total = days.reduce((sum, day) => sum + day.total, 0);
-    const completedParts = Object.values(state.lessonParts).reduce((sum, part) => sum + (part?.morning ? 1 : 0) + (part?.night ? 1 : 0), 0);
+    const completedParts = activeLessons().reduce((sum, _, day) => {
+      const part = state.lessonParts[lessonPartKey(day)];
+      return sum + (part?.morning ? 1 : 0) + (part?.night ? 1 : 0);
+    }, 0);
     return { days, done, total, percent: progressPercent(done, total), completedParts, totalParts: days.length * 2 };
   }
   function lessonTaskLookup(day, section, index) {
@@ -2085,17 +2231,19 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     return buckets[section]?.[index] || null;
   }
   function itemMeta(id) {
-    const match = /^lesson:(\d+):(choice|input|listen)$/.exec(id);
+    const match = /^lesson:(?:(week\d+):)?(\d+):(choice|input|listen)$/.exec(id);
     if (match) {
-      const lesson = activeLessons()[Number(match[1]) - 1], type = match[2], task = lesson[type];
-      return { id, day: Number(match[1]) - 1, type, title: `${lesson.day} · ${type === "choice" ? "音形选择" : type === "input" ? "基础输入" : "听辨"}`, prompt: task.prompt, answer: task.answer, options: task.options || [], speech: task.speech || "", hint: type === "input" ? task.hint : "" };
+      const courseKey = match[1] || "week1", day = Number(match[2]) - 1, type = match[3];
+      const lesson = courseForKey(courseKey).lessons[day], task = lesson?.[type];
+      return lesson && task ? { id, day, courseKey, type, title: `${lesson.day} · ${type === "choice" ? "音形选择" : type === "input" ? "基础输入" : "听辨"}`, prompt: task.prompt, answer: task.answer, options: task.options || [], speech: task.speech || "", hint: type === "input" ? task.hint : "" } : null;
     }
-    const extra = /^lesson:(\d+):(rapid|visual|inputx|phrase|review|challenge|listenx|wrap):(\d+)$/.exec(id);
+    const extra = /^lesson:(?:(week\d+):)?(\d+):(rapid|visual|inputx|phrase|review|challenge|listenx|wrap):(\d+)$/.exec(id);
     if (extra) {
-      const day = Number(extra[1]) - 1, section = extra[2], index = Number(extra[3]);
+      const courseKey = extra[1] || "week1", day = Number(extra[2]) - 1, section = extra[3], index = Number(extra[4]);
+      if (courseKey !== currentCourseKey()) return null;
       const task = lessonTaskLookup(day, section, index);
       const titles = { rapid: "双向快速回忆", visual: "辨形加练", inputx: "输入加练", phrase: "词例解码", review: "错项回收", challenge: "强化挑战", listenx: "听辨加练", wrap: "收尾小测" };
-      return task ? { id, day, type: task.type === "listen" ? "listen" : task.type, title: `${activeLessons()[day].day} · ${titles[section]}`, prompt: task.prompt, answer: task.answer, options: task.options || [], speech: task.speech || "", hint: task.hint || "" } : null;
+      return task ? { id, day, courseKey, type: task.type === "listen" ? "listen" : task.type, title: `${activeLessons()[day].day} · ${titles[section]}`, prompt: task.prompt, answer: task.answer, options: task.options || [], speech: task.speech || "", hint: task.hint || "" } : null;
     }
     const q = questions.find(x => `assessment:${x.id}` === id);
     if (q) return { id, day: -1, type: q.type, title: `测评 · ${q.skill}`, prompt: q.prompt, answer: q.answer, options: q.options || [], speech: q.speech || "", hint: q.explain };
@@ -2148,11 +2296,12 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
   function weeklyQuizCandidates() {
     const studied = new Set();
     state.events.forEach(event => {
-      if (event.source === "course" && itemMeta(event.itemId)?.day >= 0) studied.add(event.itemId);
+      const meta = itemMeta(event.itemId);
+      if (event.source === "course" && meta?.courseKey === currentCourseKey() && meta.day >= 0) studied.add(event.itemId);
     });
-    Object.keys(state.lessonAnswers).forEach(id => { if (itemMeta(id)?.day >= 0) studied.add(id); });
-    Object.keys(state.lessonInputs).forEach(id => { if (itemMeta(id)?.day >= 0) studied.add(id); });
-    state.completedDays.forEach(day => {
+    Object.keys(state.lessonAnswers).forEach(id => { if (itemMeta(id)?.courseKey === currentCourseKey()) studied.add(id); });
+    Object.keys(state.lessonInputs).forEach(id => { if (itemMeta(id)?.courseKey === currentCourseKey()) studied.add(id); });
+    currentCompletedDays().forEach(day => {
       ["morning", "night"].forEach(period => periodTaskIds(day, period).forEach(id => studied.add(id)));
     });
     const eventMap = new Map();
@@ -2230,15 +2379,18 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     renderHomeCompanion();
   }
   function studiedCourseDayCount() {
-    const days = new Set(state.completedDays);
+    const days = new Set(state.completedDays.map(day => `week1:${day}`));
+    Object.entries(state.completedDaysByCourse || {}).forEach(([key, values]) => {
+      if (Array.isArray(values)) values.forEach(day => days.add(`${key}:${day}`));
+    });
     const includeId = id => {
-      const match = /^lesson:(\d+):/.exec(id);
-      if (match) days.add(Number(match[1]) - 1);
+      const match = /^lesson:(?:(week\d+):)?(\d+):/.exec(id);
+      if (match) days.add(`${match[1] || "week1"}:${Number(match[2]) - 1}`);
     };
     state.events.forEach(event => includeId(event.itemId || ""));
     Object.keys(state.lessonAnswers).forEach(includeId);
     Object.keys(state.lessonInputs).forEach(includeId);
-    return [...days].filter(day => Number.isInteger(day) && day >= 0 && day < activeLessons().length).length;
+    return days.size;
   }
   function currentCompanionLevel() {
     const days = studiedCourseDayCount();
@@ -2247,9 +2399,9 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
   function isAccessoryUnlocked(item) {
     const events = state.events || [];
     const nightCount = Object.values(state.lessonParts).filter(part => part?.night).length;
-    return item.id === "daily_01" ? events.length > 0 || state.completedDays.length > 0
+    return item.id === "daily_01" ? events.length > 0 || studiedCourseDayCount() > 0
       : item.id === "daily_04" ? nightCount >= 5
-      : item.id === "rare_03" ? state.completedDays.length >= activeLessons().length
+      : item.id === "rare_03" ? studiedCourseDayCount() >= 6
       : item.id === "rare_04" ? events.length > 0 && events.every(event => event.correct)
       : false;
   }
@@ -2464,17 +2616,19 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     const courseProgress = courseProgressSummary();
     $("#day-tabs").innerHTML = lessonsNow.map((lesson, i) => {
       const dayProgress = courseProgress.days[i];
-      return `<button class="day-tab ${state.activeDay === i ? "is-active" : ""} ${state.completedDays.includes(i) ? "is-done" : ""}" role="tab" aria-selected="${state.activeDay === i}" data-day="${i}"><strong>${lesson.day}</strong><span>${lesson.title}</span><div class="day-tab-progress"><i data-day-progress="${i}" style="width:${dayProgress.percent}%"></i></div><small>${dayProgress.percent}%</small></button>`;
+      return `<button class="day-tab ${state.activeDay === i ? "is-active" : ""} ${currentCompletedDays().includes(i) ? "is-done" : ""}" role="tab" aria-selected="${state.activeDay === i}" data-day="${i}"><strong>${lesson.day}</strong><span>${lesson.title}</span><div class="day-tab-progress"><i data-day-progress="${i}" style="width:${dayProgress.percent}%"></i></div><small>${dayProgress.percent}%</small></button>`;
     }).join("");
     $$(".day-tab").forEach(btn => btn.addEventListener("click", () => { state.activeDay = Number(btn.dataset.day); saveState(); renderCourse(); syncRoute(); }));
-    const lesson = lessonsNow[state.activeDay], parts = state.lessonParts[state.activeDay] || {};
+    const lesson = lessonsNow[state.activeDay], parts = state.lessonParts[lessonPartKey(state.activeDay)] || {};
     const morningProgress = periodProgress(state.activeDay, "morning");
     const nightProgress = periodProgress(state.activeDay, "night");
     const intensiveActive = isIntensiveCourseActive();
     const morningTime = intensiveActive ? "30–40 分钟" : lesson.morning;
     const nightTime = intensiveActive ? "20–25 分钟" : lesson.night;
     const pet = currentCompanionLevel();
-    const courseLines = ["今天系统学 あ行和か行；完成快且准确就可以前进。", "今天系统学 さ行和た行，重点单独记 shi、chi、tsu。", "字符会变多，但我们只抓相似字和最短回应。", "清音快收齐了，给每个假名留一拍。", "小っ是一拍安静的停顿，我们一起听清。", "今天随机复现全部平假名，不依赖顺序猜答案。"];
+    const courseLines = currentCourseKey() === "week2"
+      ? ["先补齐上周收尾，再从词块进入短句。", "先找句末动作，再看助词前面的词。", "看到「ない」先标记否定，不被关键词带偏。", "先找连接词，再判断原因、结果和目的。", "今天正式进入 N3，重点分清变化和决定。", "短阅读不用逐字翻译，先定位连接关系。"]
+      : ["今天系统学 あ行和か行；完成快且准确就可以前进。", "今天系统学 さ行和た行，重点单独记 shi、chi、tsu。", "字符会变多，但我们只抓相似字和最短回应。", "清音快收齐了，给每个假名留一拍。", "小っ是一拍安静的停顿，我们一起听清。", "今天随机复现全部平假名，不依赖顺序猜答案。"];
     const companionLine = courseLines[state.activeDay % courseLines.length];
     $("#day-overview").innerHTML = `<div class="day-overview-main"><dl><div><dt>今日重点</dt><dd>${lesson.focus}</dd></div><div><dt>上午 · 无声</dt><dd>${morningTime}</dd></div><div><dt>晚间 · 有声</dt><dd>${nightTime}</dd></div></dl><div class="day-progress-bars"><div><span>上午安排</span><strong>${progressPercent(morningProgress.done, morningProgress.total)}%</strong><div class="progress-track"><i data-overview-progress="morning" style="width:${progressPercent(morningProgress.done, morningProgress.total)}%"></i></div></div><div><span>晚间安排</span><strong>${progressPercent(nightProgress.done, nightProgress.total)}%</strong><div class="progress-track night"><i data-overview-progress="night" style="width:${progressPercent(nightProgress.done, nightProgress.total)}%"></i></div></div></div><div class="part-status"><span class="${parts.morning ? "done" : ""}">上午 ${parts.morning ? "已完成" : "待完成"}</span><span class="${parts.night ? "done" : ""}">晚间 ${parts.night ? "已完成" : "待完成"}</span></div></div><aside class="course-companion">${renderCompanionAvatar(pet, "avatar-compact")}<div><strong>${pet.name} · 陪学提示</strong><p>${companionLine}</p></div></aside>`;
     $("#course-period-control").innerHTML = `<div class="period-switch" role="tablist" aria-label="学习时段"><button type="button" role="tab" aria-selected="${state.activePeriod === "morning"}" class="${state.activePeriod === "morning" ? "is-active" : ""}" data-period="morning"><span>上午 · 无声</span><strong>${morningProgress.done} / ${morningProgress.total} 题</strong><div class="period-mini-track"><i style="width:${progressPercent(morningProgress.done, morningProgress.total)}%"></i></div></button><button type="button" role="tab" aria-selected="${state.activePeriod === "night"}" class="${state.activePeriod === "night" ? "is-active" : ""}" data-period="night"><span>晚间 · 有声</span><strong>${nightProgress.done} / ${nightProgress.total} 题</strong><div class="period-mini-track night"><i style="width:${progressPercent(nightProgress.done, nightProgress.total)}%"></i></div></button></div><div class="intensity-status ${intensiveActive ? "is-active" : ""}"><span>强化模式</span><strong>${intensiveActive ? "已启用 · N2 按表现解锁" : "10 月 22 日启用"}</strong></div><p>${state.activePeriod === "morning" ? "当前仅显示上午课，不会播放声音。" : "请打开声音；录音仅保留在当前页面内存中。"}</p>`;
@@ -2491,9 +2645,9 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     $("#course-progress-bar").style.width = `${courseProgress.percent}%`;
   }
   function renderLesson(lesson, index) {
-    const savedInput = state.lessonInputs[index] || "";
-    const parts = state.lessonParts[index] || {};
-    const isDone = state.completedDays.includes(index);
+    const savedInput = state.lessonInputs[itemId(index, "input")] ?? state.lessonInputs[index] ?? "";
+    const parts = state.lessonParts[lessonPartKey(index)] || {};
+    const isDone = currentCompletedDays().includes(index);
     const pack = lessonPack(index);
     const intensiveActive = isIntensiveCourseActive();
     const morningTime = intensiveActive ? "30–40 分钟" : lesson.morning;
@@ -2533,7 +2687,7 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
       lessonPack(index)[{ rapid: "rapidDrills", visual: "visualDrills", inputx: "inputDrills", phrase: "phraseDrills", review: "reviewDrills", challenge: "challengeDrills", listenx: "listenDrills", wrap: "wrapUp" }[section]].forEach((_, taskIndex) => startAttempt(lessonTaskId(index, section, taskIndex)));
     });
     $("#check-choice").addEventListener("click", () => checkLessonAnswer(index, "choice", $(`input[name="lesson-choice"]:checked`)?.value, "#choice-feedback", lesson.choice.ok, lesson.choice.bad));
-    $("#lesson-input").addEventListener("input", e => { state.lessonInputs[index] = e.target.value; saveState(); });
+    $("#lesson-input").addEventListener("input", e => { state.lessonInputs[itemId(index, "input")] = e.target.value; saveState(); });
     $("#check-input").addEventListener("click", () => {
       const value = $("#lesson-input").value;
       checkLessonAnswer(index, "input", value, "#input-feedback", `正确：${lesson.input.answer}。已写入学习记录。`, `再试一次。提示：${lesson.input.hint}`);
@@ -2547,8 +2701,8 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     $$("[data-play-task]", $("#lesson-host")).forEach(btn => btn.addEventListener("click", () => { const meta = itemMeta(btn.dataset.playTask); if (meta?.speech) speak(meta.speech); }));
     $$("[data-show-hint]", $("#lesson-host")).forEach(btn => btn.addEventListener("click", () => {
       const meta = itemMeta(btn.dataset.showHint);
-      const match = /^lesson:(\d+):(rapid|visual|inputx|phrase|review|challenge|listenx|wrap):(\d+)$/.exec(btn.dataset.showHint);
-      const task = match ? lessonTaskLookup(Number(match[1]) - 1, match[2], Number(match[3])) : null;
+      const match = /^lesson:(?:(week\d+):)?(\d+):(rapid|visual|inputx|phrase|review|challenge|listenx|wrap):(\d+)$/.exec(btn.dataset.showHint);
+      const task = match && (match[1] || "week1") === currentCourseKey() ? lessonTaskLookup(Number(match[2]) - 1, match[3], Number(match[4])) : null;
       hintedThisRender.add(btn.dataset.showHint);
       $(`#feedback-${domSafeId(btn.dataset.showHint)}`).textContent = task?.hint || meta?.hint || "先按今天讲解中的音和值再看一遍。";
     }));
@@ -2561,7 +2715,8 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     if (!value) { node.textContent = type === "input" ? "请先输入答案。" : "请先选择一个答案。"; node.className = "feedback bad"; return; }
     const good = normalize(value) === normalize(task.answer);
     const usedHint = hintedThisRender.has(id);
-    state.lessonAnswers[id] = value;
+    if (type === "input") state.lessonInputs[id] = value;
+    else state.lessonAnswers[id] = value;
     recordAnswer({ id, source: "course", answer: value, correct: good, hint: usedHint, durationMs: Date.now() - (attemptStarted[id] || Date.now()) });
     if (!good) hintedThisRender.add(id);
     else hintedThisRender.delete(id);
@@ -2573,8 +2728,8 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
   function checkPackTask(id) {
     const meta = itemMeta(id), node = $(`#feedback-${domSafeId(id)}`);
     if (!meta || !node) return;
-    const taskMatch = /^lesson:(\d+):(rapid|visual|inputx|phrase|review|listenx|wrap):(\d+)$/.exec(id);
-    const task = taskMatch ? lessonTaskLookup(Number(taskMatch[1]) - 1, taskMatch[2], Number(taskMatch[3])) : null;
+    const taskMatch = /^lesson:(?:(week\d+):)?(\d+):(rapid|visual|inputx|phrase|review|challenge|listenx|wrap):(\d+)$/.exec(id);
+    const task = taskMatch && (taskMatch[1] || "week1") === currentCourseKey() ? lessonTaskLookup(Number(taskMatch[2]) - 1, taskMatch[3], Number(taskMatch[4])) : null;
     const value = meta.type === "input" ? ($(`[data-task-input="${id}"]`)?.value || "") : ($(`input[name="${id}"]:checked`)?.value || "");
     if (!value) {
       node.textContent = meta.type === "input" ? "请先输入答案。" : "请先选择一个答案。";
@@ -2622,12 +2777,18 @@ footer { padding: 26px 16px; border-top: 1px solid var(--page-border); color: va
     $("#course-progress-bar").style.width = `${overall.percent}%`;
   }
   function togglePart(index, part) {
-    const current = state.lessonParts[index] || {};
-    state.lessonParts[index] = { ...current, [part]: !current[part] };
+    const key = lessonPartKey(index);
+    const current = state.lessonParts[key] || {};
+    state.lessonParts[key] = { ...current, [part]: !current[part] };
     saveState(); renderCourse();
   }
   function toggleDay(index) {
-    state.completedDays = state.completedDays.includes(index) ? state.completedDays.filter(day => day !== index) : [...state.completedDays, index].sort();
+    if (currentCourseKey() === "week1") {
+      state.completedDays = state.completedDays.includes(index) ? state.completedDays.filter(day => day !== index) : [...state.completedDays, index].sort();
+    } else {
+      const current = currentCompletedDays();
+      state.completedDaysByCourse[currentCourseKey()] = current.includes(index) ? current.filter(day => day !== index) : [...current, index].sort();
+    }
     saveState(); renderCourse();
   }
   function speak(text) {
