@@ -3267,6 +3267,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     const extra = /^lesson:(?:(week\d+):)?(\d+):(rapid|visual|inputx|phrase|review|challenge|listenx|wrap):(\d+)$/.exec(id);
     if (extra) {
       const courseKey = extra[1] || "week1", day = Number(extra[2]) - 1, section = extra[3], index = Number(extra[4]);
+      if (!["week1","week2"].includes(courseKey) || !courseForKey(courseKey).lessons[day]) return null;
       const pack = coursePackForKey(day, courseKey);
       const bucket = { rapid:"rapidDrills",visual:"visualDrills",inputx:"inputDrills",phrase:"phraseDrills",review:"reviewDrills",challenge:"challengeDrills",listenx:"listenDrills",wrap:"wrapUp" };
       const task = pack[bucket[section]]?.[index];
@@ -3432,8 +3433,17 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
   function isAccessoryUnlocked(item) {
     const events = state.events || [];
     const nightCount = Object.values(state.lessonParts).filter(part => part?.night).length;
+    const focusedMs = events.reduce((sum, event) => sum + (Number(event.durationMs) || 0), 0);
+    const dates = Object.entries(state.studyPlan?.daily || {}).filter(([, record]) =>
+      Object.values(record.sessions || {}).some(session => session.part && (item.id !== "daily_06" || session.period === "night"))
+    ).map(([date]) => date).sort();
+    let longest = 0, streak = 0, previous = "";
+    dates.forEach(date => { streak = previous && Date.parse(date) - Date.parse(previous) === 86400000 ? streak + 1 : 1; longest = Math.max(longest, streak); previous = date; });
     return item.id === "daily_01" ? events.length > 0 || studiedCourseDayCount() > 0
       : item.id === "daily_04" ? nightCount >= 5
+      : item.id === "daily_05" ? focusedMs >= 30 * 3600000
+      : item.id === "daily_06" || item.id === "daily_02" ? longest >= 7
+      : item.id === "rare_01" ? longest >= 30
       : item.id === "rare_03" ? studiedCourseDayCount() >= 6
       : item.id === "rare_04" ? events.length > 0 && events.every(event => event.correct)
       : false;
@@ -3459,9 +3469,10 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     const cup = Number(equippedAccessory("hand")?.id === "daily_04");
     const fittedName = `lv${pet.level}-${fittedHead}-face${face}-cup${cup}.webp`;
     const fitted = window.ModiOutfitData?.[fittedName] || `assets/outfits/${fittedName}`;
-    const remaining = equipped.filter(item => !["daily_06", "rare_01", "daily_05", "daily_04"].includes(item.id));
+    const remaining = equipped.filter(item => !["daily_06", "rare_01", "daily_05", "daily_04"].includes(item.id) && !(pet.level >= 4 && item.slotId === "head"));
+    const visibleEquipped = equipped.filter(item => !(pet.level >= 4 && item.slotId === "head"));
     return `<div class="companion-avatar ${variant} level-${pet.level} ${hasOverlayBack ? "has-back-accessory" : ""}">
-      <img class="companion-base fitted-base" src="${fitted}" alt="${escapeHtml(pet.name)}${equipped.length ? "，已佩戴" + equipped.map(item => item.name).join("、") : ""}">
+      <img class="companion-base fitted-base" src="${fitted}" alt="${escapeHtml(pet.name)}${visibleEquipped.length ? "，已佩戴" + visibleEquipped.map(item => item.name).join("、") : ""}">
       ${remaining.map(item => `<img class="companion-accessory accessory-${item.slotId} accessory-${item.id}" src="${item.image}" alt="已佩戴${item.name}">`).join("")}
       ${showBackpackStrap ? `<svg class="companion-strap" viewBox="0 0 100 100" aria-hidden="true" focusable="false"><path d="M 82 52 C 73 57 71 66 74 73" fill="none" stroke="#2b3a55" stroke-width="5.2" stroke-linecap="round"><\/path><path d="M 82 52 C 73 57 71 66 74 73" fill="none" stroke="#b07a4e" stroke-width="3.4" stroke-linecap="round"><\/path></svg>` : ""}
     </div>`;
@@ -4140,12 +4151,13 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
             ${unlocked ? `<button type="button" class="btn btn-small ${equipped ? "btn-secondary" : "btn-primary"}" data-equip-accessory="${item.id}" aria-pressed="${equipped}">${equipped ? "卸下" : "佩戴"}</button>` : `<small>${item.rule}</small>`}
           </article>`;
         }).join("")}</div>
-        <p class="gallery-note">同一槽位只能佩戴一件配饰，换装会自动保存到本机。</p>
+        <p class="gallery-note">同一槽位只能佩戴一件配饰，换装会自动保存到本机。${pet.level >= 4 ? "当前原画已有帽子，保留头饰选择但不叠戴。" : ""}</p>
       </section>
       </div>`;
     $$("[data-equip-accessory]", $("#report-host")).forEach(button => button.addEventListener("click", () => toggleAccessory(button.dataset.equipAccessory)));
     $("[data-go-report-course]", $("#report-host"))?.addEventListener("click", () => showView("course"));
     applyReportTab();
+    document.dispatchEvent(new CustomEvent("modi:report"));
   }
   function applyReportTab() {
     $$("[data-report-tab]").forEach(button => {
@@ -4179,7 +4191,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     get state() { return state; }, today: beijingDateKey, lessons: activeLessons,
     progress: courseDayProgress, periodIds: periodTaskIds, meta: itemMeta,
     courseKey: currentCourseKey, partKey: lessonPartKey, normalize, save: saveState,
-    show: showView, speak, kanaQuestions, begin: startAttempt,
+    show: showView, speak, kanaQuestions, begin: startAttempt, pet: currentCompanionLevel,
     selectCourse(key) {
       if (!["week1", "week2"].includes(key)) return;
       state.activeCourseKey = key; state.activeDay = 0; saveState(); showView("course");
@@ -4433,8 +4445,24 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     groups.forEach(g=>{if(g.ids.length){const checked=g.ids.filter(id=>core.state.events.some(e=>e.itemId===id&&e.source==="course")).length;$("small",g.button).textContent=`${checked} / ${g.ids.length} 题已检查`; }});
   });
   document.addEventListener("modi:view",e=>{if(e.detail!=="course" && ghost){ghost.remove();ghost=null;}});
+  function mountOutfitPreview() {
+    const parent=$('[data-report-section="companion"]');
+    if(!parent || $("#outfit-preview"))return;
+    const preview=document.createElement("section");preview.id="outfit-preview";preview.className="report-panel";
+    const level=core.pet().level;
+    preview.innerHTML=`<h2>先看看完整穿戴效果</h2><p class="study-note">试穿不改变已解锁或实际佩戴的配饰。达到衣橱条件后，再点“佩戴”保存。</p><div style="height:210px;display:flex;justify-content:center"><img id="outfit-preview-image" style="max-width:100%;height:100%;object-fit:contain" alt="墨滴仔完整穿戴预览"></div><div class="inline-actions"><button class="btn btn-secondary btn-small" data-preview-head ${level>=4?"disabled":""}>试穿睡帽</button><button class="btn btn-secondary btn-small" data-preview-face>试戴眼镜</button><button class="btn btn-secondary btn-small" data-preview-cup>试放可可杯</button></div>${level>=4?'<p class="study-note">当前原画已有帽子，睡帽试穿停用，避免叠加两个帽子。</p>':""}`;
+    parent.append(preview);
+    let head="none",face=0,cup=0;
+    const paint=()=>{const name=`lv${level}-${head}-face${level===3?0:face}-cup${cup}.webp`;$("#outfit-preview-image").src=window.ModiOutfitData?.[name]||`assets/outfits/${name}`;};
+    $("[data-preview-head]",preview).addEventListener("click",e=>{head=head==="none"?"daily_06":"none";e.currentTarget.setAttribute("aria-pressed",String(head!=="none"));paint();});
+    $("[data-preview-face]",preview).addEventListener("click",e=>{face=1-face;e.currentTarget.setAttribute("aria-pressed",String(face));paint();});
+    $("[data-preview-cup]",preview).addEventListener("click",e=>{cup=1-cup;e.currentTarget.setAttribute("aria-pressed",String(cup));paint();});
+    paint();
+  }
+  document.addEventListener("modi:report",mountOutfitPreview);
   // The first core render precedes this adapter script.
   if(core.state.view==="course")mountLesson();
+  if(core.state.view==="report")mountOutfitPreview();
   const wardrobe=$(".island-wardrobe");
   wardrobe?.addEventListener("click",()=>$('[data-report-tab="companion"]').click());
   $("#continue-today").addEventListener("click",()=>{
