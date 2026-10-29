@@ -1845,6 +1845,12 @@ body .period-switch button span,body .period-switch button strong { color:#46637
 body .period-switch button[data-period=night] span,body .period-switch button[data-period=night] strong { color:#69506f; }
 body .motion-current,body .motion-current .subtask-card { background:transparent !important; border:0 !important; box-shadow:none !important; }
 .motion-current .subtask-card { padding:5px 0; }
+.motion-lane { display:none; }
+.motion-groups.is-board { display:flex; overflow-x:auto; max-width:100%; scroll-snap-type:x proximity; padding:3px 2px 14px; scrollbar-width:thin; }
+.is-board .motion-lane { display:block; flex:0 0 163px; min-width:0; padding:9px; border:1px solid #ffffff80; border-radius:20px; background:#ffffff15; scroll-snap-align:start; }
+.motion-lane h3 { font-size:13px; margin:4px 3px 13px; }
+.motion-lane-cards { display:grid; gap:10px; }
+.motion-lane-cards:empty::after { content:"暂无题组"; display:block; min-height:64px; text-align:center; padding-top:18px; font-size:12px; color:#604458; }
 @media (max-width:360px) { main { padding-inline:15px !important; } .modi-dialog { padding:18px; } .motion-group { padding:15px; } .group-controls { flex-wrap:wrap; } }
 @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } *,*::before,*::after { animation-duration:.01ms !important; transition-duration:.01ms !important; } }
 
@@ -4281,12 +4287,24 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       b.innerHTML=`<strong>${esc(g.title)}</strong><small>${g.ids.length?`${checked} / ${g.ids.length} 题已检查`:"阅读／跟读 · 不计题数"}</small>`;
       grid.append(b); b.addEventListener("click",()=>openGroup(g,core.state.motionPositions?.[`${currentKey()}:${g.i}`]||0,b));
     });
+    ["待开始","进行中","已检查"].forEach((title,i)=>{
+      const lane=document.createElement("div");lane.className="motion-lane";lane.dataset.lane=String(i);lane.innerHTML=`<h3>${title}</h3><div class="motion-lane-cards"></div>`;grid.append(lane);
+    });
+    const arrange=()=>{
+      grid.classList.toggle("is-board",layout==="board");
+      groups.forEach(g=>{
+        const checked=g.ids.filter(id=>core.state.events.some(e=>e.itemId===id&&e.source==="course")).length;
+        const status=!checked?0:checked===g.ids.length?2:1;
+        (layout==="board"?$(`[data-lane="${status}"] .motion-lane-cards`,grid):grid).append(g.button);
+      });
+    };
+    grid.arrange=arrange;
     $$("[data-layout]",host).forEach(b=>b.addEventListener("click",()=>{
       layout=b.dataset.layout;
-      flip(groups.map(g=>g.button),()=>grid.classList.toggle("is-board",layout==="board"));
+      flip(groups.map(g=>g.button),arrange);
       $$("[data-layout]",host).forEach(n=>n.setAttribute("aria-pressed",String(n===b)));
     }));
-    grid.classList.toggle("is-board",layout==="board");
+    arrange();
     $$("[data-layout]",host).forEach(n=>n.setAttribute("aria-pressed",String(n.dataset.layout===layout)));
     $$("[data-mode]",host).forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.mode)));
     $("#motion-return").addEventListener("click",()=>setMode("groups"));
@@ -4443,6 +4461,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
   document.addEventListener("modi:answer",()=>{
     renderSummary();
     groups.forEach(g=>{if(g.ids.length){const checked=g.ids.filter(id=>core.state.events.some(e=>e.itemId===id&&e.source==="course")).length;$("small",g.button).textContent=`${checked} / ${g.ids.length} 题已检查`; }});
+    $("#motion-groups")?.arrange?.();
   });
   document.addEventListener("modi:view",e=>{if(e.detail!=="course" && ghost){ghost.remove();ghost=null;}});
   function mountOutfitPreview() {
