@@ -3320,6 +3320,33 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     };
   }
   function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  function orderedOptions(options, key) {
+    // Stable within a saved attempt; never infer or move the correct answer.
+    if(!state.optionOrderSeed) {
+      const seed=new Uint32Array(2);crypto.getRandomValues(seed);
+      state.optionOrderSeed=Array.from(seed).join(":");saveState();
+    }
+    let hash=2166136261;
+    for(const char of `${state.optionOrderSeed}:${key}`)hash=Math.imul(hash^char.charCodeAt(0),16777619)>>>0;
+    const random=()=>{hash=(hash+0x6D2B79F5)>>>0;let t=hash;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};
+    const unknown=options.filter(value=>value===UNKNOWN_ANSWER);
+    const values=options.filter(value=>value!==UNKNOWN_ANSWER);
+    for(let i=values.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[values[i],values[j]]=[values[j],values[i]];}
+    return [...values,...unknown];
+  }
+  function shuffleRadioGroups(root,key) {
+    const groups=new Map();
+    $$('input[type="radio"]',root).forEach(input=>{if(!groups.has(input.name))groups.set(input.name,[]);groups.get(input.name).push(input);});
+    groups.forEach((inputs,name)=>{
+      const byValue=new Map(inputs.map(input=>[input.value,input.closest("label")]));
+      if(byValue.size!==inputs.length)return;
+      orderedOptions(inputs.map(input=>input.value),`${key}:${name}`).forEach((value,index)=>{
+        const label=byValue.get(value),letter=$("span > strong",label);
+        if(letter&&/^[A-Z]\.$/.test(letter.textContent))letter.textContent=`${String.fromCharCode(65+index)}.`;
+        label.parentElement.append(label);
+      });
+    });
+  }
   function escapeHtml(value) {
     return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
   }
@@ -3721,6 +3748,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       <div class="katakana-progress"><div><span>完整五十音摸底</span><strong>${state.katakanaCurrent + 1} / ${kanaQuestions.length}</strong></div><div class="progress-track"><span style="width:${(state.katakanaCurrent + 1) / kanaQuestions.length * 100}%"></span></div><small>已保存 ${done} 题 · 不会可以选“不知道”</small></div>
       <article class="question-card katakana-question"><p class="question-kicker">${kanaGroups.find(group => group.id === question.groupId)?.title}</p><h2 lang="ja">${question.kana}</h2><div class="question-prompt">这个${question.scriptLabel}怎么读？</div><div class="options">${question.options.map((option, index) => `<label class="option${option === UNKNOWN_ANSWER ? " option-unknown" : ""}"><input type="radio" name="katakana-answer" value="${option}" ${saved === option ? "checked" : ""}><span><strong>${String.fromCharCode(65 + index)}.</strong> ${option}</span></label>`).join("")}</div><p id="katakana-validation" class="validation" role="alert"></p></article>
       <div class="quiz-actions"><button id="katakana-prev" class="btn btn-secondary" ${state.katakanaCurrent === 0 ? "disabled" : ""}>上一题</button><button id="katakana-next" class="btn btn-primary">${state.katakanaCurrent === kanaQuestions.length - 1 ? "提交测试" : "下一题"}</button></div>`;
+    shuffleRadioGroups($("#katakana-test-host"),`placement:${state.katakanaRun}:${question.id}`);
     $("#katakana-prev").addEventListener("click", () => {
       captureKanaAnswer(false);
       state.katakanaCurrent = Math.max(0, state.katakanaCurrent - 1);
@@ -3744,6 +3772,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     const audio = q.speech ? `<div class="audio-box"><p><strong>${q.type === "shadow" ? "跟读示范" : "听辨音频"}</strong> · 晚间有声</p><button type="button" class="btn btn-secondary question-speak">播放</button>${q.type === "shadow" ? '<button type="button" class="btn btn-quiet question-record">开始临时录音</button><button type="button" class="btn btn-quiet question-playback hidden">回放</button><p class="record-note">录音只在当前页面内存中，不保存、不上传。</p>' : ""}</div>` : "";
     $("#module-badge").textContent = q.module === "night" ? "晚间 · 有声" : "上午 · 无声";
     $("#question-host").innerHTML = `<article class="question-card"><p class="question-kicker">第 ${state.currentQuestion + 1} 题 / ${questions.length} · ${q.skill}</p><h2>${q.title}</h2><div class="question-prompt">${q.prompt}</div>${audio}${inputs}<p class="validation" role="alert"></p></article>`;
+    if(q.type!=="shadow")shuffleRadioGroups($("#question-host"),`assessment:${state.assessmentRun}:${q.id}`);
     $("#prev-question").disabled = state.currentQuestion === 0;
     $("#next-question").textContent = state.currentQuestion === questions.length - 1 ? "提交并查看结果" : state.currentQuestion === 6 ? "保存并进入晚间模块" : "下一题";
     $(".question-speak")?.addEventListener("click", () => speak(q.speech));
@@ -3887,6 +3916,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
         $("[data-lesson-progress-label]",host).textContent=nightPracticeDone(index)?"已确认":"待确认";
       }
     }
+    shuffleRadioGroups($("#lesson-host"),`course:${currentCourseKey()}:${index}`);
     initializeLessonFlow(index);
     ["choice", "input", "listen"].forEach(type => startAttempt(itemId(index, type)));
     ["rapid", "visual", "inputx", "phrase", "review", "challenge", "listenx", "wrap"].forEach(section => {
@@ -4128,6 +4158,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       <p id="review-hint-text" class="feedback"></p><p id="review-feedback" class="feedback" role="status"></p>
       <div class="quiz-progress"><div><span>第 ${index + 1} / ${current.ids.length} 题</span><strong>${Math.round(index / current.ids.length * 100)}%</strong></div><div class="progress-track"><span style="width:${index / current.ids.length * 100}%"></span></div></div>
     </article>`;
+    shuffleRadioGroups($("#review-host"),`weekly:${current.attemptId}:${id}`);
     $("#review-speak")?.addEventListener("click", () => speak(meta.speech));
     $("#review-hint").addEventListener("click", () => {
       hintedThisRender.add(attemptKey);
@@ -4175,7 +4206,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     $("#review-summary").innerHTML = `<strong>${result.accuracy}%</strong><span>本次成绩</span><small>${result.correct} / ${result.total} 题正确</small>`;
     $("#review-host").innerHTML = `<section class="weekly-quiz-result">
       <div class="quiz-score"><span>本周测验完成</span><strong>${result.accuracy}%</strong><small>${result.correct} / ${result.total} 题正确 · ${result.hintCount} 次提示</small></div>
-      <div><h2>${result.accuracy >= 90 ? "掌握稳定，可以继续推进" : result.accuracy >= 70 ? "基础已建立，继续回收薄弱项" : "掌握度出现波动，下周课程会重点回收"}</h2><p>结果已实时写入学习报告。周一课前任务可读取本次错题、提示和耗时，必要时调整下一周课程。</p>
+      <div><h2>${result.accuracy >= 90 ? "本次已学题回忆顺利，隔天再核对" : result.accuracy >= 70 ? "本次部分答对，继续回收薄弱项" : "本次有较多错项，先回看讲解"}</h2><p>本次结果已写入学习报告；重复做对原题不等于长期掌握，还需无提示回忆与换语境检查。</p>
       ${wrong.length ? `<div class="quiz-mistakes"><h3>本次错题</h3>${wrong.map(answer => { const meta = itemMeta(answer.itemId); return `<div><span>${escapeHtml(meta?.title || answer.itemId)}</span><strong>${escapeHtml(meta?.prompt || "")}</strong></div>`; }).join("")}</div>` : `<p class="feedback ok">本次全部答对。</p>`}
       <div class="inline-actions"><button class="btn btn-primary" data-retry-weekly>重新测验</button><button class="btn btn-secondary" data-view-report>查看学习报告</button></div></div>
     </section>`;
@@ -4291,6 +4322,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
   window.addEventListener("beforeunload", () => { if (audioUrl) URL.revokeObjectURL(audioUrl); if (mediaRecorder?.state === "recording") mediaRecorder.stop(); });
   applyInitialRoute();
   window.ModiCore = {
+    orderedOptions,
     newPlanActive, planTimes, partComplete, nightPracticeDone,
     get state() { return state; }, today: beijingDateKey, lessons: activeLessons,
     progress: courseDayProgress, periodIds: periodTaskIds, meta: itemMeta,
@@ -4850,6 +4882,11 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     }
     $("#stage-check-title").textContent=phase.title+" · 完整测评";
     $("#stage-check-body").innerHTML=`<p class="stage-progress">${run.index+1} / ${phase.questions.length} · 无提示，不会可选“不知道” · 自动保存</p><h3>${esc(q.scriptLabel)}${q.id.startsWith("sound:")&&q.scriptLabel.includes("？")?"":`「${esc(q.kana)}」怎么读？`}</h3><div class="stage-options">${q.options.map(o=>`<button type="button" class="btn btn-secondary" data-stage-answer="${esc(o)}">${esc(o)}</button>`).join("")}</div>`;
+    const options=document.querySelector("#stage-check-body .stage-options");
+    if(options) {
+      const buttons=new Map([...options.children].map(button=>[button.dataset.stageAnswer,button]));
+      core.orderedOptions(q.options,`stage:${run.startedAt}:${q.id}`).forEach(value=>options.append(buttons.get(value)));
+    }
     document.querySelectorAll("[data-stage-answer]").forEach(b=>b.addEventListener("click",()=>{
       run.answers[q.id]=b.dataset.stageAnswer;run.index++;
       if(run.index===phase.questions.length) {
