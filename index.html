@@ -1732,7 +1732,7 @@ body .companion-progress small { line-height: 1.7; }
 [hidden] { display:none !important; }
 ::selection { background:#d5b4d0; color:#493042; }
 input,textarea { caret-color:#805369; }
-.topbar { flex-wrap:nowrap; }
+.topbar { flex-wrap:nowrap; z-index:80; }
 #study-guide-open { display:inline-flex; align-items:center; margin-left:auto; min-height:44px; white-space:nowrap; font-size:12px; }
 #reset-all { margin-left:0; font-size:10px; }
 .modi-dialog { width:calc(min(100vw, 470px) - 28px); max-height:86dvh; padding:22px; border:1px solid #fff; border-radius:27px; background:#f8edf4; color:#493042; box-shadow:0 24px 70px #57314d45; overflow:auto; overscroll-behavior:contain; scrollbar-width:thin; scrollbar-color:#b58aa8 #f8edf4; }
@@ -1872,6 +1872,81 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
 @media (max-width:360px) { main { padding-inline:15px !important; } .modi-dialog { padding:18px; } .motion-group { padding:15px; } .group-controls { flex-wrap:wrap; } }
 @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } *,*::before,*::after { animation-duration:.01ms !important; transition-duration:.01ms !important; } }
 
+/* R16: each visual has one meaning; ice blue, lavender and mist pink. */
+#day-overview { display:block; padding:17px 18px; background:#ffffff50; border:1px solid #fff9; border-radius:22px; margin:14px 0; }
+.learning-focus h2 { font-size:17px; line-height:1.55; margin:0 0 8px; }
+.learning-focus p { font-size:13px; margin:0 0 7px; }
+.learning-focus small,.report-panel>small,.report-scope { color:#604458; font-size:11px; }
+.learning-hint { display:flex; align-items:center; gap:9px; margin-top:12px; padding-top:10px; border-top:1px solid #ffffffa0; }
+.learning-hint span { color:#706588; font-size:22px; }
+.learning-hint p { margin:0; font-size:12px; }
+.learning-start { margin:12px 0 16px; }
+.learning-start .btn { width:100%; min-height:47px; }
+.report-range { margin:18px 0; }
+.report-range h2 { font-size:18px; margin:0; }
+.report-range p { font-size:11px; color:#604458; margin:5px 0 12px; }
+.report-range [role=group] { display:flex; gap:5px; }
+#report-host .report-panel { background:#ffffff70 !important; border-color:#fff9; padding:19px; margin-bottom:15px; min-width:0; backdrop-filter:blur(24px) saturate(105%); }
+#report-host h2 { font-size:17px; }
+#report-host .report-grid { gap:0; }
+.accuracy-body { display:flex; align-items:center; gap:18px; margin:18px 0 6px; }
+.accuracy-body>div:last-child>strong { font-size:25px; font-weight:600; font-variant-numeric:tabular-nums; }
+.accuracy-body p { margin:2px 0 7px; font-size:11px; }
+.accuracy-body small { font-size:11px; }
+.accuracy-ring { flex:0 0 112px; height:112px; display:grid; place-items:center; border-radius:50%; background:conic-gradient(#8699b8 var(--accuracy),#e8e3ed 0); position:relative; box-shadow:inset 1px 2px #fff8,0 4px 12px #8a739514; }
+.accuracy-ring::before { content:""; position:absolute; inset:12px; border-radius:50%; background:#f8f2f7; box-shadow:inset 0 2px 7px #8c7c9814; }
+.accuracy-ring strong { position:relative; font-size:24px; font-weight:600; }
+.capsule-scroll { overflow-x:auto; padding:4px 0 12px; }
+.capsule-chart { display:flex; gap:9px; min-width:100%; padding-top:9px; }
+.capsule-day { flex:1 0 30px; text-align:center; font-size:10px; }
+.capsule-day strong { display:block; font-size:11px; margin-bottom:7px; }
+.capsule-well { height:105px; width:18px; margin:auto auto 7px; background:#ffffff50; border-radius:20px; display:flex; align-items:end; overflow:hidden; border:1px solid #ffffffb0; }
+.capsule-well i { width:100%; border-radius:20px; background:linear-gradient(90deg,#a8b9d2,#c8d9e8); box-shadow:inset 2px 0 #ffffff60; }
+.report-curve { display:block; width:100%; height:auto; aspect-ratio:600/164; overflow:visible; margin:18px 0 10px; }
+.report-curve text { fill:#604458; stroke:none; font-size:20px; }
+.curve-grid { stroke:#c4b9cc; stroke-opacity:.4; stroke-dasharray:3 4; }
+.curve-line { fill:none; stroke:#827299; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
+.curve-point { fill:#f4e7f1; stroke:#827299; stroke-width:2; }
+.segment-map { display:grid; grid-template-columns:1fr 1fr; gap:13px 17px; margin:18px 0; }
+.segment-map h3 { font-size:12px; margin:0 0 8px; }
+.segment-row { display:grid; grid-template-columns:26px minmax(0,1fr) 35px; gap:5px; align-items:center; font-size:10px; margin:7px 0; }
+.segment-row small { text-align:right; font-size:9px; }
+.segmented-track { display:flex; gap:2px; height:13px; border-radius:5px; overflow:hidden; background:#ffffff40; }
+.segmented-track i { flex:1; background:#ddd4e142; min-width:0; }
+.morning .segmented-track i { background:linear-gradient(90deg,#9aacc5 var(--fill),#ddd4e16b 0); }
+.night .segmented-track i { background:linear-gradient(90deg,#b09abe var(--fill),#ddd4e16b 0); }
+.mastery-matrix { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin:15px 0 2px; }
+.mastery-matrix article { padding:13px; border:1px solid #ffffffa0; border-radius:16px; background:#ffffff50; }
+.mastery-matrix article.stable { background:#e1ecf39c; }
+.mastery-matrix article.learning { background:#e4ddef9c; }
+.mastery-matrix article.weak { background:#f0dfe99c; }
+.mastery-matrix span { font-size:11px; }
+.mastery-matrix strong { display:block; font-size:27px; font-weight:600; margin:3px 0; }
+.mastery-matrix strong small { font-size:10px; margin-left:5px; }
+.mastery-matrix p { margin:0; font-size:10px; color:#604458; }
+.ranked-dots article { padding:11px 0; border-bottom:1px solid #ffffff90; }
+.ranked-dots article>div:first-child { display:flex; justify-content:space-between; gap:10px; font-size:12px; }
+.ranked-dots small { font-size:10px; color:#604458; }
+.dot-track { margin:10px 7px; height:3px; background:#c6b9ce; position:relative; }
+.dot-track i { position:absolute; top:-4px; width:11px; height:11px; border-radius:50%; background:#ad8da6; border:2px solid #fff8; transform:translateX(-50%); }
+.weekly-fact { display:flex; align-items:center; gap:16px; margin:15px 0; font-size:12px; }
+.weekly-fact>strong { font-size:30px; color:#74648d; }
+.weekly-fact p { font-size:10px; margin:4px 0; }
+.activity-panel>summary { cursor:pointer; font-size:14px; min-height:25px; }
+.growth-milestones { display:flex; margin:24px 0 18px; }
+.growth-milestones>div { flex:1; position:relative; text-align:center; font-size:10px; }
+.growth-milestones>div::before { content:""; position:absolute; left:0; right:0; top:7px; height:2px; background:#c8bad1; }
+.growth-milestones>div:first-child::before { left:50%; }
+.growth-milestones>div:last-child::before { right:50%; }
+.growth-milestones i { display:block; width:15px; height:15px; border-radius:50%; background:#e6dfec; border:3px solid #f6eff6; margin:0 auto 8px; position:relative; }
+.growth-milestones .reached i { background:#9580ae; }
+.growth-milestones strong,.growth-milestones span,.growth-milestones small { display:block; font-size:10px; }
+.evolution-copy blockquote { margin:12px 0; font-size:12px; }
+@media(max-width:360px) { .segment-map { grid-template-columns:1fr; } .accuracy-body { gap:12px; } .accuracy-ring { flex-basis:100px; height:100px; } }
+#course .page-head { padding-top:18px; margin-bottom:14px; }
+#course .page-head p { display:none; }
+#course #day-overview { background:#ffffff65 !important; backdrop-filter:blur(24px) saturate(105%); }
+
 </style>
 </head>
 <body>
@@ -1884,11 +1959,11 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
   </svg>
   <a class="skip-link" href="#main">跳到主要内容</a>
   <header class="topbar">
-    <a class="brand" href="#home" aria-label="N3 伴学首页">
+    <a class="brand" href="#course" aria-label="进入学习">
       <span class="brand-mark">N3</span>
       <span>墨滴伴学</span>
     </a>
-    <strong id="mobile-page-title" class="mobile-page-title">首页</strong>
+    <strong id="mobile-page-title" class="mobile-page-title">学习</strong>
     <nav class="main-nav" aria-label="主导航">
       <button class="nav-btn" data-view="course"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></span><b>学习</b></button>
       <button class="nav-btn" data-view="calendar"><span aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 11h18m-13 5h2m4 0h2"/></svg></span><b>日历</b></button>
@@ -1899,67 +1974,6 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
   </header>
 
   <main id="main">
-    <section id="home" class="view is-active" aria-labelledby="home-title">
-      <div class="island-heading">
-        <p>墨滴伴学 · 粉云陪伴岛</p>
-        <h1 id="home-title">和墨滴仔，一起学。</h1>
-        <p>云朵很慢，我们也可以慢慢来。</p>
-      </div>
-      <div class="hero">
-        <div class="hero-copy">
-          <p class="eyebrow">今日学习台</p>
-          <h2>今天，轻轻学一点。</h2>
-          <p id="home-today-focus" class="lead">正在读取今日课程重点。</p>
-          <p id="saved-note" class="saved-note" role="status"></p>
-        </div>
-        <aside class="hero-panel today-progress" aria-label="今日进度">
-          <div class="mini-stat"><strong id="home-day-label">Day 1</strong><span id="home-day-title">今日课程</span></div>
-          <div class="mini-stat"><strong id="home-morning-progress">0%</strong><span>上午 · 无声</span></div>
-          <div class="mini-stat"><strong id="home-night-progress">0%</strong><span>晚间 · 有声</span></div>
-        </aside>
-      </div>
-
-      <section class="section-shell companion-home" aria-labelledby="companion-home-title">
-        <div class="section-heading">
-          <p class="eyebrow">你的伴学精灵</p>
-          <h2 id="companion-home-title">今天，和你一起。</h2>
-        </div>
-        <div class="companion-card">
-          <div class="companion-portrait">
-            <div class="companion-avatar avatar-home" id="home-companion-avatar"></div>
-          </div>
-          <div class="companion-copy">
-            <div class="companion-title-row">
-              <div><span id="home-companion-level" class="tag">Lv.1</span><h3 id="home-companion-name">萌新滴</h3></div>
-              <strong id="home-companion-title">初心墨滴</strong>
-            </div>
-            <blockquote id="home-companion-line">先认识一点点，明天就会多会一点点。</blockquote>
-            <div class="companion-progress">
-              <div><span>本周成长进度</span><strong id="home-companion-progress-label">0 / 6 天</strong></div>
-              <div class="progress-track"><span id="home-companion-progress-bar"></span></div>
-              <small id="home-companion-next">完成 Day 1 后成长为 Lv.2 勤学滴</small>
-            </div>
-            <div class="island-actions">
-              <button id="continue-today" class="btn btn-primary" data-go="course">继续学习</button>
-              <button class="btn btn-quiet island-wardrobe" data-go="report">成长与装扮 →</button>
-            </div>
-            <div id="home-progress-overview" class="home-progress-overview" aria-label="本周学习安排完成度"></div>
-          </div>
-        </div>
-      </section>
-
-      <section class="section-shell how-shell" aria-labelledby="how-title">
-        <details class="how-details">
-          <summary><span><span class="eyebrow">怎么使用</span><strong id="how-title">查看学习方法</strong></span><span aria-hidden="true">＋</span></summary>
-          <div class="step-grid">
-            <article class="info-card"><span class="step-no">01</span><h3>上午安静作答</h3><p>完成讲解、辨形与输入，全程不播放声音。</p></article>
-            <article class="info-card"><span class="step-no">02</span><h3>晚间听辨跟读</h3><p>使用浏览器日语语音练听辨，录音不会上传。</p></article>
-            <article class="info-card"><span class="step-no">03</span><h3>错项集中回收</h3><p>课程会保留答题与提示记录，方便集中复习。</p></article>
-          </div>
-        </details>
-      </section>
-    </section>
-
     <section id="assessment" class="view" aria-labelledby="assessment-title">
       <div class="page-head">
         <div>
@@ -2000,7 +2014,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       <form id="quiz-form" class="quiz hidden" novalidate>
         <div class="quiz-topline">
           <span id="module-badge" class="module-badge">白天 · 无声</span>
-          <button type="button" id="save-exit" class="btn btn-quiet btn-small">保存并返回首页</button>
+          <button type="button" id="save-exit" class="btn btn-quiet btn-small">保存并返回学习</button>
         </div>
         <div id="question-host"></div>
         <div class="quiz-actions">
@@ -2029,16 +2043,12 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       </section>
     </section>
 
-    <section id="course" class="view" aria-labelledby="course-title">
+    <section id="course" class="view is-active" aria-labelledby="course-title">
       <div class="page-head">
         <div>
           <p class="eyebrow">Week 1</p>
-          <h1 id="course-title">本周六天课程</h1>
-          <p>每天按掌握度约 35–50 分钟：上午系统学习平假名并完成 20 题双向回忆，晚间进行听辨和跟读。正确率高且能快速作答时可直接进入下一课。</p>
-        </div>
-        <div class="week-progress">
-          <strong id="course-progress-label">0 / 6 天完成</strong>
-          <div class="progress-track"><span id="course-progress-bar"></span></div>
+          <h1 id="course-title">学习</h1>
+          <p>先读讲解，再连续答题。上午与晚间由你选择。</p>
         </div>
       </div>
 
@@ -2123,6 +2133,77 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
   <script>
 (() => {
   "use strict";
+  let range = "7";
+  const esc = value => String(value ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const dateKey = at => {
+    const ms = Date.parse(at);
+    return Number.isFinite(ms) ? new Date(ms + 8 * 3600000).toISOString().slice(0, 10) : "";
+  };
+  const segments = part => Array.from({length:10},(_,n) => {
+    const fill = Math.max(0,Math.min(1,(part.total ? part.done/part.total*10 : 0)-n))*100;
+    return `<i style="--fill:${fill}%"></i>`;
+  }).join("");
+  function curve(values, labels, title) {
+    const x = i => values.length === 1 ? 300 : 28 + i * 544 / (values.length - 1);
+    const y = n => 134 - n * 1.08;
+    let previous = false;
+    const path = values.map((n,i) => {
+      if (n === null) { previous = false; return ""; }
+      const part = `${previous ? "L" : "M"}${x(i).toFixed(1)},${y(n).toFixed(1)}`;
+      previous = true; return part;
+    }).join(" ");
+    return `<svg class="report-curve" viewBox="0 0 600 164" role="img" aria-label="${esc(title)}"><title>${esc(title)}</title>${[0,50,100].map(n=>`<line x1="28" x2="572" y1="${y(n)}" y2="${y(n)}" class="curve-grid"/><text x="2" y="${y(n)+4}">${n}</text>`).join("")}<path d="${path}" class="curve-line"/>${values.map((n,i)=>n===null?"":`<circle cx="${x(i)}" cy="${y(n)}" r="4" class="curve-point"><title>${esc(labels[i])}：${n}%</title></circle>`).join("")}<text x="28" y="158">${esc(labels[0]||"")}</text><text x="572" y="158" text-anchor="end">${esc(labels.at(-1)||"")}</text></svg>`;
+  }
+  window.ModiReport = {
+    setRange(value) { if (["7","30","all"].includes(value)) range=value; },
+    render({state,today,lessons,ids,progress,meta,formatTime}) {
+      const valid = state.events.filter(e => dateKey(e.at) && dateKey(e.at) <= today);
+      const end = Date.parse(`${today}T00:00:00Z`);
+      const first = valid.map(e=>dateKey(e.at)).sort()[0] || today;
+      const start = range === "all" ? first : new Date(end-(Number(range)-1)*86400000).toISOString().slice(0,10);
+      const events = valid.filter(e=>dateKey(e.at)>=start);
+      const correct = events.filter(e=>e.correct).length, accuracy = events.length ? Math.round(correct/events.length*100) : null;
+      const dates = [];
+      for(let ms=Date.parse(`${start}T00:00:00Z`);ms<=end;ms+=86400000)dates.push(new Date(ms).toISOString().slice(0,10));
+      const grouped = new Map();
+      events.forEach(e=>{const key=dateKey(e.at);const row=grouped.get(key)||{total:0,correct:0};row.total++;row.correct+=Number(Boolean(e.correct));grouped.set(key,row);});
+      const daily = dates.map(date=>{const row=grouped.get(date)||{total:0,correct:0};return {...row,date,accuracy:row.total?Math.round(row.correct/row.total*100):null};});
+      const max = Math.max(1,...daily.map(d=>d.total));
+      const allIds = new Set(ids);
+      const plans = [...allIds].filter(id=>state.mastery[id]).map(id=>[id,state.mastery[id]]);
+      const categories = [
+        ["稳定掌握","80–100%","stable",plans.filter(([,p])=>p.mastery>=80).length],
+        ["正在巩固","50–79%","learning",plans.filter(([,p])=>p.mastery>=50&&p.mastery<80).length],
+        ["需要回收","0–49%","weak",plans.filter(([,p])=>p.mastery<50).length],
+        ["尚未作答","未形成掌握记录","unseen",allIds.size-plans.length]
+      ];
+      const weak = plans.filter(([,p])=>p.mastery<80).sort((a,b)=>a[1].mastery-b[1].mastery).slice(0,5);
+      const history = (state.weeklyQuiz?.history||[]).filter(q=>q.completedAt).slice().sort((a,b)=>Date.parse(a.completedAt)-Date.parse(b.completedAt));
+      const latest = history.at(-1);
+      const minutes = Math.round(events.reduce((sum,e)=>sum+Math.max(0,Number(e.durationMs)||0),0)/60000);
+      const reasons = id => {
+        const last = valid.filter(e=>e.itemId===id).at(-1);
+        return last?.correct ? "最近答对，继续间隔复习" : last?.hint ? "最近答错并使用提示" : last ? "最近答错，建议回看讲解" : "掌握记录不足，建议再练";
+      };
+      return `<div class="report-range"><div><h2>学习数据</h2><p>${start} — ${today} · 课程、测评与复习的已提交作答</p></div><div role="group" aria-label="统计范围">${["7","30","all"].map(v=>`<button class="btn btn-small ${range===v?"btn-primary":"btn-quiet"}" data-report-range="${v}" aria-pressed="${range===v}">${v==="all"?"全部":`近 ${v} 天`}</button>`).join("")}</div></div>
+      <div class="report-grid report-overview">
+        <section class="report-panel accuracy-panel"><h2>作答正确率</h2><div class="accuracy-body"><div class="accuracy-ring" style="--accuracy:${accuracy||0}%" role="img" aria-label="${accuracy===null?"暂无作答":`正确率 ${accuracy}%，正确 ${correct} / ${events.length} 次`}"><strong>${accuracy===null?"—":`${accuracy}%`}</strong></div><div><strong>${correct} / ${events.length}</strong><p>正确 / 已提交作答次数</p><small>记录用时 ${minutes} 分钟${events.length ? "" : " · 等待第一次作答"}</small></div></div></section>
+        <section class="report-panel"><h2>每日答题量</h2><div class="capsule-scroll"><div class="capsule-chart">${daily.map(d=>`<div class="capsule-day" title="${d.date}：${d.total} 次"><strong>${d.total}</strong><div class="capsule-well"><i style="height:${d.total/max*100}%"></i></div><span>${d.date.slice(5)}</span></div>`).join("")}</div></div><small>同一题重复练习分别计次；无记录日期为 0。</small></section>
+      </div>
+      <section class="report-panel"><div class="panel-heading"><h2>每日正确率</h2><span>0–100%</span></div>${curve(daily.map(d=>d.accuracy),dates.map(d=>d.slice(5)),"按实际日期显示的正确率趋势；没有作答的日期留空")}<small>没有作答的日期留空，曲线在该日断开。</small></section>
+      <section class="report-panel"><div class="panel-heading"><div><h2>六天课程进度</h2><p>当前课程册 · ${progress.done} / ${progress.total} 题完成</p></div><strong>${progress.percent}%</strong></div><div class="segment-map">${progress.days.map((d,i)=>`<article><h3>Day ${i+1}</h3>${["morning","night"].map(p=>`<div class="segment-row ${p}"><span>${p==="morning"?"上午":"晚间"}</span><div class="segmented-track" role="img" aria-label="Day ${i+1} ${p==="morning"?"上午":"晚间"} ${d[p].done} / ${d[p].total} 题完成">${segments(d[p])}</div><small>${d[p].done}/${d[p].total}</small></div>`).join("")}</article>`).join("")}</div><small>每格为本段题目的 10%；讲解浏览和跟读确认共同决定时段完成，完成率不代表正确率。</small></section>
+      <div class="report-grid"><section class="report-panel"><h2>当前掌握分层</h2><p class="report-scope">当前课程册的 ${allIds.size} 个项目，不随日期范围切换。</p><div class="mastery-matrix">${categories.map(([label,detail,cls,count])=>`<article class="${cls}"><span>${label}</span><strong>${count}<small>项</small></strong><p>${detail}</p></article>`).join("")}</div></section>
+      <section class="report-panel"><h2>优先复习</h2><p class="report-scope">当前课程册 · 按掌握度从低到高</p>${weak.length?`<div class="ranked-dots">${weak.map(([id,p],i)=>`<article><div><span>${i+1}. ${esc(meta(id)?.title||id)}</span><strong>${Math.round(p.mastery)}%</strong></div><div class="dot-track"><i style="left:${Math.max(0,Math.min(100,p.mastery))}%"></i></div><small>${reasons(id)}</small></article>`).join("")}</div>`:"<p>暂无需要回收的记录。完成练习后会在这里列出优先项。</p>"}</section></div>
+      <section class="report-panel"><div class="panel-heading"><h2>周测记录</h2><span>${history.length} 次完成</span></div>${latest?`<div class="weekly-fact"><strong>${latest.accuracy}%</strong><div>${latest.correct} / ${latest.total} 题正确<p>${esc(formatTime(latest.completedAt))} · 提示 ${latest.hintCount||0} 次</p></div></div>${curve(history.map(q=>q.accuracy),history.map(q=>dateKey(q.completedAt).slice(5)),"历次已完成周测正确率；各点按测验先后排列")}`:"<p>尚未完成周测。完成后，这里显示最近结果和历次趋势。</p>"}<small>历次周测独立统计，不随上方日期范围切换。</small></section>
+      <details class="report-panel activity-panel"><summary>近期活动 · ${events.length} 次</summary>${events.length?`<div class="activity-list">${events.slice().sort((a,b)=>Date.parse(b.at)-Date.parse(a.at)).slice(0,12).map(e=>`<div><span class="activity-dot ${e.correct?"ok":"bad"}"></span><p><strong>${esc(meta(e.itemId)?.title||e.itemId)}</strong><small>${e.correct?"正确":"错误"}${e.hint?" · 使用提示":""}</small></p><time>${esc(formatTime(e.at))}</time></div>`).join("")}</div>`:"<p>暂无答题活动。</p>"}</details>`;
+    }
+  };
+})();
+
+</script>
+  <script>
+(() => {
+  "use strict";
 
   const STORAGE_KEY = "jlptN3Companion.v3";
   const LEGACY_KEY = "jlptN3Companion.v2";
@@ -2133,7 +2214,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
   const WEEK_TWO_START_DATE = "2026-10-26";
   const defaultState = {
     version: DATA_VERSION,
-    view: "home", assessmentStarted: false, assessmentComplete: false,
+    view: "course", assessmentStarted: false, assessmentComplete: false,
     currentQuestion: 0, answers: {}, completedDays: [], activeDay: 0,
     activePeriod: "morning",
     courseIntensity: "intensive", intensiveStartDate: INTENSIVE_START_DATE,
@@ -3403,7 +3484,6 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     if (view === "course") renderCourse();
     if (view === "review") renderReview();
     if (view === "report") renderReport();
-    if (view === "home") renderHomeCompanion();
     syncRoute();
     document.dispatchEvent(new CustomEvent("modi:view", { detail: view }));
     if (scroll) window.scrollTo({ top: 0, behavior: "smooth" });
@@ -3440,11 +3520,6 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
   }
   function enterToday() { alignToday(); showView("course"); }
 
-  function syncHomeNote() {
-    const count = Object.values(state.answers).filter(Boolean).length;
-    $("#saved-note").textContent = state.assessmentComplete ? "已找到本机保存的测评结果。" : count ? `已在本机保存 ${count} / ${questions.length} 题。` : "";
-    renderHomeCompanion();
-  }
   function studiedCourseDayCount() {
     const days = new Set(state.completedDays.map(day => `week1:${day}`));
     Object.entries(state.completedDaysByCourse || {}).forEach(([key, values]) => {
@@ -3509,35 +3584,6 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       ${remaining.map(item => `<img class="companion-accessory accessory-${item.slotId} accessory-${item.id}" src="${item.image}" alt="已佩戴${item.name}">`).join("")}
       ${showBackpackStrap ? `<svg class="companion-strap" viewBox="0 0 100 100" aria-hidden="true" focusable="false"><path d="M 82 52 C 73 57 71 66 74 73" fill="none" stroke="#2b3a55" stroke-width="5.2" stroke-linecap="round"><\/path><path d="M 82 52 C 73 57 71 66 74 73" fill="none" stroke="#b07a4e" stroke-width="3.4" stroke-linecap="round"><\/path></svg>` : ""}
     </div>`;
-  }
-  function renderHomeCompanion() {
-    const pet = currentCompanionLevel(), days = studiedCourseDayCount();
-    const next = modizaiLevels.find(level => !level.hidden && level.minDays > days);
-    const courseProgress = courseProgressSummary();
-    const lessonsNow = activeLessons();
-    const dayIndex = Math.min(state.activeDay, lessonsNow.length - 1);
-    const today = lessonsNow[dayIndex];
-    const morning = periodProgress(dayIndex, "morning");
-    const night = periodProgress(dayIndex, "night");
-    $("#home-day-label").textContent = today.day;
-    $("#home-day-title").textContent = today.title;
-    $("#home-today-focus").textContent = today.focus;
-    $("#home-morning-progress").textContent = `${progressPercent(morning.done, morning.total)}%`;
-    $("#home-night-progress").textContent = `${progressPercent(night.done, night.total)}%`;
-    $("#continue-today").textContent = `${state.activePeriod === "night" ? "继续晚间学习" : "继续上午学习"} · ${today.day}`;
-    $("#home-companion-avatar").innerHTML = renderCompanionAvatar(pet, "avatar-home");
-    $("#home-companion-level").textContent = `Lv.${pet.level}`;
-    $("#home-companion-name").textContent = pet.name;
-    $("#home-companion-title").textContent = pet.title;
-    $("#home-companion-line").textContent = companionLines[Math.min(days, companionLines.length - 1)];
-    $("#home-companion-progress-label").textContent = `${days} / ${activeLessons().length} 个课程日`;
-    $("#home-companion-progress-bar").style.width = `${days / activeLessons().length * 100}%`;
-    $("#home-companion-next").textContent = next ? `再学习 ${next.minDays - days} 个课程日后成长为 Lv.${next.level} ${next.name}` : "本周最高形态已达成；Lv.5 星墨灵作为长期目标保持隐藏。";
-    $("#home-progress-overview").innerHTML = `
-      <div class="progress-overview-head"><span>本周安排完成度</span><strong>${courseProgress.percent}%</strong></div>
-      <div class="progress-track progress-track-strong"><span style="width:${courseProgress.percent}%"></span></div>
-      <div class="progress-facts"><span>${courseProgress.done} / ${courseProgress.total} 题已完成</span><span>${courseProgress.completedParts} / ${courseProgress.totalParts} 个时段已打卡</span></div>
-      <div class="week-segments" aria-label="每日题目完成度">${courseProgress.days.map((day, index) => `<span style="--progress:${day.percent}%" title="Day ${index + 1}：${day.percent}%"><i></i></span>`).join("")}</div>`;
   }
   function updateProgress() {
     const count = Object.values(state.answers).filter(value => String(value).trim()).length;
@@ -3725,7 +3771,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       ? ["先补齐上周收尾，再从词块进入短句。", "先找句末动作，再看助词前面的词。", "看到「ない」先标记否定，不被关键词带偏。", "先找连接词，再判断原因、结果和目的。", "今天正式进入 N3，重点分清变化和决定。", "短阅读不用逐字翻译，先定位连接关系。"]
       : ["今天系统学 あ行和か行；完成快且准确就可以前进。", "今天系统学 さ行和た行，重点单独记 shi、chi、tsu。", "字符会变多，但我们只抓相似字和最短回应。", "清音快收齐了，给每个假名留一拍。", "小っ是一拍安静的停顿，我们一起听清。", "今天随机复现全部平假名，不依赖顺序猜答案。"];
     const companionLine = courseLines[state.activeDay % courseLines.length];
-    $("#day-overview").innerHTML = `<div class="day-overview-main"><dl><div><dt>今日重点</dt><dd>${lesson.focus}</dd></div><div><dt>上午 · 无声</dt><dd>${morningTime}</dd></div><div><dt>晚间 · 有声</dt><dd>${nightTime}</dd></div></dl><div class="day-progress-bars"><div><span>上午安排</span><strong>${progressPercent(morningProgress.done, morningProgress.total)}%</strong><div class="progress-track"><i data-overview-progress="morning" style="width:${progressPercent(morningProgress.done, morningProgress.total)}%"></i></div></div><div><span>晚间安排</span><strong>${progressPercent(nightProgress.done, nightProgress.total)}%</strong><div class="progress-track night"><i data-overview-progress="night" style="width:${progressPercent(nightProgress.done, nightProgress.total)}%"></i></div></div></div><div class="part-status"><span class="${parts.morning ? "done" : ""}">上午 ${parts.morning ? "已完成" : "待完成"}</span><span class="${parts.night ? "done" : ""}">晚间 ${parts.night ? "已完成" : "待完成"}</span></div></div><aside class="course-companion">${renderCompanionAvatar(pet, "avatar-compact")}<div><strong>${pet.name} · 陪学提示</strong><p>${companionLine}</p></div></aside>`;
+    $("#day-overview").innerHTML = `<div class="learning-focus"><h2>${escapeHtml(lesson.title)}</h2><p>${escapeHtml(lesson.focus)}</p><small>预计 · 上午 ${morningTime} / 晚间 ${nightTime}</small></div><aside class="learning-hint"><span aria-hidden="true">✧</span><p>${companionLine}</p></aside>`;
     $("#course-period-control").innerHTML = `<div class="period-switch" role="tablist" aria-label="学习时段"><button type="button" role="tab" aria-selected="${state.activePeriod === "morning"}" class="${state.activePeriod === "morning" ? "is-active" : ""}" data-period="morning"><span>上午 · 无声</span><strong>${morningProgress.done} / ${morningProgress.total} 题</strong><div class="period-mini-track"><i style="width:${progressPercent(morningProgress.done, morningProgress.total)}%"></i></div></button><button type="button" role="tab" aria-selected="${state.activePeriod === "night"}" class="${state.activePeriod === "night" ? "is-active" : ""}" data-period="night"><span>晚间 · 有声</span><strong>${nightProgress.done} / ${nightProgress.total} 题</strong><div class="period-mini-track night"><i style="width:${progressPercent(nightProgress.done, nightProgress.total)}%"></i></div></button></div><div class="intensity-status ${intensiveActive ? "is-active" : ""}"><span>强化模式</span><strong>${intensiveActive ? "已启用 · N2 按表现解锁" : "10 月 22 日启用"}</strong></div><p>${state.activePeriod === "morning" ? "当前仅显示上午课，不会播放声音。" : "请打开声音；录音仅保留在当前页面内存中。"}</p>`;
     $$("[data-period]", $("#course-period-control")).forEach(btn => btn.addEventListener("click", () => {
       state.activePeriod = btn.dataset.period;
@@ -3736,9 +3782,6 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       $("#study-motion-host").scrollIntoView({ behavior: "smooth", block: "start" });
     }));
     renderLesson(lesson, state.activeDay);
-    const totalDays = lessonsNow.length;
-    $("#course-progress-label").textContent = `${courseProgress.percent}% · ${courseProgress.done} / ${courseProgress.total} 题`;
-    $("#course-progress-bar").style.width = `${courseProgress.percent}%`;
   }
   function renderLesson(lesson, index) {
     const savedInput = state.lessonInputs[itemId(index, "input")] ?? state.lessonInputs[index] ?? "";
@@ -3924,7 +3967,6 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     });
     const active = periodProgress(day, state.activePeriod);
     const dayProgress = courseDayProgress(day);
-    const overall = courseProgressSummary();
     const lessonLabel = $("[data-lesson-progress-label]");
     const lessonBar = $("[data-lesson-progress]");
     const dayBar = $(`[data-day-progress="${day}"]`);
@@ -3933,8 +3975,6 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     if (lessonBar) lessonBar.style.width = `${progressPercent(active.done, active.total)}%`;
     if (dayBar) dayBar.style.width = `${dayProgress.percent}%`;
     if (dayLabel) dayLabel.textContent = `${dayProgress.percent}%`;
-    $("#course-progress-label").textContent = `${overall.percent}% · ${overall.done} / ${overall.total} 题`;
-    $("#course-progress-bar").style.width = `${overall.percent}%`;
     document.dispatchEvent(new CustomEvent("modi:answer"));
   }
   function togglePart(index, part) {
@@ -4119,62 +4159,20 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     if (!item || !isAccessoryUnlocked(item)) return;
     state.equippedAccessories[item.slotId] = state.equippedAccessories[item.slotId] === item.id ? null : item.id;
     saveState();
-    renderHomeCompanion();
     renderReport();
   }
   function renderReport() {
-    const plans = Object.entries(state.mastery).filter(([id]) => itemMeta(id)?.day >= 0);
-    const events = state.events.slice().sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
-    const avgMastery = plans.length ? Math.round(plans.reduce((sum, [, plan]) => sum + (plan.mastery || 0), 0) / plans.length) : 0;
-    const totalDays = activeLessons().length;
     const courseProgress = courseProgressSummary();
-    const completion = courseProgress.percent;
-    const weak = plans.slice().sort((a, b) => a[1].mastery - b[1].mastery).slice(0, 5);
-    const latestQuiz = latestWeeklyQuizResult();
-    const totalCorrect = events.filter(event => event.correct).length;
-    const totalAccuracy = events.length ? Math.round(totalCorrect / events.length * 100) : 0;
-    const daily = recentDailyStats(7);
-    const dailyMax = Math.max(1, ...daily.map(day => day.total));
     const allCourseIds = new Set(activeLessons().flatMap((_, day) => [...periodTaskIds(day, "morning"), ...periodTaskIds(day, "night")]));
-    const masteryGroups = [
-      { label: "稳定掌握", detail: "80–100%", count: plans.filter(([, plan]) => plan.mastery >= 80).length, className: "stable" },
-      { label: "正在巩固", detail: "50–79%", count: plans.filter(([, plan]) => plan.mastery >= 50 && plan.mastery < 80).length, className: "learning" },
-      { label: "需要回收", detail: "0–49%", count: plans.filter(([, plan]) => plan.mastery < 50).length, className: "weak" },
-      { label: "尚未作答", detail: "本周安排", count: Math.max(0, allCourseIds.size - plans.length), className: "unseen" }
-    ];
-    const masteryTotal = Math.max(1, allCourseIds.size);
-    const periodCard = (label, days) => {
-      const list = eventsSince(days), correct = list.filter(e => e.correct).length;
-      const accuracy = list.length ? Math.round(correct / list.length * 100) : 0;
-      const minutes = Math.round(list.reduce((sum, e) => sum + (e.durationMs || 0), 0) / 60000);
-      return `<article class="period-card"><span>${label}</span><strong>${list.length} 次</strong><p>正确率 ${accuracy}% · 练习 ${minutes} 分钟</p><div class="metric-track"><span style="width:${accuracy}%"></span></div></article>`;
-    };
     const studiedDays = studiedCourseDayCount();
-    const hasLearningData = events.length > 0 || plans.length > 0 || courseProgress.done > 0;
     const pet = currentCompanionLevel(), next = modizaiLevels.find(level => !level.hidden && level.minDays > studiedDays);
     $("#report-host").innerHTML = `
       <div data-report-section="data">
-      <div class="metric-grid">
-        <article class="metric-card"><span>本周安排完成率</span><strong>${completion}%</strong><small>${courseProgress.done} / ${courseProgress.total} 题</small><div class="metric-track"><i style="width:${completion}%"></i></div></article>
-        <article class="metric-card"><span>平均掌握度</span><strong>${avgMastery}%</strong><small>${plans.length} 个已练项目</small><div class="metric-track mastery"><i style="width:${avgMastery}%"></i></div></article>
-        <article class="metric-card"><span>累计正确率</span><strong>${totalAccuracy}%</strong><small>正确 ${totalCorrect} · 错误 ${events.length - totalCorrect}</small><div class="metric-track accuracy"><i style="width:${totalAccuracy}%"></i></div></article>
-        <article class="metric-card"><span>最近周测</span><strong>${latestQuiz ? `${latestQuiz.accuracy}%` : "未测"}</strong><small>${latestQuiz ? `${latestQuiz.correct} / ${latestQuiz.total} 题正确` : "不影响课程安排"}</small><div class="metric-track weekly"><i style="width:${latestQuiz?.accuracy || 0}%"></i></div></article>
-      </div>
-      ${hasLearningData ? `<div class="report-grid analytics-grid">
-        <section class="report-panel"><div class="panel-heading"><div><p class="eyebrow">近 7 天</p><h2>答题量与正确率</h2></div><strong>${daily.reduce((sum, day) => sum + day.total, 0)} 题</strong></div><div class="activity-chart">${daily.map(day => `<div class="chart-day"><div class="chart-bars" title="${day.label}：${day.total} 题，正确率 ${day.accuracy}%"><i class="chart-total" style="height:${Math.max(day.total ? 12 : 2, day.total / dailyMax * 100)}%"></i><i class="chart-correct" style="height:${Math.max(day.correct ? 8 : 0, day.correct / dailyMax * 100)}%"></i></div><strong>${day.total}</strong><span>${day.label}</span></div>`).join("")}</div><div class="chart-legend"><span><i class="total"></i>答题量</span><span><i class="correct"></i>正确题</span></div></section>
-        <section class="report-panel"><div class="panel-heading"><div><p class="eyebrow">课程掌握</p><h2>掌握度分层</h2></div><strong>${plans.length} 项已练</strong></div><div class="mastery-stack" aria-label="掌握度分层">${masteryGroups.map(group => `<i class="${group.className}" style="width:${group.count / masteryTotal * 100}%"></i>`).join("")}</div><div class="mastery-breakdown">${masteryGroups.map(group => `<div><i class="${group.className}"></i><span>${group.label}<small>${group.detail}</small></span><strong>${group.count}</strong></div>`).join("")}</div></section>
-      </div>` : `<section class="report-panel report-empty"><h2>学习数据会在这里积累</h2><p>完成第一道课程练习后，将显示正确率、掌握度和近 7 天趋势。</p><button type="button" class="btn btn-primary" data-go-report-course>开始今日课程</button></section>`}
-      <section class="report-panel course-map-report"><div class="panel-heading"><div><p class="eyebrow">本周安排</p><h2>每日课程推进</h2></div><strong>${courseProgress.completedParts} / ${courseProgress.totalParts} 个时段打卡</strong></div><div class="course-progress-map">${courseProgress.days.map((day, index) => `<div class="course-progress-day"><div><span>Day ${index + 1}</span><strong>${day.percent}%</strong></div><div class="dual-progress"><i class="morning" style="width:${progressPercent(day.morning.done, day.morning.total)}%"></i><i class="night" style="width:${progressPercent(day.night.done, day.night.total)}%"></i></div><small>上午 ${day.morning.done}/${day.morning.total} · 晚间 ${day.night.done}/${day.night.total}</small></div>`).join("")}</div></section>
-      <div class="report-grid">
-        <section class="report-panel"><h2>薄弱项</h2>${weak.length ? `<div class="weak-list">${weak.map(([id, plan]) => { const meta = itemMeta(id); return `<div><span>${escapeHtml(meta.title)}</span><div class="metric-track"><span style="width:${plan.mastery}%"></span></div><strong>${plan.mastery}%</strong></div>`; }).join("")}</div>` : "<p class='muted-copy'>完成课程答题后，这里会按掌握度列出薄弱项。</p>"}</section>
-        <section class="report-panel"><h2>周 / 月概览</h2><div class="period-grid">${periodCard("近 7 天", 7)}${periodCard("近 30 天", 30)}</div></section>
-      </div>
-      ${latestQuiz ? `<section class="report-panel weekly-report"><div><p class="eyebrow">最近一次每周测验</p><h2>${latestQuiz.accuracy}% · ${latestQuiz.correct} / ${latestQuiz.total} 题正确</h2><p>${formatTime(latestQuiz.completedAt)} 完成 · 使用提示 ${latestQuiz.hintCount} 次 · 用时 ${Math.max(1, Math.round(latestQuiz.durationMs / 60000))} 分钟</p></div><div class="metric-track"><span style="width:${latestQuiz.accuracy}%"></span></div></section>` : ""}
-      <section class="report-panel activity-panel"><h2>近期活动</h2>${events.length ? `<div class="activity-list">${events.slice(0, 12).map(event => { const meta = itemMeta(event.itemId); return `<div><span class="activity-dot ${event.correct ? "ok" : "bad"}"></span><p><strong>${escapeHtml(meta?.title || event.itemId)}</strong><small>${event.correct ? "正确" : "错误"} · ${Math.round((event.durationMs || 0) / 1000)} 秒${event.hint ? " · 使用提示" : ""}</small></p><time>${formatTime(event.at)}</time></div>`; }).join("")}</div>` : "<p class='muted-copy'>暂无答题活动。</p>"}</section>
+      ${window.ModiReport.render({state,today:beijingDateKey(),lessons:activeLessons(),ids:[...allCourseIds],progress:courseProgress,meta:itemMeta,formatTime})}
       </div>
       <div data-report-section="companion">
       <section class="report-panel evolution-report">
-        <div class="evolution-copy"><p class="eyebrow">墨滴仔成长</p><h2>Lv.${pet.level} ${pet.name} · ${pet.title}</h2><p>${next ? `再学习 ${next.minDays - studiedDays} 个课程日，将成长为 Lv.${next.level} ${next.name}。` : "已达到本周原型最高形态；Lv.5 星墨灵是隐藏的长期目标。"}</p><div class="progress-track"><span style="width:${studiedDays / totalDays * 100}%"></span></div><small>${studiedDays} / ${totalDays} 个课程日已有学习记录</small></div>
+        <div class="evolution-copy"><p class="eyebrow">墨滴仔成长</p><h2>Lv.${pet.level} ${pet.name} · ${pet.title}</h2><blockquote>${companionLines[Math.min(studiedDays,companionLines.length-1)]}</blockquote><p>${next ? `再学习 ${next.minDays - studiedDays} 个课程日，将成长为 Lv.${next.level} ${next.name}。` : "已达到当前最高形态；星墨灵是长期目标。"}</p><div class="growth-milestones">${modizaiLevels.filter(l=>!l.hidden).map(l=>`<div class="${studiedDays>=l.minDays?"reached":""}"><i></i><strong>Lv.${l.level}</strong><span>${l.name}</span><small>${l.minDays} 个课程日</small></div>`).join("")}</div><small>已有 ${studiedDays} 个课程日的学习记录 · 成长按学习天数累计</small></div>
         ${renderCompanionAvatar(pet, "avatar-report")}
       </section>
       <section class="report-panel accessory-report">
@@ -4193,6 +4191,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       </section>
       </div>`;
     $$("[data-equip-accessory]", $("#report-host")).forEach(button => button.addEventListener("click", () => toggleAccessory(button.dataset.equipAccessory)));
+    $$("[data-report-range]", $("#report-host")).forEach(button => button.addEventListener("click", () => { window.ModiReport.setRange(button.dataset.reportRange); renderReport(); }));
     $("[data-go-report-course]", $("#report-host"))?.addEventListener("click", () => showView("course"));
     applyReportTab();
     document.dispatchEvent(new CustomEvent("modi:report"));
@@ -4208,6 +4207,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     });
   }
   $$(".nav-btn").forEach(btn => btn.addEventListener("click", () => btn.dataset.view === "course" ? enterToday() : showView(btn.dataset.view)));
+  $(".brand").addEventListener("click", event => { event.preventDefault(); enterToday(); });
   $$("[data-report-tab]").forEach(button => button.addEventListener("click", () => { reportTab = button.dataset.reportTab; applyReportTab(); }));
   $$("[data-go]").forEach(btn => btn.addEventListener("click", () => btn.dataset.go === "course" ? enterToday() : showView(btn.dataset.go)));
   $("#start-assessment").addEventListener("click", () => { state.assessmentStarted = true; state.assessmentComplete = false; saveState(); syncAssessment(); });
@@ -4217,11 +4217,11 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     state.currentQuestion += 1; saveState(); renderQuestion(); updateProgress();
   });
   $("#prev-question").addEventListener("click", () => { captureAnswer(false); state.currentQuestion = Math.max(0, state.currentQuestion - 1); saveState(); renderQuestion(); });
-  $("#save-exit").addEventListener("click", () => { captureAnswer(false); showView("home"); syncHomeNote(); });
+  $("#save-exit").addEventListener("click", () => { captureAnswer(false); enterToday(); });
   $("#retry-assessment").addEventListener("click", () => { state.assessmentStarted = true; state.assessmentComplete = false; state.assessmentRecorded = false; state.assessmentRun = (state.assessmentRun || 1) + 1; state.currentQuestion = 0; state.answers = {}; saveState(); syncAssessment(); });
   $("#reset-all").addEventListener("click", () => {
     if (!confirm("要清除全部测评与课程进度吗？此操作无法撤销。")) return;
-    localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(LEGACY_KEY); state = freshState(); syncHomeNote(); showView("home");
+    localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(LEGACY_KEY); state = freshState(); enterToday();
   });
   window.addEventListener("beforeunload", () => { if (audioUrl) URL.revokeObjectURL(audioUrl); if (mediaRecorder?.state === "recording") mediaRecorder.stop(); });
   applyInitialRoute();
@@ -4242,7 +4242,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden && state.studySelectionDate !== beijingDateKey() && state.view === "course") enterToday();
   });
-  syncHomeNote(); showView(state.view || "home", false);
+  showView(state.view || "course", false);
 })();
 
 </script>
@@ -4315,10 +4315,6 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     $("#course-title").textContent=`${lesson.day} · 学习`;
     $("#course .page-head > div > p:last-child").textContent="先读讲解，再连续答题。上午无声、晚间有声，随时由你选择。";
     $$(".day-tab").forEach(b=>b.setAttribute("aria-label",`${$("strong",b).textContent}，${$("span",b).textContent}`));
-    if(!$("#today-plan-details")) {
-      const d=document.createElement("details");d.id="today-plan-details";d.innerHTML="<summary>查看今日重点与早晚进度</summary>";
-      $("#day-overview").before(d);d.append($("#day-overview"));
-    }
     if (previousKey!==currentKey()) { mode="words"; current=null; questionIndex=0; previousKey=currentKey(); }
     const period = $(`[data-period-section="${core.state.activePeriod}"]`,lessonHost);
     groups = $$(".lesson-disclosure",lessonHost).filter(d=>(!d.closest("[data-period-section]") || period.contains(d))&&!$(".checklist-step",d)).map((node,i)=>({
@@ -4351,6 +4347,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     });
     host.innerHTML=`<div class="study-tools"><label for="course-book">课程册</label><select id="course-book"><option value="week1">假名起步 · 第 1 册</option><option value="week2">句型与强化 · 第 2 册</option></select></div>
       ${core.courseKey()==="week1" && allCompleted?'<p class="study-note">本册已完成，可以进入第 2 册。</p>':""}
+      <div class="learning-start"><button class="btn btn-primary" id="deck-learn">开始学习卷</button></div>
       <div class="study-tabs" role="tablist" aria-label="本课学习工具"><button role="tab" data-mode="words">词卡</button><button role="tab" data-mode="groups">学习卷</button><button role="tab" data-mode="summary">完成情况</button></div>
       <div id="motion-words"></div><div id="motion-group-section"><div class="group-controls"><strong>本段学习步骤</strong><div><button class="btn btn-quiet btn-small" data-layout="list">列表</button><button class="btn btn-quiet btn-small" data-layout="board">看板</button></div></div><div class="motion-groups" id="motion-groups"></div><p class="study-note">阅读／讲解也在这里。题组使用原课程的全部题目，按顺序完成。</p></div>
       <div class="motion-quiz-nav" id="motion-quiz-nav" hidden><button class="btn btn-quiet btn-small" id="motion-return">学习卷目录</button><span id="motion-question-count"></span><div><button class="btn btn-secondary btn-small" id="motion-prev">上一题</button><button class="btn btn-primary btn-small" id="motion-next">下一题</button></div><p id="motion-flow-feedback" class="feedback" role="status" aria-live="polite"></p></div><div id="motion-summary" class="motion-summary"></div>`;
@@ -4388,6 +4385,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     $("#motion-next").addEventListener("click",nextQuestion);
     buildDeck(); renderSummary(); setMode(mode==="quiz"?"groups":mode);
     updateCompletion();
+    $("#deck-learn").textContent=groups.every(isDone)?"回看本段学习":groups.some(g=>isDone(g)||checkedCount(g))?"继续学习":"开始学习";
     if(resume?.key===currentKey()&&groups[resume.group])openGroup(groups[resume.group],resume.index);
   }
   function setMode(next) {
@@ -4527,7 +4525,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     const words=(lesson.reviewItems?.length?lesson.reviewItems:[...phraseWords,...equalsWords,...cells.map(c=>[$("strong",c)?.textContent,$("span",c)?.textContent])]).filter(w=>w[0]);
     if(!words.length) words.push([lesson.phrase.example,lesson.phrase.body]);
     const panel=$("#motion-words");
-    panel.innerHTML=`<p class="study-note">先回忆，再揭开词卡。</p><div class="study-deck" aria-label="滑动或点按抽出本课词卡"></div><div class="deck-pages"><button class="btn btn-quiet btn-small" id="deck-prev" aria-label="上一张词卡">上一张</button><span id="deck-count"></span><button class="btn btn-quiet btn-small" id="deck-next" aria-label="下一张词卡">下一张</button></div><div class="word-explanation"><h2 id="deck-word" lang="ja"></h2><p id="deck-meaning" aria-live="polite">先在心里回忆。</p><div class="inline-actions"><button class="btn btn-secondary" id="deck-reveal">揭开词卡</button><button class="btn btn-secondary" id="deck-speak">听发音</button><button class="btn btn-primary" id="deck-learn">开始学习卷</button></div></div>`;
+    panel.innerHTML=`<p class="study-note">先回忆，再揭开词卡。</p><div class="study-deck" aria-label="滑动或点按抽出本课词卡"></div><div class="deck-pages"><button class="btn btn-quiet btn-small" id="deck-prev" aria-label="上一张词卡">上一张</button><span id="deck-count"></span><button class="btn btn-quiet btn-small" id="deck-next" aria-label="下一张词卡">下一张</button></div><div class="word-explanation"><h2 id="deck-word" lang="ja"></h2><p id="deck-meaning" aria-live="polite">先在心里回忆。</p><div class="inline-actions"><button class="btn btn-secondary" id="deck-reveal">揭开词卡</button><button class="btn btn-secondary" id="deck-speak">听发音</button></div></div>`;
     const deck=$(".study-deck",panel);
     let word=0,revealed=false,frame=0,last=0,drag=null,suppress=false;
     const batchSize=matchMedia("(max-width:600px)").matches?3:5;
@@ -4634,8 +4632,6 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
   // The first core render precedes this adapter script.
   if(core.state.view==="course")mountLesson();
   if(core.state.view==="report")mountOutfitPreview();
-  const wardrobe=$(".island-wardrobe");
-  wardrobe?.addEventListener("click",()=>$('[data-report-tab="companion"]').click());
 })();
 
 </script>
