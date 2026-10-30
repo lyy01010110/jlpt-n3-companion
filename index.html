@@ -3836,7 +3836,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     const key = `${currentCourseKey()}:${dayIndex}:${period}`;
     const mobile = matchMedia("(max-width: 820px)").matches;
     const current = Math.min(lessonFlowPositions[key] || 0, Math.max(0, blocks.length - 1));
-    const setCurrent = next => {
+    const setCurrent = (next, scroll = false) => {
       const details = $$(".lesson-disclosure", host);
       const target = Math.max(0, Math.min(next, details.length - 1));
       lessonFlowPositions[key] = target;
@@ -3846,7 +3846,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       const prev = $("[data-flow-prev]", host), nextButton = $("[data-flow-next]", host);
       if (prev) prev.disabled = target === 0;
       if (nextButton) nextButton.disabled = target === details.length - 1;
-      if (mobile) details[target]?.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (mobile && scroll) details[target]?.scrollIntoView({ behavior: "smooth", block: "start" });
     };
     const recoveryCount = Object.values(state.mastery).filter(item => (item.wrong || 0) > 0 || (item.hintCount || 0) > 0).length;
     const toolbar = document.createElement("div");
@@ -3860,8 +3860,8 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       $$("details.lesson-disclosure", host).forEach(other => { if (other !== details) other.open = false; });
       setCurrent(index);
     }));
-    $("[data-flow-prev]", host).addEventListener("click", () => setCurrent((lessonFlowPositions[key] || 0) - 1));
-    $("[data-flow-next]", host).addEventListener("click", () => setCurrent((lessonFlowPositions[key] || 0) + 1));
+    $("[data-flow-prev]", host).addEventListener("click", () => setCurrent((lessonFlowPositions[key] || 0) - 1,true));
+    $("[data-flow-next]", host).addEventListener("click", () => setCurrent((lessonFlowPositions[key] || 0) + 1,true));
     $("[data-flow-recovery]", host).addEventListener("click", () => {
       const recovery = $("[data-recovery]", host);
       if (recovery) setCurrent(Number(recovery.dataset.flowIndex));
