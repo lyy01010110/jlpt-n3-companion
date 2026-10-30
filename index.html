@@ -1756,7 +1756,7 @@ input,textarea { caret-color:#805369; }
 .study-tabs button { flex:1; min-height:46px; padding:8px 4px; border:0; border-radius:14px; background:transparent; color:#604458; font:inherit; font-size:13px; }
 .study-tabs button[aria-selected=true] { background:#ffffff85; color:#493042; box-shadow:inset 1px 1px #fff,0 3px 9px #78516a15; }
 .study-note { font-size:12px; color:#604458; margin:12px 0; }
-.study-deck { position:relative; height:259px; touch-action:pan-y; margin:10px -4px; }
+.study-deck { position:relative; isolation:isolate; height:259px; touch-action:pan-y; margin:10px -4px; }
 .study-word { position:absolute; left:50%; top:43px; margin-left:-63px; width:126px; height:170px; padding:14px 10px; border:1px solid #fff; border-radius:24px; background:linear-gradient(140deg,#ffffff58,#ffffff24); backdrop-filter:blur(28px); box-shadow:inset 2px 2px 3px #fffb,inset -2px -2px 5px #93608020,0 14px 22px #804d6b20; color:#493042; transform-origin:50% 95%; }
 .study-word[aria-pressed=true] { background:linear-gradient(140deg,#ffffff8a,#ffffff36); box-shadow:inset 2px 2px 3px #fffc,0 20px 24px #73465d30; }
 .study-word small { display:block; text-align:left; font-size:11px; }
@@ -1775,6 +1775,24 @@ input,textarea { caret-color:#805369; }
 .motion-group { text-align:left; border:1px solid #fffb; border-radius:24px; padding:19px; background:#ffffff20; box-shadow:var(--glass-shadow); color:#493042; font:inherit; transform-origin:0 0; }
 .motion-group strong { display:block; font-size:17px; line-height:1.6; }
 .motion-group small { display:block; font-size:12px; color:#604458; margin-top:9px; }
+.motion-group[data-status=done] { border-color:#6e817a; background:#e2eee45c; }
+.motion-group[data-status=done] strong::before { content:"✓ "; color:#405b50; }
+.motion-group[data-status=active] { border-color:#9b718a; }
+#motion-flow-feedback { width:100%; margin:0; min-height:22px; }
+.motion-current .feedback.bad { color:#733746; background:#fff1f4c9; border-radius:14px; padding:14px; line-height:1.9; }
+.motion-current .feedback.ok { color:#405b50; }
+.motion-current input:disabled { opacity:1; }
+.motion-current .step-label { display:none; }
+.motion-quiz-nav { position:sticky; top:65px; z-index:25; background:#f3e7eff2; border-radius:16px; padding:12px; }
+.question-recap { margin-bottom:20px; border-bottom:1px solid #c9afc1; padding-bottom:12px; }
+.question-recap summary { cursor:pointer; min-height:44px; padding:10px 0; font-size:13px; }
+.question-recap p { font-size:14px; line-height:1.8; }
+.shadow-confirm { display:flex; align-items:start; gap:10px; padding:18px 0; font-size:14px; }
+.shadow-confirm input { width:20px; height:20px; flex-shrink:0; }
+.report-data-tools summary { cursor:pointer; min-height:44px; padding:12px 0; font-size:13px; }
+.report-data-tools .inline-actions { flex-wrap:wrap; }
+#course-period-control .intensity-status { display:none; }
+@media(max-width:600px) { .study-word { width:106px; margin-left:-53px; } .main-nav { grid-template-columns:repeat(4,1fr) !important; } }
 .motion-groups.is-board { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; align-items:start; }
 .is-board .motion-group { padding:16px 12px; }
 .is-board .motion-group strong { font-size:14px; }
@@ -1872,7 +1890,6 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     </a>
     <strong id="mobile-page-title" class="mobile-page-title">首页</strong>
     <nav class="main-nav" aria-label="主导航">
-      <button class="nav-btn is-active" data-view="home"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/></svg></span><b>今日</b></button>
       <button class="nav-btn" data-view="course"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></span><b>学习</b></button>
       <button class="nav-btn" data-view="calendar"><span aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 11h18m-13 5h2m4 0h2"/></svg></span><b>日历</b></button>
       <button class="nav-btn" data-view="review"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><b>周测</b></button>
@@ -2056,8 +2073,11 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
           <p class="eyebrow">Local learning report</p>
           <h1 id="report-title">学习报告</h1>
           <p>掌握度、错项、正确率和学习节奏会随课程与周测实时更新，并供课前任务自动读取。</p>
-          <button type="button" class="btn btn-secondary btn-small" id="export-study-report">导出学习报告与备份</button>
-          <button id="reset-all" class="btn btn-quiet btn-small">清除进度</button>
+          <details class="report-data-tools"><summary>测评与数据管理</summary><div class="inline-actions">
+            <button type="button" class="btn btn-secondary btn-small" data-go="assessment">起点测评</button>
+            <button type="button" class="btn btn-secondary btn-small" id="export-study-report">导出学习报告与备份</button>
+            <button id="reset-all" class="btn btn-quiet btn-small">清除进度</button>
+          </div></details>
         </div>
       </div>
       <div class="report-tabs" role="tablist" aria-label="学习报告分类">
@@ -2075,17 +2095,16 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     <h3>每天怎么学</h3>
     <ol class="guide-route">
       <li><strong>先看词卡和讲解</strong><p>词卡来自当天课件，滑动或点按抽出，先回忆再揭开。它是课前学习工具，浏览词卡不会增加题数或代替做题。</p></li>
-      <li><strong>上午做题组 · 无声</strong><p>按顺序完成辨形、回忆、输入、词例和错项回收。列表与看板显示同一批题组，切换不会重新开始。选择后点“检查”，看反馈再去下一题。</p></li>
-      <li><strong>晚上听辨、朗读和跟读</strong><p>切到“晚间”，在方便播放声音时做听辨与收尾小测，并跟读、回听。不需要重做上午题。</p></li>
-      <li><strong>完成后打卡，再看小结</strong><p>完成两段题目和阅读／跟读后分别标记，最后标记整日。小结能拆开看每题、返回原题；答对一次不代表长期掌握。</p></li>
+      <li><strong>连续完成学习卷</strong><p>打开讲解即记为已浏览。选好答案后点“下一题”：正确自动前进，错误停留展示答案与讲解，再点一次继续。“上一题”回看已提交答案，不能修改。</p></li>
+      <li><strong>方便有声时听辨与跟读</strong><p>随时切到“晚间”，完成听辨与收尾小测，并朗读、跟读。听辨需播放完音频，跟读由你勾选确认。</p></li>
+      <li><strong>完成情况自动记录</strong><p>全部题目、阅读与跟读完成后自动记录本段，早晚都完成后自动记为整日完成；漏项会定位到待完成处。答对一次不代表长期掌握。</p></li>
     </ol>
-    <h3>下面五个入口分别做什么</h3>
+    <h3>下面四个入口分别做什么</h3>
     <dl class="guide-nav">
-      <div><dt>今日</dt><dd>看当前课程日、早晚进度和墨滴仔，继续学习。</dd></div>
-      <div><dt>学习</dt><dd>选择课程册、Day 与早晚时段；内部有“词卡／题组／本段小结”。词卡和题组属于同一天。</dd></div>
+      <div><dt>学习</dt><dd>直接进入北京时间当天的课程；早晚由你选择。内部有词卡、学习卷与完成情况，完成全部题目和阅读／跟读后自动记录。</dd></div>
       <div><dt>日历</dt><dd>看北京时间的学习记录与预计阶段日期。点日期可看任务和状态；空白历史记录不等于你没有学习。</dd></div>
       <div><dt>周测</dt><dd>从已经学过的题中抽取最多 10 题，优先错题和薄弱项。建议六个课程日后或周日参加，也可随时重测；没有已学题时先学习。</dd></div>
-      <div><dt>报告</dt><dd>查看正确率、掌握度、错项和周测结果；切到“墨滴仔”换装。首页的“成长与装扮”也能进入。</dd></div>
+      <div><dt>报告</dt><dd>查看正确率、掌握度、错项和周测结果；切到“墨滴仔”查看成长与换装，导出报告也在这里。</dd></div>
     </dl>
     <h3>周测与阶段测评有什么区别</h3>
     <p>周测检查最近已学内容；阶段测评检查整阶段的覆盖范围。平／片假名分别覆盖 46 个清音，至少两个不同日期的完整测评均达到 90%，才显示阶段达标。同一天重测只计一个测评日。清浊与特殊音另有完整阶段检查。</p>
@@ -3222,8 +3241,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     return ids;
   }
   function taskHasAnswer(id) {
-    const meta = itemMeta(id);
-    return Boolean(meta && String(meta.type === "input" ? state.lessonInputs[id] ?? state.lessonInputs[meta.day] ?? "" : state.lessonAnswers[id] ?? "").trim());
+    return state.events.some(event=>event.itemId===id && event.source==="course");
   }
   function periodProgress(day, period) {
     const ids = periodTaskIds(day, period);
@@ -3268,7 +3286,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     if (match) {
       const courseKey = match[1] || "week1", day = Number(match[2]) - 1, type = match[3];
       const lesson = courseForKey(courseKey).lessons[day], task = lesson?.[type];
-      return lesson && task ? { id, day, courseKey, type, title: `${lesson.day} · ${type === "choice" ? "音形选择" : type === "input" ? "基础输入" : "听辨"}`, prompt: task.prompt, answer: task.answer, options: task.options || [], speech: task.speech || "", hint: type === "input" ? task.hint : "" } : null;
+      return lesson && task ? { id, day, courseKey, type, title: `${lesson.day} · ${type === "choice" ? "音形选择" : type === "input" ? "基础输入" : "听辨"}`, prompt: task.prompt, answer: task.answer, options: task.options || [], speech: task.speech || "", hint: type === "input" ? task.hint : "", explain: task.bad || task.hint || (type==="listen" ? `示范音是「${task.answer}」。` : lesson.explain) } : null;
     }
     const extra = /^lesson:(?:(week\d+):)?(\d+):(rapid|visual|inputx|phrase|review|challenge|listenx|wrap):(\d+)$/.exec(id);
     if (extra) {
@@ -3278,7 +3296,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       const bucket = { rapid:"rapidDrills",visual:"visualDrills",inputx:"inputDrills",phrase:"phraseDrills",review:"reviewDrills",challenge:"challengeDrills",listenx:"listenDrills",wrap:"wrapUp" };
       const task = pack[bucket[section]]?.[index];
       const titles = { rapid: "双向快速回忆", visual: "辨形加练", inputx: "输入加练", phrase: "词例解码", review: "错项回收", challenge: "强化挑战", listenx: "听辨加练", wrap: "收尾小测" };
-      return task ? { id, day, courseKey, type: task.type === "listen" ? "listen" : task.type, title: `${courseForKey(courseKey).lessons[day].day} · ${titles[section]}`, prompt: task.prompt, answer: task.answer, options: task.options || [], speech: task.speech || "", hint: task.hint || "" } : null;
+      return task ? { id, day, courseKey, type: task.type === "listen" ? "listen" : task.type, title: `${courseForKey(courseKey).lessons[day].day} · ${titles[section]}`, prompt: task.prompt, answer: task.answer, options: task.options || [], speech: task.speech || "", hint: task.hint || "", explain: task.bad || task.hint || task.ok || "" } : null;
     }
     const q = questions.find(x => `assessment:${x.id}` === id);
     if (q) return { id, day: -1, type: q.type, title: `测评 · ${q.skill}`, prompt: q.prompt, answer: q.answer, options: q.options || [], speech: q.speech || "", hint: q.explain };
@@ -3375,6 +3393,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
   }
 
   function showView(view, scroll = true) {
+    if(view==="home") { alignToday(); view="course"; }
     state.view = view; saveState();
     $$(".view").forEach(el => el.classList.toggle("is-active", el.id === view));
     $$(".nav-btn").forEach(el => el.classList.toggle("is-active", el.dataset.view === view));
@@ -3404,14 +3423,22 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
   function applyInitialRoute() {
     const params = new URLSearchParams(window.location.search);
     const requestedView = params.get("view");
-    if (["home", "assessment", "course", "calendar", "review", "report"].includes(requestedView)) state.view = requestedView;
-    const requestedDay = Number(params.get("day"));
-    if (Number.isInteger(requestedDay) && requestedDay >= 1 && requestedDay <= activeLessons().length) state.activeDay = requestedDay - 1;
-    const requestedPeriod = params.get("period");
-    if (["morning", "night"].includes(requestedPeriod)) state.activePeriod = requestedPeriod;
+    state.view = ["assessment", "calendar", "review", "report"].includes(requestedView) ? requestedView : "course";
+    alignToday();
     if (["kana", "katakana"].includes(params.get("test")) && !state.katakanaComplete) state.katakanaStarted = true;
     saveState();
   }
+  function alignToday() {
+    const date = beijingDateKey();
+    const weekday = new Date(`${date}T00:00:00Z`).getUTCDay();
+    state.activeDay = Math.min(weekday === 0 ? 5 : weekday - 1, activeLessons().length - 1);
+    if (state.studySelectionDate !== date) {
+      state.activePeriod = "morning";
+      delete state.motionResume;
+    }
+    state.studySelectionDate = date;
+  }
+  function enterToday() { alignToday(); showView("course"); }
 
   function syncHomeNote() {
     const count = Object.values(state.answers).filter(Boolean).length;
@@ -3702,10 +3729,11 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     $("#course-period-control").innerHTML = `<div class="period-switch" role="tablist" aria-label="学习时段"><button type="button" role="tab" aria-selected="${state.activePeriod === "morning"}" class="${state.activePeriod === "morning" ? "is-active" : ""}" data-period="morning"><span>上午 · 无声</span><strong>${morningProgress.done} / ${morningProgress.total} 题</strong><div class="period-mini-track"><i style="width:${progressPercent(morningProgress.done, morningProgress.total)}%"></i></div></button><button type="button" role="tab" aria-selected="${state.activePeriod === "night"}" class="${state.activePeriod === "night" ? "is-active" : ""}" data-period="night"><span>晚间 · 有声</span><strong>${nightProgress.done} / ${nightProgress.total} 题</strong><div class="period-mini-track night"><i style="width:${progressPercent(nightProgress.done, nightProgress.total)}%"></i></div></button></div><div class="intensity-status ${intensiveActive ? "is-active" : ""}"><span>强化模式</span><strong>${intensiveActive ? "已启用 · N2 按表现解锁" : "10 月 22 日启用"}</strong></div><p>${state.activePeriod === "morning" ? "当前仅显示上午课，不会播放声音。" : "请打开声音；录音仅保留在当前页面内存中。"}</p>`;
     $$("[data-period]", $("#course-period-control")).forEach(btn => btn.addEventListener("click", () => {
       state.activePeriod = btn.dataset.period;
+      state.studySelectionDate = beijingDateKey();
       saveState();
       renderCourse();
       syncRoute();
-      $("#lesson-host").scrollIntoView({ behavior: "smooth", block: "start" });
+      $("#study-motion-host").scrollIntoView({ behavior: "smooth", block: "start" });
     }));
     renderLesson(lesson, state.activeDay);
     const totalDays = lessonsNow.length;
@@ -3826,6 +3854,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     toolbar.innerHTML = `<div><small>当前学习步骤</small><strong data-flow-count>${current + 1} / ${blocks.length}</strong></div><div class="lesson-flow-actions"><button type="button" class="btn btn-quiet btn-small" data-flow-recovery ${$("[data-recovery]", host) ? "" : "disabled"}>错题 / 提示 ${recoveryCount}</button><button type="button" class="btn btn-secondary btn-small" data-flow-prev aria-label="上一项">上一项</button><button type="button" class="btn btn-primary btn-small" data-flow-next aria-label="下一项">下一项</button></div>`;
     $(".lesson-head", host).after(toolbar);
     $$("details.lesson-disclosure", host).forEach((details, index) => details.addEventListener("toggle", () => {
+      if (host.classList.contains("motion-adapted")) return;
       if (!mobile || !details.open) return;
       lessonFlowPositions[key] = index;
       $$("details.lesson-disclosure", host).forEach(other => { if (other !== details) other.open = false; });
@@ -3841,6 +3870,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
   }
   function checkLessonAnswer(index, type, value, selector, ok, bad) {
     const task = activeLessons()[index][type], node = $(selector), id = itemId(index, type);
+    if(state.events.some(event=>event.itemId===id&&event.source==="course"))return;
     if (!value) { node.textContent = type === "input" ? "请先输入答案。" : "请先选择一个答案。"; node.className = "feedback bad"; return; }
     const good = normalize(value) === normalize(task.answer);
     const usedHint = hintedThisRender.has(id);
@@ -3857,6 +3887,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
   function checkPackTask(id) {
     const meta = itemMeta(id), node = $(`#feedback-${domSafeId(id)}`);
     if (!meta || !node) return;
+    if(state.events.some(event=>event.itemId===id&&event.source==="course"))return;
     const taskMatch = /^lesson:(?:(week\d+):)?(\d+):(rapid|visual|inputx|phrase|review|challenge|listenx|wrap):(\d+)$/.exec(id);
     const task = taskMatch && (taskMatch[1] || "week1") === currentCourseKey() ? lessonTaskLookup(Number(taskMatch[2]) - 1, taskMatch[3], Number(taskMatch[4])) : null;
     const value = meta.type === "input" ? ($(`[data-task-input="${id}"]`)?.value || "") : ($(`input[name="${id}"]:checked`)?.value || "");
@@ -3931,6 +3962,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     if (!voice) { alert("未找到日语语音，请启用设备的日语语音后重试；暂不使用其他语言代读。"); return; }
     const utterance = new SpeechSynthesisUtterance(text); utterance.lang = "ja-JP"; utterance.rate = 0.78;
     utterance.voice = voice;
+    utterance.onend = () => document.dispatchEvent(new CustomEvent("modi:audio", { detail: { text } }));
     speechSynthesis.speak(utterance);
   }
   async function toggleRecording(button, playback, status) {
@@ -4175,9 +4207,9 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       section.hidden = section.dataset.reportSection !== reportTab;
     });
   }
-  $$(".nav-btn").forEach(btn => btn.addEventListener("click", () => showView(btn.dataset.view)));
+  $$(".nav-btn").forEach(btn => btn.addEventListener("click", () => btn.dataset.view === "course" ? enterToday() : showView(btn.dataset.view)));
   $$("[data-report-tab]").forEach(button => button.addEventListener("click", () => { reportTab = button.dataset.reportTab; applyReportTab(); }));
-  $$("[data-go]").forEach(btn => btn.addEventListener("click", () => showView(btn.dataset.go)));
+  $$("[data-go]").forEach(btn => btn.addEventListener("click", () => btn.dataset.go === "course" ? enterToday() : showView(btn.dataset.go)));
   $("#start-assessment").addEventListener("click", () => { state.assessmentStarted = true; state.assessmentComplete = false; saveState(); syncAssessment(); });
   $("#next-question").addEventListener("click", () => {
     if (!captureAnswer()) return;
@@ -4197,16 +4229,19 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     get state() { return state; }, today: beijingDateKey, lessons: activeLessons,
     progress: courseDayProgress, periodIds: periodTaskIds, meta: itemMeta,
     courseKey: currentCourseKey, partKey: lessonPartKey, normalize, save: saveState,
-    show: showView, speak, kanaQuestions, begin: startAttempt, pet: currentCompanionLevel,
+    show: showView, speak, kanaQuestions, begin: startAttempt, pet: currentCompanionLevel, enterToday,
     selectCourse(key) {
       if (!["week1", "week2"].includes(key)) return;
-      state.activeCourseKey = key; state.activeDay = 0; saveState(); showView("course");
+      state.activeCourseKey = key; alignToday(); saveState(); showView("course");
     },
     openLesson(day, period = "morning") {
       state.activeDay = Math.max(0, Math.min(day, activeLessons().length - 1));
       state.activePeriod = period; showView("course");
     }
   };
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && state.studySelectionDate !== beijingDateKey() && state.view === "course") enterToday();
+  });
   syncHomeNote(); showView(state.view || "home", false);
 })();
 
@@ -4221,6 +4256,8 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
   const reduced = matchMedia("(prefers-reduced-motion: reduce)");
   let disposeDeck = () => {}, groups = [], current = null, questionIndex = 0, mode = "words", ghost = null;
   let previousKey = "", layout = "list";
+  let advanceTimer = 0, pendingAdvance = false;
+  let audioAttempt = null;
   const host = $("#study-motion-host"), lessonHost = $("#lesson-host");
   function flip(nodes, change) {
     const before = new Map(nodes.map(n=>[n,n.getBoundingClientRect()]));
@@ -4243,12 +4280,40 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     element.animate([{transform:`translate(${from.left-to.left}px,${from.top-to.top}px) scale(${from.width/to.width},${from.height/to.height})`,opacity:.95},{transform:"none",opacity:0}],{duration:390,easing:"cubic-bezier(.16,1,.3,1)"}).finished.then(()=>element.remove()).catch(()=>element.remove());
   }
   function currentKey() { return `${core.courseKey()}:${core.state.activeDay}:${core.state.activePeriod}`; }
+  function readingKey(g) { return `${currentKey()}:${g.i}`; }
+  function lastAnswer(id) { return core.state.events.filter(e=>e.itemId===id&&e.source==="course").at(-1); }
+  function checkedCount(g) { return g.ids.filter(id=>lastAnswer(id)).length; }
+  function isDone(g) { return g.ids.length ? checkedCount(g)===g.ids.length : Boolean(core.state.studyReadings?.[readingKey(g)]); }
+  function updateCompletion() {
+    core.state.studyReadings ||= {};
+    groups.forEach(g=>{
+      const n=checkedCount(g),done=isDone(g);
+      g.button.dataset.status=done?"done":n?"active":"pending";
+      $("small",g.button).textContent=g.ids.length?`${done?"已完成":"待完成"} · ${n} / ${g.ids.length} 题${g.ids.some(id=>lastAnswer(id)&&!lastAnswer(id).correct)?" · 有错题待复习":""}`:done?(g.shadow?"已跟读":"已浏览"):(g.shadow?"待跟读确认":"待浏览");
+    });
+    if(groups.length && groups.every(isDone)) {
+      const key=core.partKey(core.state.activeDay);
+      core.state.lessonParts[key]={...core.state.lessonParts[key],[core.state.activePeriod]:true};
+      const parts=core.state.lessonParts[key];
+      if(parts.morning&&parts.night) {
+        if(core.courseKey()==="week1") {
+          if(!core.state.completedDays.includes(core.state.activeDay))core.state.completedDays.push(core.state.activeDay);
+        } else {
+          const days=core.state.completedDaysByCourse[core.courseKey()] ||= [];
+          if(!days.includes(core.state.activeDay))days.push(core.state.activeDay);
+        }
+      }
+    }
+    core.save(); $("#motion-groups")?.arrange?.();
+  }
   function mountLesson() {
+    clearTimeout(advanceTimer); pendingAdvance=false;
     disposeDeck();
+    audioAttempt=null;
     const resume=core.state.motionResume;
     const lesson=core.lessons()[core.state.activeDay];
-    $("#course-title").textContent=`${lesson.day} · 今日学习`;
-    $("#course .page-head > div > p:last-child").textContent="先词卡与讲解，再练题组；晚间听辨和跟读。早晚属于同一天的任务。";
+    $("#course-title").textContent=`${lesson.day} · 学习`;
+    $("#course .page-head > div > p:last-child").textContent="先读讲解，再连续答题。上午无声、晚间有声，随时由你选择。";
     $$(".day-tab").forEach(b=>b.setAttribute("aria-label",`${$("strong",b).textContent}，${$("span",b).textContent}`));
     if(!$("#today-plan-details")) {
       const d=document.createElement("details");d.id="today-plan-details";d.innerHTML="<summary>查看今日重点与早晚进度</summary>";
@@ -4256,7 +4321,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     }
     if (previousKey!==currentKey()) { mode="words"; current=null; questionIndex=0; previousKey=currentKey(); }
     const period = $(`[data-period-section="${core.state.activePeriod}"]`,lessonHost);
-    groups = $$(".lesson-disclosure",lessonHost).filter(d=>!d.closest("[data-period-section]") || period.contains(d)).map((node,i)=>({
+    groups = $$(".lesson-disclosure",lessonHost).filter(d=>(!d.closest("[data-period-section]") || period.contains(d))&&!$(".checklist-step",d)).map((node,i)=>({
       node,i,title:$("summary strong",node)?.textContent||"学习步骤",
       cards:$$(".subtask-card",node),ids:$$("[data-check-task]",node).map(b=>b.dataset.checkTask)
     }));
@@ -4266,20 +4331,31 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
         if ($("#check-input",g.node)) g.ids=[core.periodIds(core.state.activeDay,"morning")[1]];
         if ($("#check-listen",g.node)) g.ids=[core.periodIds(core.state.activeDay,"night")[0]];
       }
+      g.shadow=Boolean($("#play-model",g.node));
+      if(g.shadow) {
+        const label=document.createElement("label");label.className="shadow-confirm";
+        label.innerHTML='<input type="checkbox" id="motion-shadow-confirm"> 我已独立朗读并跟读（自确认，不评分）';
+        g.node.append(label);
+      }
+      $$("[data-check-task],#check-choice,#check-input,#check-listen",g.node).forEach(b=>b.hidden=true);
+      if(g.ids.length) {
+        const recap=document.createElement("details");recap.className="question-recap";
+        recap.innerHTML=`<summary>回看本课讲解</summary><p>${esc(lesson.explain)}</p><p>${esc(lesson.trap)}</p>`;
+        $(".lesson-step",g.node)?.prepend(recap);
+      }
     });
     lessonHost.classList.add("motion-adapted");
     const allCompleted=core.lessons().every((_,i)=>{
       const p=core.state.lessonParts[core.courseKey()==="week1"?String(i):`week2:${i}`];
       return p?.morning && p?.night && core.progress(i).percent===100;
     });
-    host.innerHTML=`<div class="study-tools"><label for="course-book">课程册</label><select id="course-book"><option value="week1">假名起步 · 第 1 册</option><option value="week2">句型与强化 · 第 2 册</option></select><button type="button" class="btn btn-quiet btn-small" data-guide>导览</button></div>
-      <p class="study-note">课程册固定保存；切换可回看原答案。${core.courseKey()==="week1" && allCompleted?'本册早晚任务已完成，可以进入第 2 册。':"按当前 Day 学完早晚两段，再进入下一课。"}</p>
-      <div class="study-tabs" role="tablist" aria-label="本课学习工具"><button role="tab" data-mode="words">词卡</button><button role="tab" data-mode="groups">题组</button><button role="tab" data-mode="summary">本段小结</button></div>
+    host.innerHTML=`<div class="study-tools"><label for="course-book">课程册</label><select id="course-book"><option value="week1">假名起步 · 第 1 册</option><option value="week2">句型与强化 · 第 2 册</option></select></div>
+      ${core.courseKey()==="week1" && allCompleted?'<p class="study-note">本册已完成，可以进入第 2 册。</p>':""}
+      <div class="study-tabs" role="tablist" aria-label="本课学习工具"><button role="tab" data-mode="words">词卡</button><button role="tab" data-mode="groups">学习卷</button><button role="tab" data-mode="summary">完成情况</button></div>
       <div id="motion-words"></div><div id="motion-group-section"><div class="group-controls"><strong>本段学习步骤</strong><div><button class="btn btn-quiet btn-small" data-layout="list">列表</button><button class="btn btn-quiet btn-small" data-layout="board">看板</button></div></div><div class="motion-groups" id="motion-groups"></div><p class="study-note">阅读／讲解也在这里。题组使用原课程的全部题目，按顺序完成。</p></div>
-      <div class="motion-quiz-nav" id="motion-quiz-nav" hidden><button class="btn btn-quiet btn-small" id="motion-return">返回题组</button><span id="motion-question-count"></span><div><button class="btn btn-secondary btn-small" id="motion-prev">上一题</button><button class="btn btn-primary btn-small" id="motion-next">下一题</button></div></div><div id="motion-summary" class="motion-summary"></div>`;
+      <div class="motion-quiz-nav" id="motion-quiz-nav" hidden><button class="btn btn-quiet btn-small" id="motion-return">学习卷目录</button><span id="motion-question-count"></span><div><button class="btn btn-secondary btn-small" id="motion-prev">上一题</button><button class="btn btn-primary btn-small" id="motion-next">下一题</button></div><p id="motion-flow-feedback" class="feedback" role="status" aria-live="polite"></p></div><div id="motion-summary" class="motion-summary"></div>`;
     $("#course-book").value=core.courseKey();
     $("#course-book").addEventListener("change",e=>core.selectCourse(e.target.value));
-    $("[data-guide]",host).addEventListener("click",openGuide);
     const grid=$("#motion-groups");
     groups.forEach(g=>{
       const b=document.createElement("button");b.type="button";b.className="motion-group";g.button=b;
@@ -4287,14 +4363,14 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       b.innerHTML=`<strong>${esc(g.title)}</strong><small>${g.ids.length?`${checked} / ${g.ids.length} 题已检查`:"阅读／跟读 · 不计题数"}</small>`;
       grid.append(b); b.addEventListener("click",()=>openGroup(g,core.state.motionPositions?.[`${currentKey()}:${g.i}`]||0,b));
     });
-    ["待开始","进行中","已检查"].forEach((title,i)=>{
+    ["待完成","进行中","已完成"].forEach((title,i)=>{
       const lane=document.createElement("div");lane.className="motion-lane";lane.dataset.lane=String(i);lane.innerHTML=`<h3>${title}</h3><div class="motion-lane-cards"></div>`;grid.append(lane);
     });
     const arrange=()=>{
       grid.classList.toggle("is-board",layout==="board");
       groups.forEach(g=>{
         const checked=g.ids.filter(id=>core.state.events.some(e=>e.itemId===id&&e.source==="course")).length;
-        const status=!checked?0:checked===g.ids.length?2:1;
+        const status=isDone(g)?2:checked?1:0;
         (layout==="board"?$(`[data-lane="${status}"] .motion-lane-cards`,grid):grid).append(g.button);
       });
     };
@@ -4307,18 +4383,19 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     arrange();
     $$("[data-layout]",host).forEach(n=>n.setAttribute("aria-pressed",String(n.dataset.layout===layout)));
     $$("[data-mode]",host).forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.mode)));
-    $("#motion-return").addEventListener("click",()=>setMode("groups"));
-    $("#motion-prev").addEventListener("click",()=>showQuestion(questionIndex-1));
-    $("#motion-next").addEventListener("click",()=>{
-      if (current?.cards.length && questionIndex<current.cards.length-1) showQuestion(questionIndex+1);
-      else setMode("summary");
-    });
+    $("#motion-return").addEventListener("click",()=>{const b=current?.button;setMode("groups");b?.scrollIntoView({block:"center",behavior:"instant"});b?.focus({preventScroll:true});});
+    $("#motion-prev").addEventListener("click",previousQuestion);
+    $("#motion-next").addEventListener("click",nextQuestion);
     buildDeck(); renderSummary(); setMode(mode==="quiz"?"groups":mode);
+    updateCompletion();
     if(resume?.key===currentKey()&&groups[resume.group])openGroup(groups[resume.group],resume.index);
   }
   function setMode(next) {
+    clearTimeout(advanceTimer);pendingAdvance=false;
+    if($("#motion-next"))$("#motion-next").disabled=false;
     mode=next;
     $("#motion-words").hidden=next!=="words";
+    if(next==="words")window.dispatchEvent(new Event("resize"));
     $("#motion-group-section").hidden=next!=="groups";
     $("#motion-summary").hidden=next!=="summary";
     $("#motion-quiz-nav").hidden=next!=="quiz";
@@ -4329,6 +4406,8 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     if(next!=="quiz"&&core.state.motionResume?.key===currentKey()){delete core.state.motionResume;core.save();}
   }
   function openGroup(g,index=0,origin=null) {
+    const unread=groups.slice(0,g.i).find(item=>!item.ids.length&&!item.shadow&&!isDone(item));
+    if(g.ids.length&&unread)g=unread;
     const before=origin?.getBoundingClientRect(); current=g;
     setMode("quiz");
     groups.forEach(item=>{item.node.classList.toggle("motion-current",item===g);item.node.open=item===g;});
@@ -4340,27 +4419,91 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     const count=current.cards.length || 1;
     questionIndex=Math.max(0,Math.min(index,count-1));
     current.cards.forEach((c,i)=>c.classList.toggle("motion-question",i===questionIndex));
-    $("#motion-question-count").textContent=`${questionIndex+1} / ${count}`;
-    $("#motion-prev").disabled=questionIndex===0;
-    $("#motion-next").textContent=questionIndex===count-1?"查看本段小结":"下一题";
+    const total=groups.reduce((n,g)=>n+g.ids.length,0);
+    const number=groups.slice(0,current.i).reduce((n,g)=>n+g.ids.length,0)+questionIndex+1;
+    $("#motion-question-count").textContent=current.ids.length?`第 ${number} / ${total} 题 · ${current.title}`:current.title;
+    $("#motion-prev").disabled=!groups.slice(0,current.i).some(g=>g.ids.length)&&questionIndex===0;
+    $("#motion-next").textContent=current.ids.length?"下一题":current.shadow?"确认跟读并继续":"继续练习";
+    $("#motion-next").disabled=false;
+    $("#motion-flow-feedback").textContent="";
     core.state.motionPositions ||= {};
     core.state.motionPositions[`${currentKey()}:${current.i}`]=questionIndex;
     core.state.motionResume={key:currentKey(),group:current.i,index:questionIndex};
     const id=current.ids[questionIndex];
     if(id) {
-      core.begin(id);
-      const latest=core.state.events.filter(e=>e.itemId===id&&e.source==="course").at(-1);
+      const latest=lastAnswer(id);
+      if(!latest)core.begin(id);
       const node=$(".feedback",current.cards[questionIndex]||current.node);
-      if(latest&&node) {node.textContent=`上次已检查：${latest.correct?"正确":"需要回收"}。可以再次独立作答。`;node.className=`feedback ${latest.correct?"ok":"bad"}`;}
+      const root=current.cards[questionIndex]||current.node;
+      $$("input",root).forEach(input=>{
+        input.disabled=Boolean(latest);
+        if(latest) {if(input.type==="radio")input.checked=input.value===latest.answer;else input.value=latest.answer;}
+      });
+      if(latest&&node) {node.textContent=answerExplanation(id,latest);node.className=`feedback ${latest.correct?"ok":"bad"}`;}
+    } else if(!current.shadow) {
+      core.state.studyReadings ||= {}; core.state.studyReadings[readingKey(current)]=true;updateCompletion();
+    } else {
+      $("#motion-shadow-confirm").checked=isDone(current);
+      $("#motion-shadow-confirm").disabled=isDone(current);
     }
     core.save();
+  }
+  function answerExplanation(id,event) {
+    const meta=core.meta(id),answers=Array.isArray(meta?.answer)?meta.answer:[meta?.answer];
+    return `${event.correct?"答对了 ✓":"需要回收"} · 你的答案：${event.answer}。${event.correct?"":"正确答案："+answers.join(" / ")+"。"}${meta?.explain||meta?.bad||meta?.hint||core.lessons()[core.state.activeDay].explain} 已提交，回看时不能修改；复习请进入周测。`;
+  }
+  function previousQuestion() {
+    clearTimeout(advanceTimer);pendingAdvance=false;
+    if(current.ids.length&&questionIndex>0)return showQuestion(questionIndex-1);
+    const prev=groups.slice(0,current.i).reverse().find(g=>g.ids.length);
+    if(prev)openGroup(prev,prev.ids.length-1);
+  }
+  function advance() {
+    pendingAdvance=false;
+    if(current.ids.length&&questionIndex<current.ids.length-1)return showQuestion(questionIndex+1);
+    const next=groups[current.i+1];
+    if(next)return openGroup(next,0);
+    const missing=groups.find(g=>!isDone(g));
+    if(missing) {
+      openGroup(missing,Math.max(0,missing.ids.findIndex(id=>!lastAnswer(id))));
+      $("#motion-flow-feedback").textContent="还有未完成项，已定位到这里。";
+    } else setMode("summary");
+  }
+  function nextQuestion() {
+    if(pendingAdvance)return;
+    if(!current.ids.length) {
+      if(current.shadow) {
+        if(!$("#motion-shadow-confirm").checked){$("#motion-flow-feedback").textContent="请先朗读、跟读，再勾选完成确认。";return;}
+        core.state.studyReadings ||= {};core.state.studyReadings[readingKey(current)]=true;updateCompletion();
+      }
+      return advance();
+    }
+    const id=current.ids[questionIndex];
+    if(lastAnswer(id))return advance();
+    if(core.meta(id)?.type==="listen"&&!core.state.studyListened?.[id]) {
+      $("#motion-flow-feedback").textContent="请先完整播放听辨音，再提交答案。若没有声音，请启用设备日语语音后重试。";
+      return;
+    }
+    const root=current.cards[questionIndex]||current.node;
+    const button=$("[data-check-task],#check-choice,#check-input,#check-listen",root);
+    button?.click();
+    const event=lastAnswer(id);
+    if(!event)return;
+    showQuestion(questionIndex);updateCompletion();
+    const node=$(".feedback",root);if(node)node.textContent=answerExplanation(id,event);
+    if(event.correct) {
+      pendingAdvance=true;$("#motion-next").disabled=true;
+      $("#motion-flow-feedback").textContent="答对了 ✓";
+      advanceTimer=setTimeout(advance,reduced.matches?180:520);
+    } else $("#motion-flow-feedback").textContent="看完讲解，再点下一题继续。";
   }
   function renderSummary() {
     const summary=$("#motion-summary"); if(!summary) return;
     const ids=core.periodIds(core.state.activeDay,core.state.activePeriod);
     const last=new Map(core.state.events.filter(e=>e.source==="course").map(e=>[e.itemId,e]));
     const done=ids.filter(id=>last.has(id)).length, correct=ids.filter(id=>last.get(id)?.correct).length;
-    summary.innerHTML=`<h2>本段小结</h2><p class="study-note">${done} / ${ids.length} 题已检查 · 最近作答 ${correct} 题正确。打卡与长期掌握分别记录。</p><button type="button" class="btn btn-secondary" id="split-summary" aria-pressed="false">拆开查看每题</button><div class="summary-pieces"></div><div class="inline-actions"><button class="btn btn-primary" id="motion-mark-part">标记${core.state.activePeriod==="night"?"晚间":"上午"}完成</button><button class="btn btn-secondary" id="motion-mark-day">标记整日完成</button></div><p class="study-note">确认阅读与跟读也已完成后打卡；未检查完本段题目时无法标记。</p>`;
+    const missing=groups.filter(g=>!isDone(g));
+    summary.innerHTML=`<h2>${missing.length?"还有待完成项":"本段已完成 ✓"}</h2><p class="study-note">${done} / ${ids.length} 题已提交 · ${correct} 题正确 · ${groups.filter(g=>!g.ids.length&&isDone(g)).length} / ${groups.filter(g=>!g.ids.length).length} 节已浏览或跟读。全部完成后自动记录。</p><button type="button" class="btn btn-secondary" id="split-summary" aria-pressed="false">拆开查看每题</button><div class="summary-pieces"></div>${missing.length?'<button class="btn btn-primary" id="motion-fill-gap">继续未完成项</button>':'<p class="feedback ok">本段学习已完成。可选择另一时段；早晚都完成后自动记为整日完成。</p>'}`;
     const pieces=$(".summary-pieces",summary);
     ids.forEach((id,i)=>{
       const meta=core.meta(id),event=last.get(id),b=document.createElement("button");
@@ -4374,10 +4517,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       flip($$(".summary-piece",pieces),()=>pieces.classList.toggle("is-split"));
       const split=pieces.classList.contains("is-split");e.currentTarget.setAttribute("aria-pressed",String(split));e.currentTarget.textContent=split?"聚合为题目轨道":"拆开查看每题";
     });
-    $("#motion-mark-part").disabled=done!==ids.length;
-    $("#motion-mark-part").addEventListener("click",()=>$(`[data-part="${core.state.activePeriod}"]`,lessonHost).click());
-    $("#motion-mark-day").disabled=$("#complete-day",lessonHost).disabled;
-    $("#motion-mark-day").addEventListener("click",()=>$("#complete-day",lessonHost).click());
+    $("#motion-fill-gap")?.addEventListener("click",()=>{const g=missing[0];openGroup(g,Math.max(0,g.ids.findIndex(id=>!lastAnswer(id))));});
   }
   function buildDeck() {
     const lesson=core.lessons()[core.state.activeDay];
@@ -4387,23 +4527,25 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     const words=(lesson.reviewItems?.length?lesson.reviewItems:[...phraseWords,...equalsWords,...cells.map(c=>[$("strong",c)?.textContent,$("span",c)?.textContent])]).filter(w=>w[0]);
     if(!words.length) words.push([lesson.phrase.example,lesson.phrase.body]);
     const panel=$("#motion-words");
-    panel.innerHTML=`<p class="study-note">本课词卡 · 先回忆，再揭开。上午不播放声音；浏览不计题目完成。</p><div class="study-deck" aria-label="滑动或点按抽出本课词卡"></div><div class="deck-pages"><button class="btn btn-quiet btn-small" id="deck-prev" aria-label="上一张词卡">上一张</button><span id="deck-count"></span><button class="btn btn-quiet btn-small" id="deck-next" aria-label="下一张词卡">下一张</button></div><div class="word-explanation"><h2 id="deck-word" lang="ja"></h2><p id="deck-meaning" aria-live="polite">先在心里回忆。</p><div class="inline-actions"><button class="btn btn-secondary" id="deck-reveal">揭开词卡</button><button class="btn btn-secondary" id="deck-speak">听发音</button><button class="btn btn-primary" id="deck-learn">进入题组</button></div></div>`;
+    panel.innerHTML=`<p class="study-note">先回忆，再揭开词卡。</p><div class="study-deck" aria-label="滑动或点按抽出本课词卡"></div><div class="deck-pages"><button class="btn btn-quiet btn-small" id="deck-prev" aria-label="上一张词卡">上一张</button><span id="deck-count"></span><button class="btn btn-quiet btn-small" id="deck-next" aria-label="下一张词卡">下一张</button></div><div class="word-explanation"><h2 id="deck-word" lang="ja"></h2><p id="deck-meaning" aria-live="polite">先在心里回忆。</p><div class="inline-actions"><button class="btn btn-secondary" id="deck-reveal">揭开词卡</button><button class="btn btn-secondary" id="deck-speak">听发音</button><button class="btn btn-primary" id="deck-learn">开始学习卷</button></div></div>`;
     const deck=$(".study-deck",panel);
     let word=0,revealed=false,frame=0,last=0,drag=null,suppress=false;
-    const count=Math.min(5,words.length), cards=[];
+    const batchSize=matchMedia("(max-width:600px)").matches?3:5;
+    const count=Math.min(batchSize,words.length), cards=[];
     let poses=Array.from({length:count},()=>({x:0,y:0,a:0,vx:0,vy:0,va:0}));
     for(let i=0;i<count;i++) {
       const b=document.createElement("button");b.type="button";b.className="study-word";
-      b.addEventListener("click",()=>{if(!suppress)setWord(Math.floor(word/5)*5+i);});
+      b.addEventListener("click",()=>{if(!suppress)setWord(Math.floor(word/batchSize)*batchSize+i);});
       b.addEventListener("keydown",e=>{if(["ArrowLeft","ArrowRight"].includes(e.key)){e.preventDefault();setWord(word+(e.key==="ArrowRight"?1:-1));}});
       deck.append(b);cards.push(b);
     }
     const target=i=>{
-      const valid=Math.min(5,words.length-Math.floor(word/5)*5),center=(valid-1)/2,active=i===word%5;
-      return {x:(i-center)*(deck.clientWidth<325?28:32)+(drag?.dx||0)*.05,y:active?-34:Math.abs(i-center)*11+8,a:active?0:(i-center)*7};
+      const valid=Math.min(batchSize,words.length-Math.floor(word/batchSize)*batchSize),center=(valid-1)/2,active=i===word%batchSize;
+      const spacing=Math.min(84,Math.max(44,(deck.clientWidth-148)/Math.max(1,valid-1)));
+      return {x:(i-center)*spacing+(drag?.dx||0)*.05,y:active?-34:Math.abs(i-center)*13+12,a:active?0:(i-center)*7};
     };
     function paint() {
-      cards.forEach((b,i)=>{const p=poses[i];b.style.transform=`translate(${p.x}px,${p.y}px) rotate(${p.a}deg)`;b.style.zIndex=i===word%5?20:5-Math.abs(i-2);b.setAttribute("aria-pressed",String(i===word%5));});
+      cards.forEach((b,i)=>{const p=poses[i];b.style.transform=`translate(${p.x}px,${p.y}px) rotate(${p.a}deg)`;b.style.zIndex=i===word%batchSize?20:5-Math.abs(i-2);b.setAttribute("aria-pressed",String(i===word%batchSize));});
     }
     function step(now) {
       const dt=Math.min((now-(last||now-16))/1000,.025);last=now;let moving=false;
@@ -4416,7 +4558,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     }
     function setWord(n) {
       word=Math.max(0,Math.min(words.length-1,n));revealed=false;
-      cards.forEach((b,i)=>{const w=words[Math.floor(word/5)*5+i];b.hidden=!w;if(w){b.innerHTML=`<small>${Math.floor(word/5)*5+i+1}</small><strong lang="ja">${esc(w[0])}</strong><span>轻点抽出</span>`;b.setAttribute("aria-label",`抽出词卡 ${w[0]}`);}});
+      cards.forEach((b,i)=>{const w=words[Math.floor(word/batchSize)*batchSize+i];b.hidden=!w;if(w){b.innerHTML=`<small>${Math.floor(word/batchSize)*batchSize+i+1}</small><strong lang="ja">${esc(w[0])}</strong><span>轻点抽出</span>`;b.setAttribute("aria-label",`抽出词卡 ${w[0]}`);}});
       $("#deck-word").textContent=words[word][0];$("#deck-meaning").textContent="先在心里回忆。";$("#deck-reveal").textContent="揭开词卡";
       $("#deck-count").textContent=`${word+1} / ${words.length}`;$("#deck-prev").disabled=!word;$("#deck-next").disabled=word===words.length-1;
       move();
@@ -4440,7 +4582,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     $("#deck-prev").addEventListener("click",()=>setWord(word-1));$("#deck-next").addEventListener("click",()=>setWord(word+1));
     $("#deck-reveal").addEventListener("click",e=>{revealed=!revealed;$("#deck-meaning").textContent=revealed?words[word][1]||lesson.explain:"先在心里回忆。";e.currentTarget.textContent=revealed?"收起说明":"揭开词卡";e.currentTarget.setAttribute("aria-expanded",String(revealed));});
     $("#deck-speak").hidden=core.state.activePeriod!=="night";$("#deck-speak").addEventListener("click",()=>core.speak(words[word][0]));
-    $("#deck-learn").addEventListener("click",()=>setMode("groups"));
+    $("#deck-learn").addEventListener("click",()=>{const g=groups.find(g=>!isDone(g))||groups[0];if(g)openGroup(g,Math.max(0,g.ids.findIndex(id=>!lastAnswer(id))));});
     window.addEventListener("resize",move);reduced.addEventListener("change",move);
     disposeDeck=()=>{cancelAnimationFrame(frame);window.removeEventListener("resize",move);reduced.removeEventListener("change",move);};
     setWord(0);
@@ -4458,10 +4600,20 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
   $$("[data-close-dialog]").forEach(b=>b.addEventListener("click",()=>b.closest("dialog").close()));
   $$(".modi-dialog").forEach(d=>d.addEventListener("click",e=>{if(e.target===d){const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close();}}));
   document.addEventListener("modi:lesson",mountLesson);
+  lessonHost.addEventListener("click",e=>{
+    const b=e.target.closest("[data-play-task],#play-listen");
+    if(!b)return;
+    const id=b.dataset.playTask||current?.ids[questionIndex];
+    audioAttempt={id,key:currentKey(),text:core.meta(id)?.speech};
+  },true);
+  document.addEventListener("modi:audio",e=>{
+    if(audioAttempt?.key===currentKey()&&audioAttempt.text===e.detail.text) {
+      core.state.studyListened ||= {};core.state.studyListened[audioAttempt.id]=true;
+      core.save();audioAttempt=null;
+    }
+  });
   document.addEventListener("modi:answer",()=>{
-    renderSummary();
-    groups.forEach(g=>{if(g.ids.length){const checked=g.ids.filter(id=>core.state.events.some(e=>e.itemId===id&&e.source==="course")).length;$("small",g.button).textContent=`${checked} / ${g.ids.length} 题已检查`; }});
-    $("#motion-groups")?.arrange?.();
+    updateCompletion();renderSummary();
   });
   document.addEventListener("modi:view",e=>{if(e.detail!=="course" && ghost){ghost.remove();ghost=null;}});
   function mountOutfitPreview() {
@@ -4484,10 +4636,6 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
   if(core.state.view==="report")mountOutfitPreview();
   const wardrobe=$(".island-wardrobe");
   wardrobe?.addEventListener("click",()=>$('[data-report-tab="companion"]').click());
-  $("#continue-today").addEventListener("click",()=>{
-    const parts=core.state.lessonParts[core.partKey(core.state.activeDay)];
-    if(parts?.morning&&!parts.night&&core.state.activePeriod!=="night")core.openLesson(core.state.activeDay,"night");
-  });
 })();
 
 </script>
