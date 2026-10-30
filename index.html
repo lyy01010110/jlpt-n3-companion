@@ -2054,6 +2054,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
 
       <div id="day-tabs" class="day-tabs" role="tablist" aria-label="本周课程日期"></div>
       <div id="day-overview" class="day-overview"></div>
+      <details id="new-study-plan" class="report-data-tools"></details>
       <div id="course-period-control" class="course-period-control" aria-label="选择学习时段"></div>
       <div id="study-motion-host"></div>
 
@@ -2106,7 +2107,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     <ol class="guide-route">
       <li><strong>先看词卡和讲解</strong><p>词卡来自当天课件，滑动或点按抽出，先回忆再揭开。它是课前学习工具，浏览词卡不会增加题数或代替做题。</p></li>
       <li><strong>连续完成学习卷</strong><p>打开讲解即记为已浏览。选好答案后点“下一题”：正确自动前进，错误停留展示答案与讲解，再点一次继续。“上一题”回看已提交答案，不能修改。</p></li>
-      <li><strong>方便有声时听辨与跟读</strong><p>随时切到“晚间”，完成听辨与收尾小测，并朗读、跟读。听辨需播放完音频，跟读由你勾选确认。</p></li>
+      <li><strong>按所选时段完成练习</strong><p>11 月 2 日起，听辨与收尾小测放到日间，可戴耳机；晚间只朗读、跟读当天内容。此前仍按当前分组。听辨需播放完音频，跟读由你勾选确认。</p></li>
       <li><strong>完成情况自动记录</strong><p>全部题目、阅读与跟读完成后自动记录本段，早晚都完成后自动记为整日完成；漏项会定位到待完成处。答对一次不代表长期掌握。</p></li>
     </ol>
     <h3>下面四个入口分别做什么</h3>
@@ -2121,7 +2122,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     <h3>课程会按日历自动跳走吗</h3>
     <p>课程册现在固定保存，不随日期突然切换。新学习者从假名起步；已有学习者保留原来的课程册与答案。完成本册早晚任务后，学习页会给出下一册入口。现有强化课不等于 N5、N4、N3 全阶段课程已经编齐，后续阶段会明确标“课件待更新”。</p>
     <h3>声音和数据保存</h3>
-    <p>上午保持无声；晚间声音需设备支持日语语音。临时录音只在页面内存里，刷新会消失，不上传。进度保存在当前设备的当前浏览器；换设备不会自动同步。导出学习报告可以备份；不要随意“清除进度”。</p>
+    <p>新计划日间可戴耳机，不要求出声；晚间用于朗读、跟读。声音需设备支持日语语音。临时录音只在页面内存里，刷新会消失，不上传。进度保存在当前设备的当前浏览器；换设备不会自动同步。导出学习报告可以备份；不要随意“清除进度”。</p>
     <button class="btn btn-primary" data-close-dialog>明白了，继续学习</button>
   </dialog>
   <dialog id="calendar-detail" class="modi-dialog" aria-labelledby="calendar-detail-title"><div class="dialog-top"><h2 id="calendar-detail-title">日期安排</h2><button class="btn btn-quiet btn-small" data-close-dialog>关闭</button></div><div id="calendar-detail-body"></div></dialog>
@@ -2191,7 +2192,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
         <section class="report-panel"><h2>每日答题量</h2><div class="capsule-scroll"><div class="capsule-chart">${daily.map(d=>`<div class="capsule-day" title="${d.date}：${d.total} 次"><strong>${d.total}</strong><div class="capsule-well"><i style="height:${d.total/max*100}%"></i></div><span>${d.date.slice(5)}</span></div>`).join("")}</div></div><small>同一题重复练习分别计次；无记录日期为 0。</small></section>
       </div>
       <section class="report-panel"><div class="panel-heading"><h2>每日正确率</h2><span>0–100%</span></div>${curve(daily.map(d=>d.accuracy),dates.map(d=>d.slice(5)),"按实际日期显示的正确率趋势；没有作答的日期留空")}<small>没有作答的日期留空，曲线在该日断开。</small></section>
-      <section class="report-panel"><div class="panel-heading"><div><h2>六天课程进度</h2><p>当前课程册 · ${progress.done} / ${progress.total} 题完成</p></div><strong>${progress.percent}%</strong></div><div class="segment-map">${progress.days.map((d,i)=>`<article><h3>Day ${i+1}</h3>${["morning","night"].map(p=>`<div class="segment-row ${p}"><span>${p==="morning"?"上午":"晚间"}</span><div class="segmented-track" role="img" aria-label="Day ${i+1} ${p==="morning"?"上午":"晚间"} ${d[p].done} / ${d[p].total} 题完成">${segments(d[p])}</div><small>${d[p].done}/${d[p].total}</small></div>`).join("")}</article>`).join("")}</div><small>每格为本段题目的 10%；讲解浏览和跟读确认共同决定时段完成，完成率不代表正确率。</small></section>
+      <section class="report-panel"><div class="panel-heading"><div><h2>六天课程进度</h2><p>当前课程册 · ${progress.done} / ${progress.total} 题完成</p></div><strong>${progress.percent}%</strong></div><div class="segment-map">${progress.days.map((d,i)=>`<article><h3>Day ${i+1}</h3>${["morning","night"].map(p=>`<div class="segment-row ${p}"><span>${p==="morning"?"日间":"晚间"}</span><div class="segmented-track" role="img" aria-label="Day ${i+1} ${p==="morning"?"日间":"晚间"} ${d[p].done} / ${d[p].total} ${d[p].unit||"题"}完成">${segments(d[p])}</div><small>${d[p].unit?(d[p].done?"已确认":"待跟读"):`${d[p].done}/${d[p].total}`}</small></div>`).join("")}</article>`).join("")}</div><small>日间每格为题数的 10%；新计划晚间轨道表示跟读自确认，不计正确率。讲解与练习共同决定时段完成。</small></section>
       <div class="report-grid"><section class="report-panel"><h2>当前掌握分层</h2><p class="report-scope">当前课程册的 ${allIds.size} 个项目，不随日期范围切换。</p><div class="mastery-matrix">${categories.map(([label,detail,cls,count])=>`<article class="${cls}"><span>${label}</span><strong>${count}<small>项</small></strong><p>${detail}</p></article>`).join("")}</div></section>
       <section class="report-panel"><h2>优先复习</h2><p class="report-scope">当前课程册 · 按掌握度从低到高</p>${weak.length?`<div class="ranked-dots">${weak.map(([id,p],i)=>`<article><div><span>${i+1}. ${esc(meta(id)?.title||id)}</span><strong>${Math.round(p.mastery)}%</strong></div><div class="dot-track"><i style="left:${Math.max(0,Math.min(100,p.mastery))}%"></i></div><small>${reasons(id)}</small></article>`).join("")}</div>`:"<p>暂无需要回收的记录。完成练习后会在这里列出优先项。</p>"}</section></div>
       <section class="report-panel"><div class="panel-heading"><h2>周测记录</h2><span>${history.length} 次完成</span></div>${latest?`<div class="weekly-fact"><strong>${latest.accuracy}%</strong><div>${latest.correct} / ${latest.total} 题正确<p>${esc(formatTime(latest.completedAt))} · 提示 ${latest.hintCount||0} 次</p></div></div>${curve(history.map(q=>q.accuracy),history.map(q=>dateKey(q.completedAt).slice(5)),"历次已完成周测正确率；各点按测验先后排列")}`:"<p>尚未完成周测。完成后，这里显示最近结果和历次趋势。</p>"}<small>历次周测独立统计，不随上方日期范围切换。</small></section>
@@ -2212,6 +2213,12 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
   const UNKNOWN_ANSWER = "不知道";
   const INTENSIVE_START_DATE = "2026-10-22";
   const WEEK_TWO_START_DATE = "2026-10-26";
+  const N2_PLAN_START = "2026-11-02";
+  function newPlanActive() { return beijingDateKey() >= N2_PLAN_START; }
+  function planTimes(lesson) {
+    return newPlanActive() ? {morning:"45–60 分钟",night:"10–15 分钟"} :
+      {morning:isIntensiveCourseActive()?"30–40 分钟":lesson.morning,night:isIntensiveCourseActive()?"20–25 分钟":lesson.night};
+  }
   const defaultState = {
     version: DATA_VERSION,
     view: "course", assessmentStarted: false, assessmentComplete: false,
@@ -3193,6 +3200,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     const base = packs === defaultPacks
       ? { ...pack, rapidDrills: buildRapidDrills(reviewDay) }
       : { ...pack, rapidDrills: buildPersonalizedRapidDrills(lessons[day], day) };
+    base.boostDrills = buildDaytimeBoost(lessons[day],day,key);
     if (!isIntensiveCourseActive()) return { ...base, challengeDrills: [] };
     const intensive = intensiveModule(day);
     return {
@@ -3202,6 +3210,21 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       intensiveTitle: intensive.title,
       intensiveDescription: intensive.description
     };
+  }
+  function buildDaytimeBoost(lesson,day,key) {
+    const foundation=[
+      [["あお","蓝色"],["いえ","家"],["かお","脸"],["ここ","这里"]],
+      [["あさ","早晨"],["いす","椅子"],["すし","寿司"],["たこ","章鱼"]],
+      [["はい","是的"],["いいえ","不是"],["なまえ","名字"],["はな","花"]],
+      [["やま","山"],["ゆめ","梦"],["わたし","我"],["ほん","书"]],
+      [["かぎ","钥匙"],["かぜ","风"],["かっぱ","河童"],["きって","邮票"]],
+      [["きゃく","客人"],["しゃしん","照片"],["おばあさん","奶奶"],["ほん","书"]]
+    ];
+    const words=key==="week1"?foundation[day]:(lesson.reviewItems||foundation[day]).slice(0,4);
+    return words.flatMap(([jp,zh],i)=>[
+      {type:"choice",prompt:`用本课日语写法表示「${zh}」，应选哪项？`,options:rotateArr(words.map(w=>w[0]),i+1),answer:jp,ok:`${jp} 表示${zh}。`,bad:`${jp} 表示${zh}。先看词块，再回忆。`,hint:"先回忆今天的词块，不依赖位置。"},
+      {type:"listen",prompt:"戴耳机听词块，选出它的意思。",speech:jp,options:rotateArr(words.map(w=>w[1]),i+2),answer:zh,ok:`听到的是 ${jp}，意思是${zh}。`,bad:`示范是 ${jp}，意思是${zh}。回听一次，连接声音和含义。`,hint:"先听完整词块，再选意思。"}
+    ]);
   }
   function buildPersonalizedRapidDrills(lesson, day) {
     if (!lesson) return [];
@@ -3315,9 +3338,12 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
   function lessonPack(day) { return activePack(day); }
   function periodTaskIds(day, period) {
     const pack = lessonPack(day);
-    const sections = period === "night" ? ["listenx", "wrap"] : ["rapid", "visual", "inputx", "phrase", "review", "challenge"];
+    if(newPlanActive() && period==="night") return [];
+    const sections = newPlanActive() ? ["rapid","visual","inputx","phrase","review","challenge","listenx","wrap","boost"] :
+      period === "night" ? ["listenx", "wrap"] : ["rapid", "visual", "inputx", "phrase", "review", "challenge"];
     const ids = period === "night" ? [itemId(day, "listen")] : [itemId(day, "choice"), itemId(day, "input")];
-    const sourceKeys = { rapid: "rapidDrills", visual: "visualDrills", inputx: "inputDrills", phrase: "phraseDrills", review: "reviewDrills", challenge: "challengeDrills", listenx: "listenDrills", wrap: "wrapUp" };
+    if(newPlanActive())ids.push(itemId(day,"listen"));
+    const sourceKeys = { rapid: "rapidDrills", visual: "visualDrills", inputx: "inputDrills", phrase: "phraseDrills", review: "reviewDrills", challenge: "challengeDrills", listenx: "listenDrills", wrap: "wrapUp", boost:"boostDrills" };
     sections.forEach(section => pack[sourceKeys[section]].forEach((_, index) => ids.push(lessonTaskId(day, section, index))));
     return ids;
   }
@@ -3325,8 +3351,18 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     return state.events.some(event=>event.itemId===id && event.source==="course");
   }
   function periodProgress(day, period) {
+    if(newPlanActive() && period==="night") return {done:nightPracticeDone(day)?1:0,total:1,unit:"段跟读"};
     const ids = periodTaskIds(day, period);
     return { done: ids.filter(taskHasAnswer).length, total: ids.length };
+  }
+  function nightPracticeDone(day) {
+    const base=`${currentCourseKey()}:${day}:night`;
+    return Boolean(state.studyReadings?.[`${base}:shadow`] || state.studyReadings?.[`${base}:3`] || state.lessonParts[lessonPartKey(day)]?.night);
+  }
+  function partComplete(day,period) {
+    const old=Boolean(state.lessonParts[lessonPartKey(day)]?.[period]);
+    if(!newPlanActive())return old;
+    return period==="night"?nightPracticeDone(day):old && periodTaskIds(day,period).every(taskHasAnswer);
   }
   function progressPercent(done, total) {
     return total ? Math.round(done / total * 100) : 0;
@@ -3334,19 +3370,19 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
   function courseDayProgress(day) {
     const morning = periodProgress(day, "morning");
     const night = periodProgress(day, "night");
-    const done = morning.done + night.done;
-    const total = morning.total + night.total;
-    return { morning, night, done, total, percent: progressPercent(done, total) };
+    const done = morning.done + (newPlanActive()?0:night.done);
+    const total = morning.total + (newPlanActive()?0:night.total);
+    return { morning, night, done, total, percent: progressPercent(morning.done+night.done,morning.total+night.total) };
   }
   function courseProgressSummary() {
     const days = activeLessons().map((_, day) => courseDayProgress(day));
     const done = days.reduce((sum, day) => sum + day.done, 0);
     const total = days.reduce((sum, day) => sum + day.total, 0);
     const completedParts = activeLessons().reduce((sum, _, day) => {
-      const part = state.lessonParts[lessonPartKey(day)];
-      return sum + (part?.morning ? 1 : 0) + (part?.night ? 1 : 0);
+      return sum + (partComplete(day,"morning") ? 1 : 0) + (partComplete(day,"night") ? 1 : 0);
     }, 0);
-    return { days, done, total, percent: progressPercent(done, total), completedParts, totalParts: days.length * 2 };
+    const segmentDone=days.reduce((n,d)=>n+d.morning.done+d.night.done,0),segmentTotal=days.reduce((n,d)=>n+d.morning.total+d.night.total,0);
+    return { days, done, total, percent: progressPercent(segmentDone, segmentTotal), completedParts, totalParts: days.length * 2 };
   }
   function lessonTaskLookup(day, section, index) {
     const pack = lessonPack(day);
@@ -3358,7 +3394,8 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       review: pack.reviewDrills,
       challenge: pack.challengeDrills,
       listenx: pack.listenDrills,
-      wrap: pack.wrapUp
+      wrap: pack.wrapUp,
+      boost: pack.boostDrills
     };
     return buckets[section]?.[index] || null;
   }
@@ -3369,14 +3406,14 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       const lesson = courseForKey(courseKey).lessons[day], task = lesson?.[type];
       return lesson && task ? { id, day, courseKey, type, title: `${lesson.day} · ${type === "choice" ? "音形选择" : type === "input" ? "基础输入" : "听辨"}`, prompt: task.prompt, answer: task.answer, options: task.options || [], speech: task.speech || "", hint: type === "input" ? task.hint : "", explain: task.bad || task.hint || (type==="listen" ? `示范音是「${task.answer}」。` : lesson.explain) } : null;
     }
-    const extra = /^lesson:(?:(week\d+):)?(\d+):(rapid|visual|inputx|phrase|review|challenge|listenx|wrap):(\d+)$/.exec(id);
+    const extra = /^lesson:(?:(week\d+):)?(\d+):(rapid|visual|inputx|phrase|review|challenge|listenx|wrap|boost):(\d+)$/.exec(id);
     if (extra) {
       const courseKey = extra[1] || "week1", day = Number(extra[2]) - 1, section = extra[3], index = Number(extra[4]);
       if (!["week1","week2"].includes(courseKey) || !courseForKey(courseKey).lessons[day]) return null;
       const pack = coursePackForKey(day, courseKey);
-      const bucket = { rapid:"rapidDrills",visual:"visualDrills",inputx:"inputDrills",phrase:"phraseDrills",review:"reviewDrills",challenge:"challengeDrills",listenx:"listenDrills",wrap:"wrapUp" };
+      const bucket = { rapid:"rapidDrills",visual:"visualDrills",inputx:"inputDrills",phrase:"phraseDrills",review:"reviewDrills",challenge:"challengeDrills",listenx:"listenDrills",wrap:"wrapUp",boost:"boostDrills" };
       const task = pack[bucket[section]]?.[index];
-      const titles = { rapid: "双向快速回忆", visual: "辨形加练", inputx: "输入加练", phrase: "词例解码", review: "错项回收", challenge: "强化挑战", listenx: "听辨加练", wrap: "收尾小测" };
+      const titles = { rapid: "双向快速回忆", visual: "辨形加练", inputx: "输入加练", phrase: "词例解码", review: "错项回收", challenge: "强化挑战", listenx: "听辨加练", wrap: "收尾小测",boost:"日间巩固" };
       return task ? { id, day, courseKey, type: task.type === "listen" ? "listen" : task.type, title: `${courseForKey(courseKey).lessons[day].day} · ${titles[section]}`, prompt: task.prompt, answer: task.answer, options: task.options || [], speech: task.speech || "", hint: task.hint || "", explain: task.bad || task.hint || task.ok || "" } : null;
     }
     const q = questions.find(x => `assessment:${x.id}` === id);
@@ -3757,15 +3794,14 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     const courseProgress = courseProgressSummary();
     $("#day-tabs").innerHTML = lessonsNow.map((lesson, i) => {
       const dayProgress = courseProgress.days[i];
-      return `<button class="day-tab ${state.activeDay === i ? "is-active" : ""} ${currentCompletedDays().includes(i) ? "is-done" : ""}" role="tab" aria-selected="${state.activeDay === i}" data-day="${i}"><strong>${lesson.day}</strong><span>${lesson.title}</span><div class="day-tab-progress"><i data-day-progress="${i}" style="width:${dayProgress.percent}%"></i></div><small>${dayProgress.percent}%</small></button>`;
+      return `<button class="day-tab ${state.activeDay === i ? "is-active" : ""} ${(newPlanActive()?partComplete(i,"morning")&&partComplete(i,"night"):currentCompletedDays().includes(i)) ? "is-done" : ""}" role="tab" aria-selected="${state.activeDay === i}" data-day="${i}"><strong>${lesson.day}</strong><span>${lesson.title}</span><div class="day-tab-progress"><i data-day-progress="${i}" style="width:${dayProgress.percent}%"></i></div><small>${dayProgress.percent}%</small></button>`;
     }).join("");
     $$(".day-tab").forEach(btn => btn.addEventListener("click", () => { state.activeDay = Number(btn.dataset.day); saveState(); renderCourse(); syncRoute(); }));
     const lesson = lessonsNow[state.activeDay], parts = state.lessonParts[lessonPartKey(state.activeDay)] || {};
     const morningProgress = periodProgress(state.activeDay, "morning");
     const nightProgress = periodProgress(state.activeDay, "night");
     const intensiveActive = isIntensiveCourseActive();
-    const morningTime = intensiveActive ? "30–40 分钟" : lesson.morning;
-    const nightTime = intensiveActive ? "20–25 分钟" : lesson.night;
+    const {morning:morningTime,night:nightTime} = planTimes(lesson);
     const pet = currentCompanionLevel();
     const courseLines = currentCourseKey() === "week2"
       ? ["先补齐上周收尾，再从词块进入短句。", "先找句末动作，再看助词前面的词。", "看到「ない」先标记否定，不被关键词带偏。", "先找连接词，再判断原因、结果和目的。", "今天正式进入 N3，重点分清变化和决定。", "短阅读不用逐字翻译，先定位连接关系。"]
@@ -3781,7 +3817,21 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       syncRoute();
       $("#study-motion-host").scrollIntoView({ behavior: "smooth", block: "start" });
     }));
+    renderPlanPresentation(lesson,morningProgress,nightProgress);
     renderLesson(lesson, state.activeDay);
+  }
+  function renderPlanPresentation(lesson,morning,night) {
+    const active=newPlanActive();
+    $("#new-study-plan").innerHTML=`<summary>${active?"N2 备考新计划 · 已启用":"N2 备考新计划 · 11 月 2 日启用"}</summary><p>目标：2027 年七月 N3 → 十二月 N2。周一至周六学习，周日约 30 分钟复盘或周测。</p><p>日间建议 45–60 分钟，可拆两段：旧项回忆 → 讲解与练习 → 耳机听辨 → 8 题词块巩固。晚间 10–15 分钟：只朗读、跟读当天已学内容。</p><p>首次按建议量试运行；两至三周后按实际用时与积压调整。N3 阶段日间 60–75 分钟，N2 阶段 75–90 分钟，晚间尽量不增加。</p><p>规划考试日期：2027-07-04（N3）、2027-12-05（N2），按七月／十二月第一个周日推算，正式公告待核对。每年通常两场，一个考期报一个级别。</p><p>现有两册已按新场景编排；完整 N5 至 N2 课件逐步更新。日期到达不会自动标记阶段掌握。当前课程册和旧记录保留，新增练习单独累计。</p>`;
+    $("#course .page-head > div > p:last-child").textContent=active?"白天听辨与主学习，晚间短朗读、跟读；时段由你选择。":"先读讲解，再连续答题。新安排于 11 月 2 日启用。";
+    if(!active)return;
+    const buttons=$$("[data-period]",$("#course-period-control"));
+    $("span",buttons[0]).textContent="日间 · 耳机可听";
+    $("span",buttons[1]).textContent="晚间 · 朗读跟读";
+    $("strong",buttons[1]).textContent=night.done?"跟读已确认":"待跟读确认";
+    $("#course-period-control > p").textContent=state.activePeriod==="morning"?"日间可戴耳机，不要求出声；新增量集中在这一段。":"只练当天已学内容，朗读一次、跟读一至两次；不另开新课。";
+    $(".intensity-status").innerHTML="<span>备考目标</span><strong>2027 七月 N3 → 十二月 N2</strong>";
+    $("#day-overview .learning-focus small").textContent="建议试运行 · 日间 45–60 分钟 / 晚间 10–15 分钟";
   }
   function renderLesson(lesson, index) {
     const savedInput = state.lessonInputs[itemId(index, "input")] ?? state.lessonInputs[index] ?? "";
@@ -3789,8 +3839,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     const isDone = currentCompletedDays().includes(index);
     const pack = lessonPack(index);
     const intensiveActive = isIntensiveCourseActive();
-    const morningTime = intensiveActive ? "30–40 分钟" : lesson.morning;
-    const nightTime = intensiveActive ? "20–25 分钟" : lesson.night;
+    const {morning:morningTime,night:nightTime} = planTimes(lesson);
     $("#lesson-host").className = `lesson-shell period-${state.activePeriod || "morning"}`;
     $("#lesson-host").innerHTML = `
       <div class="lesson-head"><div><span class="tag">${intensiveActive ? "强化互动课件" : "完整互动课件"} · ${lesson.day}</span><h2>${lesson.title}</h2></div><div class="lesson-head-status"><span class="lesson-time">${morningTime} + ${nightTime}</span><div><span>${state.activePeriod === "morning" ? "上午" : "晚间"}题目进度</span><strong data-lesson-progress-label>${state.activePeriod === "morning" ? periodProgress(index, "morning").done : periodProgress(index, "night").done} / ${state.activePeriod === "morning" ? periodProgress(index, "morning").total : periodProgress(index, "night").total}</strong></div><div class="progress-track"><i data-lesson-progress style="width:${progressPercent(state.activePeriod === "morning" ? periodProgress(index, "morning").done : periodProgress(index, "night").done, state.activePeriod === "morning" ? periodProgress(index, "morning").total : periodProgress(index, "night").total)}%"></i></div></div></div>
@@ -3822,6 +3871,22 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       </div>
       <div class="lesson-finish"><div><strong>${lesson.day} 完成状态</strong><p>${parts.morning && parts.night ? "上午与晚间均已完成，可以收尾。" : "完成上午与晚间两段后再标记整日完成。"}</p></div><button id="complete-day" class="btn ${isDone ? "btn-secondary" : "btn-primary"}" ${!isDone && !(parts.morning && parts.night) ? "disabled" : ""}>${isDone ? "已完成 · 点击取消" : "标记本日完成"}</button></div>`;
 
+    if(newPlanActive()) {
+      const host=$("#lesson-host"),morning=$('[data-period-section="morning"]',host),night=$('[data-period-section="night"]',host);
+      const listen=$("#check-listen",host).closest(".lesson-step");
+      const moving=[listen,...$$(".lesson-group",night)];
+      moving.forEach(node=>morning.insertBefore(node,$(".part-finish",morning)));
+      $(".part-finish",morning).insertAdjacentHTML("beforebegin",`<div class="lesson-step"><div class="step-label">日间巩固讲解</div><h3>把词块连到声音和含义</h3><p>先认识下面的词块，再做双向练习。第一题从意思找写法，第二题戴耳机从声音找意思；不要求出声。隔段后再回忆一次，避免只凭刚看过的印象。</p><p lang="ja">${buildDaytimeBoost(lesson,index,currentCourseKey()).filter(t=>t.type==="listen").map(t=>`${escapeHtml(t.speech)}：${escapeHtml(t.answer)}`).join(" · ")}</p></div>${renderTaskGroup(index,"boost","日间词块巩固","8 题连接写法、含义和声音。听辨先完整播放，再提交。",pack.boostDrills,"日间巩固练习")}`);
+      $(".session-banner.morning strong",host).textContent=`日间 · 主学习与耳机听辨（${morningTime}）`;
+      $(".session-banner.night strong",host).textContent=`晚间 · 短朗读与跟读（${nightTime}）`;
+      $(".session-banner.night span",host).textContent="当天已学内容 · 朗读一次 · 跟读一至两次";
+      $$(".example-box small",morning).forEach(n=>{if(n.textContent.includes("不播放声音"))n.textContent="日间可用耳机听辨；朗读与跟读留到晚间。";});
+      $$(".task-checklist",host).forEach(n=>n.innerHTML=n.closest('[data-period-section="morning"]')?"<li>旧项回忆与讲解</li><li>原课程选择、输入、强化练习</li><li>耳机听辨与收尾小测</li><li>新增 8 题词块巩固</li>":"<li>回听当天示范</li><li>独立朗读一次</li><li>跟读一至两次并确认</li>");
+      if(state.activePeriod==="night") {
+        $(".lesson-head-status > div > span",host).textContent="跟读状态";
+        $("[data-lesson-progress-label]",host).textContent=nightPracticeDone(index)?"已确认":"待确认";
+      }
+    }
     initializeLessonFlow(index);
     ["choice", "input", "listen"].forEach(type => startAttempt(itemId(index, type)));
     ["rapid", "visual", "inputx", "phrase", "review", "challenge", "listenx", "wrap"].forEach(section => {
@@ -3842,7 +3907,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     $$("[data-play-task]", $("#lesson-host")).forEach(btn => btn.addEventListener("click", () => { const meta = itemMeta(btn.dataset.playTask); if (meta?.speech) speak(meta.speech); }));
     $$("[data-show-hint]", $("#lesson-host")).forEach(btn => btn.addEventListener("click", () => {
       const meta = itemMeta(btn.dataset.showHint);
-      const match = /^lesson:(?:(week\d+):)?(\d+):(rapid|visual|inputx|phrase|review|challenge|listenx|wrap):(\d+)$/.exec(btn.dataset.showHint);
+      const match = /^lesson:(?:(week\d+):)?(\d+):(rapid|visual|inputx|phrase|review|challenge|listenx|wrap|boost):(\d+)$/.exec(btn.dataset.showHint);
       const task = match && (match[1] || "week1") === currentCourseKey() ? lessonTaskLookup(Number(match[2]) - 1, match[3], Number(match[4])) : null;
       hintedThisRender.add(btn.dataset.showHint);
       $(`#feedback-${domSafeId(btn.dataset.showHint)}`).textContent = task?.hint || meta?.hint || "先按今天讲解中的音和值再看一遍。";
@@ -3931,7 +3996,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     const meta = itemMeta(id), node = $(`#feedback-${domSafeId(id)}`);
     if (!meta || !node) return;
     if(state.events.some(event=>event.itemId===id&&event.source==="course"))return;
-    const taskMatch = /^lesson:(?:(week\d+):)?(\d+):(rapid|visual|inputx|phrase|review|challenge|listenx|wrap):(\d+)$/.exec(id);
+    const taskMatch = /^lesson:(?:(week\d+):)?(\d+):(rapid|visual|inputx|phrase|review|challenge|listenx|wrap|boost):(\d+)$/.exec(id);
     const task = taskMatch && (taskMatch[1] || "week1") === currentCourseKey() ? lessonTaskLookup(Number(taskMatch[2]) - 1, taskMatch[3], Number(taskMatch[4])) : null;
     const value = meta.type === "input" ? ($(`[data-task-input="${id}"]`)?.value || "") : ($(`input[name="${id}"]:checked`)?.value || "");
     if (!value) {
@@ -4226,6 +4291,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
   window.addEventListener("beforeunload", () => { if (audioUrl) URL.revokeObjectURL(audioUrl); if (mediaRecorder?.state === "recording") mediaRecorder.stop(); });
   applyInitialRoute();
   window.ModiCore = {
+    newPlanActive, planTimes, partComplete, nightPracticeDone,
     get state() { return state; }, today: beijingDateKey, lessons: activeLessons,
     progress: courseDayProgress, periodIds: periodTaskIds, meta: itemMeta,
     courseKey: currentCourseKey, partKey: lessonPartKey, normalize, save: saveState,
@@ -4242,6 +4308,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden && state.studySelectionDate !== beijingDateKey() && state.view === "course") enterToday();
   });
+  setInterval(()=>{if(!document.hidden && state.studySelectionDate!==beijingDateKey() && state.view==="course")enterToday();},30000);
   showView(state.view || "course", false);
 })();
 
@@ -4280,10 +4347,10 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     element.animate([{transform:`translate(${from.left-to.left}px,${from.top-to.top}px) scale(${from.width/to.width},${from.height/to.height})`,opacity:.95},{transform:"none",opacity:0}],{duration:390,easing:"cubic-bezier(.16,1,.3,1)"}).finished.then(()=>element.remove()).catch(()=>element.remove());
   }
   function currentKey() { return `${core.courseKey()}:${core.state.activeDay}:${core.state.activePeriod}`; }
-  function readingKey(g) { return `${currentKey()}:${g.i}`; }
+  function readingKey(g) { return `${currentKey()}:${g.shadow?"shadow":g.i}`; }
   function lastAnswer(id) { return core.state.events.filter(e=>e.itemId===id&&e.source==="course").at(-1); }
   function checkedCount(g) { return g.ids.filter(id=>lastAnswer(id)).length; }
-  function isDone(g) { return g.ids.length ? checkedCount(g)===g.ids.length : Boolean(core.state.studyReadings?.[readingKey(g)]); }
+  function isDone(g) { return g.ids.length ? checkedCount(g)===g.ids.length : g.shadow ? core.nightPracticeDone(core.state.activeDay) : Boolean(core.state.studyReadings?.[readingKey(g)]); }
   function updateCompletion() {
     core.state.studyReadings ||= {};
     groups.forEach(g=>{
@@ -4295,7 +4362,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       const key=core.partKey(core.state.activeDay);
       core.state.lessonParts[key]={...core.state.lessonParts[key],[core.state.activePeriod]:true};
       const parts=core.state.lessonParts[key];
-      if(parts.morning&&parts.night) {
+      if(core.partComplete(core.state.activeDay,"morning")&&core.partComplete(core.state.activeDay,"night")) {
         if(core.courseKey()==="week1") {
           if(!core.state.completedDays.includes(core.state.activeDay))core.state.completedDays.push(core.state.activeDay);
         } else {
@@ -4305,6 +4372,20 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       }
     }
     core.save(); $("#motion-groups")?.arrange?.();
+    if(core.newPlanActive()) {
+      const p=core.progress(core.state.activeDay),night=$('[data-period="night"]');
+      if(night) {
+        $("strong",night).textContent=p.night.done?"跟读已确认":"待跟读确认";
+        $(".period-mini-track i",night).style.width=p.night.done?"100%":"0%";
+      }
+      const tab=$(`[data-day="${core.state.activeDay}"]`);
+      if(tab) {
+        $("small",tab).textContent=`${p.percent}%`;
+        $("[data-day-progress]",tab).style.width=`${p.percent}%`;
+        tab.classList.toggle("is-done",core.partComplete(core.state.activeDay,"morning")&&core.partComplete(core.state.activeDay,"night"));
+      }
+    }
+    document.dispatchEvent(new CustomEvent("modi:completion"));
   }
   function mountLesson() {
     clearTimeout(advanceTimer); pendingAdvance=false;
@@ -4313,7 +4394,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     const resume=core.state.motionResume;
     const lesson=core.lessons()[core.state.activeDay];
     $("#course-title").textContent=`${lesson.day} · 学习`;
-    $("#course .page-head > div > p:last-child").textContent="先读讲解，再连续答题。上午无声、晚间有声，随时由你选择。";
+    $("#course .page-head > div > p:last-child").textContent=core.newPlanActive()?"白天听辨与主学习，晚间短朗读、跟读；时段由你选择。":"先读讲解，再连续答题。新安排于 11 月 2 日启用。";
     $$(".day-tab").forEach(b=>b.setAttribute("aria-label",`${$("strong",b).textContent}，${$("span",b).textContent}`));
     if (previousKey!==currentKey()) { mode="words"; current=null; questionIndex=0; previousKey=currentKey(); }
     const period = $(`[data-period-section="${core.state.activePeriod}"]`,lessonHost);
@@ -4325,7 +4406,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       if (!g.ids.length) {
         if ($("#check-choice",g.node)) g.ids=[core.periodIds(core.state.activeDay,"morning")[0]];
         if ($("#check-input",g.node)) g.ids=[core.periodIds(core.state.activeDay,"morning")[1]];
-        if ($("#check-listen",g.node)) g.ids=[core.periodIds(core.state.activeDay,"night")[0]];
+        if ($("#check-listen",g.node)) g.ids=[`${core.courseKey()==="week1"?"lesson":"lesson:"+core.courseKey()}:${core.state.activeDay+1}:listen`];
       }
       g.shadow=Boolean($("#play-model",g.node));
       if(g.shadow) {
@@ -4342,8 +4423,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     });
     lessonHost.classList.add("motion-adapted");
     const allCompleted=core.lessons().every((_,i)=>{
-      const p=core.state.lessonParts[core.courseKey()==="week1"?String(i):`week2:${i}`];
-      return p?.morning && p?.night && core.progress(i).percent===100;
+      return core.partComplete(i,"morning") && core.partComplete(i,"night") && core.progress(i).percent===100;
     });
     host.innerHTML=`<div class="study-tools"><label for="course-book">课程册</label><select id="course-book"><option value="week1">假名起步 · 第 1 册</option><option value="week2">句型与强化 · 第 2 册</option></select></div>
       ${core.courseKey()==="week1" && allCompleted?'<p class="study-note">本册已完成，可以进入第 2 册。</p>':""}
@@ -4386,7 +4466,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     buildDeck(); renderSummary(); setMode(mode==="quiz"?"groups":mode);
     updateCompletion();
     $("#deck-learn").textContent=groups.every(isDone)?"回看本段学习":groups.some(g=>isDone(g)||checkedCount(g))?"继续学习":"开始学习";
-    if(resume?.key===currentKey()&&groups[resume.group])openGroup(groups[resume.group],resume.index);
+    if(resume?.key===currentKey()&&Boolean(resume.newPlan)===core.newPlanActive()&&groups[resume.group])openGroup(groups[resume.group],resume.index);
   }
   function setMode(next) {
     clearTimeout(advanceTimer);pendingAdvance=false;
@@ -4426,7 +4506,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     $("#motion-flow-feedback").textContent="";
     core.state.motionPositions ||= {};
     core.state.motionPositions[`${currentKey()}:${current.i}`]=questionIndex;
-    core.state.motionResume={key:currentKey(),group:current.i,index:questionIndex};
+    core.state.motionResume={key:currentKey(),group:current.i,index:questionIndex,newPlan:core.newPlanActive()};
     const id=current.ids[questionIndex];
     if(id) {
       const latest=lastAnswer(id);
@@ -4502,6 +4582,10 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     const done=ids.filter(id=>last.has(id)).length, correct=ids.filter(id=>last.get(id)?.correct).length;
     const missing=groups.filter(g=>!isDone(g));
     summary.innerHTML=`<h2>${missing.length?"还有待完成项":"本段已完成 ✓"}</h2><p class="study-note">${done} / ${ids.length} 题已提交 · ${correct} 题正确 · ${groups.filter(g=>!g.ids.length&&isDone(g)).length} / ${groups.filter(g=>!g.ids.length).length} 节已浏览或跟读。全部完成后自动记录。</p><button type="button" class="btn btn-secondary" id="split-summary" aria-pressed="false">拆开查看每题</button><div class="summary-pieces"></div>${missing.length?'<button class="btn btn-primary" id="motion-fill-gap">继续未完成项</button>':'<p class="feedback ok">本段学习已完成。可选择另一时段；早晚都完成后自动记为整日完成。</p>'}`;
+    if(!ids.length) {
+      $(".study-note",summary).textContent=`朗读、跟读${core.nightPracticeDone(core.state.activeDay)?"已确认":"待确认"} · 不计题数和正确率。全部步骤完成后自动记录。`;
+      $("#split-summary").hidden=true;
+    }
     const pieces=$(".summary-pieces",summary);
     ids.forEach((id,i)=>{
       const meta=core.meta(id),event=last.get(id),b=document.createElement("button");
@@ -4579,7 +4663,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     deck.addEventListener("pointerup",e=>release(e,false));deck.addEventListener("pointercancel",e=>release(e,true));
     $("#deck-prev").addEventListener("click",()=>setWord(word-1));$("#deck-next").addEventListener("click",()=>setWord(word+1));
     $("#deck-reveal").addEventListener("click",e=>{revealed=!revealed;$("#deck-meaning").textContent=revealed?words[word][1]||lesson.explain:"先在心里回忆。";e.currentTarget.textContent=revealed?"收起说明":"揭开词卡";e.currentTarget.setAttribute("aria-expanded",String(revealed));});
-    $("#deck-speak").hidden=core.state.activePeriod!=="night";$("#deck-speak").addEventListener("click",()=>core.speak(words[word][0]));
+    $("#deck-speak").hidden=!core.newPlanActive()&&core.state.activePeriod!=="night";$("#deck-speak").addEventListener("click",()=>core.speak(words[word][0]));
     $("#deck-learn").addEventListener("click",()=>{const g=groups.find(g=>!isDone(g))||groups[0];if(g)openGroup(g,Math.max(0,g.ids.findIndex(id=>!lastAnswer(id))));});
     window.addEventListener("resize",move);reduced.addEventListener("change",move);
     disposeDeck=()=>{cancelAnimationFrame(frame);window.removeEventListener("resize",move);reduced.removeEventListener("change",move);};
@@ -4587,7 +4671,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
   }
   function openGuide() {
     const l=core.lessons()[core.state.activeDay],p=core.progress(core.state.activeDay);
-    $("#guide-current-plan").innerHTML=`<div class="guide-current"><strong>当前 ${esc(l.day)} · ${esc(l.title)}</strong><p>上午 ${p.morning.done}/${p.morning.total} 题 · 晚间 ${p.night.done}/${p.night.total} 题。实际安排和预计时长见学习页，不另外增加一套词卡任务。</p></div>`;
+    $("#guide-current-plan").innerHTML=`<div class="guide-current"><strong>当前 ${esc(l.day)} · ${esc(l.title)}</strong><p>${core.newPlanActive()?`日间 ${p.morning.done}/${p.morning.total} 题 · 晚间跟读${p.night.done?"已确认":"待确认"}`:`上午 ${p.morning.done}/${p.morning.total} 题 · 晚间 ${p.night.done}/${p.night.total} 题`}。实际安排和建议时长见学习页。</p></div>`;
     $("#study-guide").showModal();
   }
   $("#study-guide-open").addEventListener("click",openGuide);
@@ -4663,10 +4747,11 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
   const phases=[
     {id:"hira",title:"平假名清音",days:6,questions:hira,goal:"46 个清音随机认读"},
     {id:"kata",title:"片假名清音",days:6,questions:kata,goal:"46 个片假名随机认读"},
-    {id:"sound",title:"清浊与特殊音",days:8,questions:[...soundQs,...special],goal:"50 个平片浊／半浊假名 + 4 类拍数知识；听辨继续在晚间练习"},
+    {id:"sound",title:"清浊与特殊音",days:8,questions:[...soundQs,...special],goal:"50 个平片浊／半浊假名 + 4 类拍数知识；新计划听辨放日间"},
     {id:"n5",title:"N5 基础",days:42,goal:"词汇、句型与基础听读",pending:true},
     {id:"n4",title:"N4 过渡",days:54,goal:"常用表达与篇章衔接",pending:true},
-    {id:"n3",title:"N3 系统学习",days:72,goal:"文字词汇、语法、阅读与听力综合",pending:true}
+    {id:"n3",title:"N3 系统学习",days:72,goal:"文字词汇、语法、阅读与听力综合",pending:true},
+    {id:"n2",title:"N2 系统与冲刺",days:90,goal:"词汇辨析、书面句型、论旨阅读与自然语速听力；七月考试后继续推进",pending:true}
   ];
   let month=core.today().slice(0,7),selection=core.today(),run=null;
   function setup() {
@@ -4699,8 +4784,8 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     const sessionKey=`${core.courseKey()}:${s.activeDay}:${s.activePeriod}`;
     const ids=core.periodIds(s.activeDay,s.activePeriod);
     const checked=new Set(s.events.filter(e=>e.source==="course"&&dayKey(e.at)===key&&ids.includes(e.itemId)).map(e=>e.itemId));
-    if(!checked.size)return;
-    today.sessions[sessionKey]={course:core.courseKey(),day:s.activeDay,period:s.activePeriod,title:core.lessons()[s.activeDay].title,checked:[...checked],total:ids.length,part:Boolean(s.lessonParts[core.partKey(s.activeDay)]?.[s.activePeriod])};
+    if(!checked.size && !(core.newPlanActive()&&s.activePeriod==="night"&&core.partComplete(s.activeDay,"night")))return;
+    today.sessions[sessionKey]={course:core.courseKey(),day:s.activeDay,period:s.activePeriod,title:core.lessons()[s.activeDay].title,checked:[...checked],total:ids.length,part:core.partComplete(s.activeDay,s.activePeriod),practice:core.newPlanActive()&&s.activePeriod==="night"};
     core.save();
   }
   function render() {
@@ -4714,6 +4799,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
         const studied=events.some(e=>e.source==="course"&&dayKey(e.at)===key);
         return `<button type="button" class="calendar-day ${key===core.today()?"is-today":""} ${milestone?"is-milestone":""}" data-date="${key}" aria-label="${key}${milestone?"，"+milestone.title+"阶段检查":""}${marked?"，时段已打卡":studied?"，有学习记录":""}">${i+1}<small>${milestone?"阶段":marked?"打卡":studied?"已学":""}</small></button>`;
       }).join("")}</div><p class="calendar-legend">“阶段”＝特别标志 · “已学”＝有答题记录 · “打卡”＝新增日历记录中的时段确认。点日期查看。</p><button class="btn btn-quiet btn-small" id="calendar-today">回到今天</button></div>`;
+    $("#calendar-host").insertAdjacentHTML("afterbegin",`<details class="report-data-tools"><summary>2027 年 N3 → N2 目标路线</summary><p>11 月 2 日起：日间 45–60 分钟（耳机可听），晚间 10–15 分钟（朗读、跟读）。周一至周六学习，周日复盘或周测。</p><ol><li>2026 年 11 月：假名巩固与 N5 起步</li><li>12 月至 2027 年 1 月：N5 → N4</li><li>2–3 月：N4 巩固 → N3</li><li>4–5 月：N3 综合，稳定后接触 N2 衔接</li><li>6 月至七月场：N3 模拟与修复</li><li>七月考试后至 9 月：继续推进 N2</li><li>10–11 月至十二月场：N2 综合模拟与冲刺</li></ol><p>七月 N3、十二月 N2；规划日期 2027-07-04、2027-12-05 按规则推算，正式公告待核对。阶段未达标时调整节奏，日期到达不会自动通过。完整 N5 至 N2 课件待逐步更新。</p></details>`);
     document.querySelectorAll("[data-phase]").forEach(b=>b.addEventListener("click",()=>openDate(list.find(p=>p.id===b.dataset.phase).date,b.dataset.phase)));
     document.querySelectorAll("[data-date]").forEach(b=>b.addEventListener("click",()=>openDate(b.dataset.date)));
     const shift=n=>{month=add(`${month}-15`,n*31).slice(0,7);render();};
@@ -4731,6 +4817,18 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       <h3>${today?"今日早晚任务":future?"预计每日安排":"当天学习记录"}</h3>
       ${today?`<p>${esc(lesson.day)} · ${esc(lesson.title)}</p><p>上午 ${p.morning.done}/${p.morning.total} 题；晚间 ${p.night.done}/${p.night.total} 题。词卡与题组属于这同一套任务。</p><div class="inline-actions"><button class="btn btn-primary" id="calendar-morning">上午学习</button><button class="btn btn-secondary" id="calendar-night">晚间学习</button></div>`:future?`<p>周一至周六：词卡／讲解 → 上午题组 → 晚间听辨跟读；周日可做周测或休息。具体 Day 按课程推进，未编课件不提前算完成。</p>`:sessions.length?`<ul>${sessions.map(s=>`<li>${esc(s.title)} · ${s.period==="night"?"晚间":"上午"} ${s.checked.length}/${s.total} 题，当天${s.part?"已打卡":"未确认打卡"}</li>`).join("")}</ul>`:historic.length?`<p>有 ${historic.length} 次原课程答题记录。旧数据没有按日保存打卡时间，无法还原当天早晚打卡状态。</p>`:"<p>本浏览器没有该日的学习记录，不能据此判断其他设备上的学习状态。</p>"}
       <h3>周测在哪里</h3><p>底栏“周测”一直可进入，建议六个课程日后或周日参加。周测检查已学题，和完整阶段测评分开。</p><button class="btn btn-secondary" id="calendar-weekly">进入周测</button>`;
+    if(today&&core.newPlanActive()) {
+      const morningButton=$("#calendar-morning");
+      morningButton.textContent="日间学习";
+      morningButton.parentElement.previousElementSibling.textContent=`日间 ${p.morning.done}/${p.morning.total} 题；晚间跟读${p.night.done?"已确认":"待确认"}。`;
+    }
+    if(future&&key>="2026-11-02") {
+      const heading=[...document.querySelectorAll("#calendar-detail-body h3")].find(h=>h.textContent==="预计每日安排");
+      heading.nextElementSibling.textContent="周一至周六：日间旧项回忆、讲解与主练习、耳机听辨、8 题词块巩固（建议 45–60 分钟）；晚间朗读、跟读当天内容（10–15 分钟）。周日约 30 分钟复盘或周测。后续阶段课件逐步更新。";
+    }
+    if(!today&&!future&&sessions.length) {
+      document.querySelectorAll("#calendar-detail-body ul li").forEach((node,i)=>{if(sessions[i]?.practice)node.textContent=`${sessions[i].title} · 晚间朗读、跟读${sessions[i].part?"已确认":"待确认"}（不计题数）`;});
+    }
     $("#calendar-stage")?.addEventListener("click",()=>{$("#calendar-detail").close();startCheck(phase.id);});
     $("#calendar-morning")?.addEventListener("click",()=>{$("#calendar-detail").close();core.openLesson(core.state.activeDay,"morning");});
     $("#calendar-night")?.addEventListener("click",()=>{$("#calendar-detail").close();core.openLesson(core.state.activeDay,"night");});
@@ -4763,6 +4861,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
   }
   document.addEventListener("modi:view",e=>{if(e.detail==="calendar")render();});
   document.addEventListener("modi:answer",dailyRecord);
+  document.addEventListener("modi:completion",dailyRecord);
   document.addEventListener("modi:lesson",()=>{dailyRecord();});
   if(core.state.view==="calendar")render();
   window.ModiCalendar={milestones,evidence,render};
