@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#d8d5e8">
-  <meta name="description" content="从假名与发音起步的 JLPT N3 中文伴学应用">
+  <meta name="description" content="从假名起步，以 N2 为最终目标、N3 为阶段里程碑的中文日语伴学应用">
   <title>墨滴伴学 · 和墨滴仔一起学</title>
   <style>
 :root {
@@ -1960,7 +1960,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
   <a class="skip-link" href="#main">跳到主要内容</a>
   <header class="topbar">
     <a class="brand" href="#course" aria-label="进入学习">
-      <span class="brand-mark">N3</span>
+      <span class="brand-mark" aria-label="最终目标 N2">N2</span>
       <span>墨滴伴学</span>
     </a>
     <strong id="mobile-page-title" class="mobile-page-title">学习</strong>
@@ -2199,6 +2199,95 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       <details class="report-panel activity-panel"><summary>近期活动 · ${events.length} 次</summary>${events.length?`<div class="activity-list">${events.slice().sort((a,b)=>Date.parse(b.at)-Date.parse(a.at)).slice(0,12).map(e=>`<div><span class="activity-dot ${e.correct?"ok":"bad"}"></span><p><strong>${esc(meta(e.itemId)?.title||e.itemId)}</strong><small>${e.correct?"正确":"错误"}${e.hint?" · 使用提示":""}</small></p><time>${esc(formatTime(e.at))}</time></div>`).join("")}</div>`:"<p>暂无答题活动。</p>"}</details>`;
     }
   };
+})();
+
+</script>
+  <script>
+(() => {
+  "use strict";
+  // Original teaching material. This is a supplement to the two published books,
+  // not a complete N5–N2 syllabus or a reproduction of a commercial textbook.
+  const foundation = [
+    [["あお","蓝色"],["いえ","家"],["かお","脸"],["ここ","这里"]],
+    [["あさ","早晨"],["いす","椅子"],["すし","寿司"],["たこ","章鱼"]],
+    [["はい","是的"],["いいえ","不是"],["なまえ","名字"],["はな","花"]],
+    [["やま","山"],["ゆめ","梦"],["わたし","我"],["ほん","书"]],
+    [["かぎ","钥匙"],["かぜ","风"],["かっぱ","河童"],["きって","邮票"]],
+    [["きゃく","客人"],["しゃしん","照片"],["おばあさん","奶奶"],["ほん","书"]]
+  ];
+  const units = [
+    {words:[["ここ","这里"],["いえ","家"],["がっこう","学校"],["です","是"]],
+      text:"ここは いえです。", gloss:"这里是家。ここ是这里，は标记所说的话题，いえ是家，です让判断句礼貌。は在这里读wa。",
+      tasks:[["将「ここはいえです」里的地点改为已学的「学校」，输入完整日语句。","ここはがっこうです","名词位置可以替换，は和です保留。"],
+        ["「ここはがっこうです」中，标记话题的假名是什么？","は","话题标记是は，读wa。"],
+        ["「ここはがっこうです」在说这里是什么？用中文回答。","学校","句尾名词がっこう是判断的内容。"]],
+      audio:"ここは がっこうです。", meaning:"学校", question:"这里是什么？用中文回答。",
+      scaffold:"ここは（　）です。", keyword:"がっこう"},
+    {words:[["すし","寿司"],["たべます","吃"],["いきます","去"],["みます","看"]],
+      text:"わたしは すしを たべます。わたしは がっこうに いきます。", gloss:"我吃寿司。我去学校。を标记吃的对象，に标记去的目的地；不要因中文都说“我……”就混用助词。",
+      tasks:[["补上吃的对象标记：わたしは すし（　）たべます。只输入助词。","を","すし是吃的对象，用を。"],
+        ["补上目的地标记：わたしは がっこう（　）いきます。只输入助词。","に","去的目的地用に。"],
+        ["将「わたしはすしをたべます」改成「我看寿司」。用已学的みます，输入整句。","わたしはすしをみます","动词改为みます，看的对象仍用を。"]],
+      audio:"わたしは すしを みます。",meaning:"看",question:"说话人对寿司做什么？用中文写一个字。",
+      scaffold:"わたしは すしを（　）。",keyword:"みます"},
+    {words:[["さむい","冷"],["おもしろい","有趣"],["しずか","安静"],["あたらしい","新的"]],
+      text:"きょうは さむくないです。",gloss:"今天不冷。さむい的末尾い变为くない，不能直接接成さむいない。しずか属于另一类词，不能套成しずかくない。",
+      tasks:[["将「さむい」改成礼貌的否定描述。输入「不冷」的完整谓语。","さむくないです","い形容词去掉末尾い，加くないです。"],
+        ["用相同规律，将「おもしろい」改成「没有趣」。输入完整谓语。","おもしろくないです","去掉末尾い，加くないです。"],
+        ["「きょうはさむくないです」有没有说昨天冷不冷？用中文输入「有」或「没有」。","没有","句子只说今天，不能补出昨天的信息。"]],
+      audio:"おもしろくないです。",meaning:"没有趣",question:"评价是有趣还是没有趣？用中文回答。",
+      scaffold:"おもしろ（　）です。",keyword:"くない"},
+    {words:[["あめ","雨"],["でかけません","不出门"],["じかん","时间"],["いそぎます","赶快"]],
+      text:"あめですから、でかけません。",gloss:"因为下雨，所以不出门。から前是原因，后面是结果。先定位关系，再理解两边的内容。今天补充雨=あめ、不出门=でかけません、时间=じかん、赶快=いそぎます；じかんがありません是「没有时间」的礼貌表达。名词的礼貌原因可用ですから或ですので。",
+      tasks:[["「あめですから、でかけません」不出门的原因是什么？用中文回答。","下雨","から前是下雨，后面才是不出门。"],
+        ["把「あめですから」改成使用ので的礼貌原因表达。输入这一半句。","あめですので","名词的礼貌表达ですので可以连接原因。"],
+        ["「じかんがないので、いそぎます」的结果是什么？用中文回答。",["赶快","赶快行动"],"ので后面的いそぎます是结果。"]],
+      audio:"あめですから、でかけません。",meaning:"下雨",question:"不出门的原因是什么？用中文回答。",
+      scaffold:"あめです（　）、でかけません。",keyword:"から"},
+    {words:[["はなせる","会说"],["ようになる","变得"],["ことにする","决定"],["メモ","笔记"]],
+      text:"にほんごが はなせるようになりました。まいにち メモを とることにしました。",gloss:"变得会说日语了。决定每天记笔记。前句报告能力变化，后句报告主动决定。补充まいにち=每天、とる=记（笔记）；はなせる是“能说”的形式，此处整体理解。接ことにしました前用动词普通形式；本课みます对应みる，まいにちほんをみる表示每天看书。",
+      tasks:[["「はなせるようになりました」是能力变化还是主动决定？用中文回答。","能力变化","ようになる描述状态从不会到会的变化。"],
+        ["要把「まいにちメモをとる」表达为已经作出的决定，末尾接什么？只输入句尾。","ことにしました","ことにしました表示自己作出了决定。"],
+        ["「メモをとることにしました」能证明已经连续记了一个月吗？输入「能」或「不能」。","不能","决定不等于已经长期执行，不能补出持续时间。"]],
+      audio:"まいにち メモを とることにしました。",meaning:"主动决定",question:"这句话报告能力变化还是主动决定？用中文回答。",
+      scaffold:"まいにち メモを とる（　）。",keyword:"ことにしました"},
+    {words:[["みせ","店"],["えき","车站"],["とおい","远"],["おいしい","好吃"]],
+      text:"このみせは えきから とおいです。しかし、りょうりが おいしいので、きゃくが おおいです。",gloss:"这家店离车站远。但是因为饭菜好吃，客人很多。先分清缺点、转折和原因。补充りょうり=饭菜、きゃく=客人、おおい=多、しかし=但是、ので=因为。",
+      tasks:[["店离车站远，为什么仍有很多客人？用中文写出原因。",["饭菜好吃","好吃","料理好吃"],"ので前的饭菜好吃是客人多的原因。"],
+        ["连接“店很远”和“客人仍很多”的转折词是什么？输入日语。","しかし","しかし连接与前句预期不同的事实。"],
+        ["原文有没有说这家店价格便宜？输入「有」或「没有」。","没有","原文没有价格信息，不能用常识补出答案。"]],
+      audio:"このみせは えきから とおいです。",meaning:"远",question:"这家店离车站近还是远？用中文回答。",
+      scaffold:"このみせは えきから（　）です。",keyword:"とおい"}
+  ];
+  function input(prompt,answer,explain,extra={}) {
+    const aliases={"あお":"青","いえ":"家","かお":"顔","あさ":"朝","いす":"椅子","はな":"花","なまえ":"名前","やま":"山","ゆめ":"夢","わたし":"私","ほん":"本","かぎ":"鍵","かぜ":"風","きって":"切手","きゃく":"客","しゃしん":"写真","がっこう":"学校","あめ":"雨","じかん":"時間","あたらしい":"新しい","さむい":"寒い","はなせる":"話せる","とおい":"遠い","えき":"駅","みせ":"店",
+      "ここはがっこうです":"ここは学校です","わたしはすしをみます":"私はすしを見ます","さむくないです":"寒くないです"};
+    const answers=Array.isArray(answer)?answer:[answer];
+    const variants=answers.flatMap(a=>aliases[a]?[a,aliases[a]]:[a]);
+    return {type:"input",prompt,answer:variants.length>1?variants:answer,ok:explain,bad:explain,...extra};
+  }
+  function build(lesson,day,key) {
+    const unit=key==="week2"?units[day]:null,words=unit?.words||foundation[day];
+    const previous=day>0?(key==="week2"?units[day-1].words:foundation[day-1]):(key==="week2"?foundation[5]:[]);
+    const recall=previous.map(([jp,zh])=>input(`先不翻词卡：写出上一课「${zh}」的日语写法。`,jp,`${jp} = ${zh}。答错后回看该词，再隔天检验。`,{evidence:"recall",prerequisite:day>0?`${key}:${day-1}`:"week1:5"}));
+    const dictate=words.map(([jp,zh])=>input("听写已学词：完整听音，再输入日语写法；没有选项。",jp,`${jp} = ${zh}。按拍核对漏音、长音或小字。`,{speech:jp,evidence:"dictation"}));
+    let text,gloss,apply;
+    if(unit) {
+      text=unit.text;gloss=unit.gloss;
+      apply=unit.tasks.map(([p,a,e])=>input(p,a,e,{evidence:"application"}));
+      apply.push(input(`第一遍听理解：${unit.question}`,unit.meaning,"先听含义，提交后再进入同一音频的精听。",{speech:unit.audio,evidence:"listening"}));
+      apply.push(input(`第二遍精听填词：${unit.scaffold} 只写空缺部分。`,unit.keyword,"此题有句子支架，属于精听练习，不算另一份独立听力测试。",{speech:unit.audio,evidence:"guided"}));
+      apply.push(input("第三遍：输入刚才音频的完整关键句。标点和空格不影响判分。",unit.audio,"对照原句检查助词和词尾。晚间用这句跟读；同一材料的再听与跟读不算独立测验。",{speech:unit.audio,evidence:"guided"}));
+    } else {
+      text=words.map(([jp,zh])=>`${jp} = ${zh}`).join("；");
+      gloss="先把字形、声音和意思连起来。遮住日语，按中文独立写；再遮住中文读出意思。Day 1–2 只使用已学假名组成的短词，不提前要求整句。日文输入法可能提示字形，所以打字正确还不能证明手写掌握。";
+      apply=words.map(([jp,zh])=>input(`换方向：不用选项，写出「${jp}」在本课学到的中文意思。`,zh,`${jp} = ${zh}。这是无选项词义回忆，尚不是句子语境应用。`,{evidence:"meaning"}));
+      apply.push(input("听辨理解：写出音频中这个已学词的中文意思。",words[1][1],`${words[1][0]} = ${words[1][1]}。`,{speech:words[1][0],evidence:"listening"}));
+      apply.push(input("精听回收：输入刚才音频中完整的日语词。",words[1][0],"这是同一材料的再听巩固，单独标为有支架练习。",{speech:words[1][0],evidence:"guided"}));
+    }
+    return {recall,dictate,apply,text,gloss,words};
+  }
+  window.ModiDepth={build,foundation,units};
 })();
 
 </script>
@@ -3201,6 +3290,8 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       ? { ...pack, rapidDrills: buildRapidDrills(reviewDay) }
       : { ...pack, rapidDrills: buildPersonalizedRapidDrills(lessons[day], day) };
     base.boostDrills = buildDaytimeBoost(lessons[day],day,key);
+    const depth=window.ModiDepth.build(lessons[day],day,key);
+    base.recallDrills=depth.recall; base.dictateDrills=depth.dictate; base.applyDrills=depth.apply;
     if (!isIntensiveCourseActive()) return { ...base, challengeDrills: [] };
     const intensive = intensiveModule(day);
     return {
@@ -3366,11 +3457,11 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
   function periodTaskIds(day, period) {
     const pack = lessonPack(day);
     if(newPlanActive() && period==="night") return [];
-    const sections = newPlanActive() ? ["rapid","visual","inputx","phrase","review","challenge","listenx","wrap","boost"] :
+    const sections = newPlanActive() ? ["rapid","visual","inputx","phrase","review","challenge","listenx","wrap","boost","recall","dictate","apply"] :
       period === "night" ? ["listenx", "wrap"] : ["rapid", "visual", "inputx", "phrase", "review", "challenge"];
     const ids = period === "night" ? [itemId(day, "listen")] : [itemId(day, "choice"), itemId(day, "input")];
     if(newPlanActive())ids.push(itemId(day,"listen"));
-    const sourceKeys = { rapid: "rapidDrills", visual: "visualDrills", inputx: "inputDrills", phrase: "phraseDrills", review: "reviewDrills", challenge: "challengeDrills", listenx: "listenDrills", wrap: "wrapUp", boost:"boostDrills" };
+    const sourceKeys = { rapid: "rapidDrills", visual: "visualDrills", inputx: "inputDrills", phrase: "phraseDrills", review: "reviewDrills", challenge: "challengeDrills", listenx: "listenDrills", wrap: "wrapUp", boost:"boostDrills",recall:"recallDrills",dictate:"dictateDrills",apply:"applyDrills" };
     sections.forEach(section => pack[sourceKeys[section]].forEach((_, index) => ids.push(lessonTaskId(day, section, index))));
     return ids;
   }
@@ -3422,7 +3513,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       challenge: pack.challengeDrills,
       listenx: pack.listenDrills,
       wrap: pack.wrapUp,
-      boost: pack.boostDrills
+      boost: pack.boostDrills, recall:pack.recallDrills, dictate:pack.dictateDrills, apply:pack.applyDrills
     };
     return buckets[section]?.[index] || null;
   }
@@ -3433,15 +3524,15 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       const lesson = courseForKey(courseKey).lessons[day], task = lesson?.[type];
       return lesson && task ? { id, day, courseKey, type, title: `${lesson.day} · ${type === "choice" ? "音形选择" : type === "input" ? "基础输入" : "听辨"}`, prompt: task.prompt, answer: task.answer, options: task.options || [], speech: task.speech || "", hint: type === "input" ? task.hint : "", explain: task.bad || task.hint || (type==="listen" ? `示范音是「${task.answer}」。` : lesson.explain) } : null;
     }
-    const extra = /^lesson:(?:(week\d+):)?(\d+):(rapid|visual|inputx|phrase|review|challenge|listenx|wrap|boost):(\d+)$/.exec(id);
+    const extra = /^lesson:(?:(week\d+):)?(\d+):(rapid|visual|inputx|phrase|review|challenge|listenx|wrap|boost|recall|dictate|apply):(\d+)$/.exec(id);
     if (extra) {
       const courseKey = extra[1] || "week1", day = Number(extra[2]) - 1, section = extra[3], index = Number(extra[4]);
       if (!["week1","week2"].includes(courseKey) || !courseForKey(courseKey).lessons[day]) return null;
       const pack = coursePackForKey(day, courseKey);
-      const bucket = { rapid:"rapidDrills",visual:"visualDrills",inputx:"inputDrills",phrase:"phraseDrills",review:"reviewDrills",challenge:"challengeDrills",listenx:"listenDrills",wrap:"wrapUp",boost:"boostDrills" };
+      const bucket = { rapid:"rapidDrills",visual:"visualDrills",inputx:"inputDrills",phrase:"phraseDrills",review:"reviewDrills",challenge:"challengeDrills",listenx:"listenDrills",wrap:"wrapUp",boost:"boostDrills",recall:"recallDrills",dictate:"dictateDrills",apply:"applyDrills" };
       const task = pack[bucket[section]]?.[index];
-      const titles = { rapid: "双向快速回忆", visual: "辨形加练", inputx: "输入加练", phrase: "词例解码", review: "错项回收", challenge: "强化挑战", listenx: "听辨加练", wrap: "收尾小测",boost:"日间巩固" };
-      return task ? { id, day, courseKey, type: task.type === "listen" ? "listen" : task.type, title: `${courseForKey(courseKey).lessons[day].day} · ${titles[section]}`, prompt: task.prompt, answer: task.answer, options: task.options || [], speech: task.speech || "", hint: task.hint || "", explain: task.bad || task.hint || task.ok || "" } : null;
+      const titles = { rapid: "双向快速回忆", visual: "辨形加练", inputx: "输入加练", phrase: "词例解码", review: "错项回收", challenge: "强化挑战", listenx: "听辨加练", wrap: "收尾小测",boost:"日间巩固",recall:"上一课回忆",dictate:"无选项听写",apply:"理解与精听" };
+      return task ? { id, day, courseKey, type: task.type, evidence:task.evidence, prerequisite:task.prerequisite, title: `${courseForKey(courseKey).lessons[day].day} · ${titles[section]}`, prompt: task.prompt, answer: task.answer, options: task.options || [], speech: task.speech || "", hint: task.hint || "", explain: task.bad || task.hint || task.ok || "" } : null;
     }
     const q = questions.find(x => `assessment:${x.id}` === id);
     if (q) return { id, day: -1, type: q.type, title: `测评 · ${q.skill}`, prompt: q.prompt, answer: q.answer, options: q.options || [], speech: q.speech || "", hint: q.explain };
@@ -3453,7 +3544,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     return `<div class="lesson-step lesson-group"><div class="step-label">${stepLabel}</div><h3>${title}</h3><p>${description}</p><div class="task-stack">${tasks.map((task, taskIndex) => {
       const id = lessonTaskId(dayIndex, section, taskIndex);
       const saved = task.type === "input" ? (state.lessonInputs[id] || "") : (state.lessonAnswers[id] || "");
-      return `<article class="subtask-card"><p class="subtask-kicker">练习 ${taskIndex + 1}${task.level ? `<span class="task-level">${task.level}</span>` : ""}</p><h4>${task.prompt}</h4>${task.type === "listen" ? `<div class="audio-box compact"><button class="btn btn-secondary btn-small" type="button" data-play-task="${id}">播放</button><span>可重复播放。</span></div>` : ""}${task.type === "input" ? `<input class="text-answer subtask-input" lang="ja" autocomplete="off" data-task-input="${id}" placeholder="${escapeHtml(task.hint || "")}" value="${escapeHtml(saved)}">` : `<fieldset class="practice compact">${task.options.map(option => `<label><input type="radio" name="${id}" value="${escapeHtml(option)}" ${saved === option ? "checked" : ""}> ${escapeHtml(option)}</label>`).join("")}</fieldset>`}<div class="subtask-actions">${task.hint ? `<button type="button" class="btn btn-quiet btn-small" data-show-hint="${id}">提示</button>` : ""}<button type="button" class="btn btn-secondary btn-small" data-check-task="${id}">检查本题</button></div><p id="feedback-${domSafeId(id)}" class="feedback" role="status"></p></article>`;
+      return `<article class="subtask-card"><p class="subtask-kicker">练习 ${taskIndex + 1}${task.level ? `<span class="task-level">${task.level}</span>` : ""}</p><h4>${task.prompt}</h4>${task.speech ? `<div class="audio-box compact"><button class="btn btn-secondary btn-small" type="button" data-play-task="${id}">播放</button><span>可重复播放；提交后看解析。</span></div>` : ""}${task.type === "input" ? `<input class="text-answer subtask-input" lang="ja" autocomplete="off" data-task-input="${id}" placeholder="${escapeHtml(task.evidence ? "独立输入；不会可填「不知道」" : task.hint || "")}" value="${escapeHtml(saved)}">` : `<fieldset class="practice compact">${task.options.map(option => `<label><input type="radio" name="${id}" value="${escapeHtml(option)}" ${saved === option ? "checked" : ""}> ${escapeHtml(option)}</label>`).join("")}</fieldset>`}<div class="subtask-actions">${task.hint ? `<button type="button" class="btn btn-quiet btn-small" data-show-hint="${id}">提示</button>` : ""}<button type="button" class="btn btn-secondary btn-small" data-check-task="${id}">检查本题</button></div><p id="feedback-${domSafeId(id)}" class="feedback" role="status"></p></article>`;
     }).join("")}</div></div>`;
   }
   function recordAnswer({ id, source, answer, correct, hint = false, durationMs = 0 }) {
@@ -3906,11 +3997,17 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       const moving=[listen,...$$(".lesson-group",night)];
       moving.forEach(node=>morning.insertBefore(node,$(".part-finish",morning)));
       $(".part-finish",morning).insertAdjacentHTML("beforebegin",`<div class="lesson-step"><div class="step-label">日间巩固讲解</div><h3>把词块连到声音和含义</h3><p>先认识下面的词块，再做双向练习。第一题从意思找写法，第二题戴耳机从声音找意思；不要求出声。隔段后再回忆一次，避免只凭刚看过的印象。</p><p lang="ja">${buildDaytimeBoost(lesson,index,currentCourseKey()).filter(t=>t.type==="listen").map(t=>`${escapeHtml(t.speech)}：${escapeHtml(t.answer)}`).join(" · ")}</p></div>${renderTaskGroup(index,"boost","日间词块巩固","8 题连接写法、含义和声音。听辨先完整播放，再提交。",pack.boostDrills,"日间巩固练习")}`);
+      const depth=window.ModiDepth.build(lesson,index,currentCourseKey());
+      $(".part-finish",morning).insertAdjacentHTML("beforebegin",
+        `${renderTaskGroup(index,"recall","先做 · 上一课闭卷回忆","开始学习卷会先定位这里。先不翻词卡；若上一课尚未学，本次只作起点诊断。",pack.recallDrills,"回忆")}
+        <div class="lesson-step"><div class="step-label">串联讲解</div><h3>${currentCourseKey()==="week2"?"从词汇到句子关系":"把字形、声音和词义连起来"}</h3><p lang="ja">${escapeHtml(depth.text)}</p><p>${escapeHtml(depth.gloss)}</p><p>离开键盘，在纸上遮住答案写出这 4 个词，再回看核对。手写仅作自练，不计自动正确率。日间可拆成两段；45–60 分钟仍是试运行预算，不强制等待。</p></div>
+        ${renderTaskGroup(index,"dictate","词汇听写 · 无选项","已学词听音输入。音频来自设备日语语音合成；不是官方真题录音。",pack.dictateDrills,"听写")}
+        ${renderTaskGroup(index,"apply","理解与分层精听","先独立理解，再填关键词、回收关键句。同一音频的后两步属于巩固，晚间再跟读。",pack.applyDrills,"应用")}`);
       $(".session-banner.morning strong",host).textContent=`日间 · 主学习与耳机听辨（${morningTime}）`;
       $(".session-banner.night strong",host).textContent=`晚间 · 短朗读与跟读（${nightTime}）`;
       $(".session-banner.night span",host).textContent="当天已学内容 · 朗读一次 · 跟读一至两次";
       $$(".example-box small",morning).forEach(n=>{if(n.textContent.includes("不播放声音"))n.textContent="日间可用耳机听辨；朗读与跟读留到晚间。";});
-      $$(".task-checklist",host).forEach(n=>n.innerHTML=n.closest('[data-period-section="morning"]')?"<li>旧项回忆与讲解</li><li>原课程选择、输入、强化练习</li><li>耳机听辨与收尾小测</li><li>新增 8 题词块巩固</li>":"<li>回听当天示范</li><li>独立朗读一次</li><li>跟读一至两次并确认</li>");
+      $$(".task-checklist",host).forEach(n=>n.innerHTML=n.closest('[data-period-section="morning"]')?"<li>上一课闭卷回忆与词汇句型讲解</li><li>原课程选择、输入、强化练习</li><li>已学词无选项听写与纸上自练</li><li>理解、改写与耳机分层精听</li>":"<li>回听当天示范</li><li>独立朗读一次</li><li>跟读一至两次并确认</li>");
       if(state.activePeriod==="night") {
         $(".lesson-head-status > div > span",host).textContent="跟读状态";
         $("[data-lesson-progress-label]",host).textContent=nightPracticeDone(index)?"已确认":"待确认";
@@ -3937,7 +4034,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     $$("[data-play-task]", $("#lesson-host")).forEach(btn => btn.addEventListener("click", () => { const meta = itemMeta(btn.dataset.playTask); if (meta?.speech) speak(meta.speech); }));
     $$("[data-show-hint]", $("#lesson-host")).forEach(btn => btn.addEventListener("click", () => {
       const meta = itemMeta(btn.dataset.showHint);
-      const match = /^lesson:(?:(week\d+):)?(\d+):(rapid|visual|inputx|phrase|review|challenge|listenx|wrap|boost):(\d+)$/.exec(btn.dataset.showHint);
+      const match = /^lesson:(?:(week\d+):)?(\d+):(rapid|visual|inputx|phrase|review|challenge|listenx|wrap|boost|recall|dictate|apply):(\d+)$/.exec(btn.dataset.showHint);
       const task = match && (match[1] || "week1") === currentCourseKey() ? lessonTaskLookup(Number(match[2]) - 1, match[3], Number(match[4])) : null;
       hintedThisRender.add(btn.dataset.showHint);
       $(`#feedback-${domSafeId(btn.dataset.showHint)}`).textContent = task?.hint || meta?.hint || "先按今天讲解中的音和值再看一遍。";
@@ -4026,8 +4123,11 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     const meta = itemMeta(id), node = $(`#feedback-${domSafeId(id)}`);
     if (!meta || !node) return;
     if(state.events.some(event=>event.itemId===id&&event.source==="course"))return;
-    const taskMatch = /^lesson:(?:(week\d+):)?(\d+):(rapid|visual|inputx|phrase|review|challenge|listenx|wrap|boost):(\d+)$/.exec(id);
+    const taskMatch = /^lesson:(?:(week\d+):)?(\d+):(rapid|visual|inputx|phrase|review|challenge|listenx|wrap|boost|recall|dictate|apply):(\d+)$/.exec(id);
     const task = taskMatch && (taskMatch[1] || "week1") === currentCourseKey() ? lessonTaskLookup(Number(taskMatch[2]) - 1, taskMatch[3], Number(taskMatch[4])) : null;
+    if(meta.speech && !state.studyListened?.[id]) {
+      node.textContent="请先完整播放音频，再提交。"; return;
+    }
     const value = meta.type === "input" ? ($(`[data-task-input="${id}"]`)?.value || "") : ($(`input[name="${id}"]:checked`)?.value || "");
     if (!value) {
       node.textContent = meta.type === "input" ? "请先输入答案。" : "请先选择一个答案。";
@@ -4447,7 +4547,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
         g.node.append(label);
       }
       $$("[data-check-task],#check-choice,#check-input,#check-listen",g.node).forEach(b=>b.hidden=true);
-      if(g.ids.length) {
+      if(g.ids.length && !g.ids.some(id=>core.meta(id)?.evidence)) {
         const recap=document.createElement("details");recap.className="question-recap";
         recap.innerHTML=`<summary>回看本课讲解</summary><p>${esc(lesson.explain)}</p><p>${esc(lesson.trap)}</p>`;
         $(".lesson-step",g.node)?.prepend(recap);
@@ -4517,7 +4617,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
   }
   function openGroup(g,index=0,origin=null) {
     const unread=groups.slice(0,g.i).find(item=>!item.ids.length&&!item.shadow&&!isDone(item));
-    if(g.ids.length&&unread)g=unread;
+    if(g.ids.length&&unread&&!g.ids.some(id=>core.meta(id)?.evidence==="recall"))g=unread;
     const before=origin?.getBoundingClientRect(); current=g;
     setMode("quiz");
     groups.forEach(item=>{item.node.classList.toggle("motion-current",item===g);item.node.open=item===g;});
@@ -4571,7 +4671,8 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
   function advance() {
     pendingAdvance=false;
     if(current.ids.length&&questionIndex<current.ids.length-1)return showQuestion(questionIndex+1);
-    const next=groups[current.i+1];
+    const next=current.ids.some(id=>core.meta(id)?.evidence==="recall")
+      ? groups.find(g=>!isDone(g)) : groups[current.i+1];
     if(next)return openGroup(next,0);
     const missing=groups.find(g=>!isDone(g));
     if(missing) {
@@ -4590,7 +4691,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     }
     const id=current.ids[questionIndex];
     if(lastAnswer(id))return advance();
-    if(core.meta(id)?.type==="listen"&&!core.state.studyListened?.[id]) {
+    if(core.meta(id)?.speech&&!core.state.studyListened?.[id]) {
       $("#motion-flow-feedback").textContent="请先完整播放听辨音，再提交答案。若没有声音，请启用设备日语语音后重试。";
       return;
     }
@@ -4696,7 +4797,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
     $("#deck-prev").addEventListener("click",()=>setWord(word-1));$("#deck-next").addEventListener("click",()=>setWord(word+1));
     $("#deck-reveal").addEventListener("click",e=>{revealed=!revealed;$("#deck-meaning").textContent=revealed?words[word][1]||lesson.explain:"先在心里回忆。";e.currentTarget.textContent=revealed?"收起说明":"揭开词卡";e.currentTarget.setAttribute("aria-expanded",String(revealed));});
     $("#deck-speak").hidden=!core.newPlanActive()&&core.state.activePeriod!=="night";$("#deck-speak").addEventListener("click",()=>core.speak(words[word][0]));
-    $("#deck-learn").addEventListener("click",()=>{const g=groups.find(g=>!isDone(g))||groups[0];if(g)openGroup(g,Math.max(0,g.ids.findIndex(id=>!lastAnswer(id))));});
+    $("#deck-learn").addEventListener("click",()=>{const g=groups.find(g=>!isDone(g)&&g.ids.some(id=>core.meta(id)?.evidence==="recall"))||groups.find(g=>!isDone(g))||groups[0];if(g)openGroup(g,Math.max(0,g.ids.findIndex(id=>!lastAnswer(id))));});
     window.addEventListener("resize",move);reduced.addEventListener("change",move);
     disposeDeck=()=>{cancelAnimationFrame(frame);window.removeEventListener("resize",move);reduced.removeEventListener("change",move);};
     setWord(0);
@@ -4902,6 +5003,154 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
   document.addEventListener("modi:lesson",()=>{dailyRecord();});
   if(core.state.view==="calendar")render();
   window.ModiCalendar={milestones,evidence,render};
+})();
+
+</script>
+  <script>
+(() => {
+  "use strict";
+  const core=window.ModiCore,esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const labels={recall:"旧词独立回忆",dictation:"词汇听写",application:"句子应用",meaning:"词义回忆",listening:"听力理解",guided:"有支架精听"};
+  // Two reserved equivalent forms. Neither is included in the lesson task bank.
+  const kanaForms=[
+    [["あき","aki"],["たか","taka"],["むね","mune"],["よる","yoru"],["ぎぱ","gipa"],["しゅ","shu"]],
+    [["いこ","iko"],["ちそ","chiso"],["ひも","himo"],["ゆら","yura"],["げぽ","gepo"],["ちょ","cho"]]
+  ];
+  const sentenceForms=[
+    [
+      ["我是客人。用わたし、きゃく和本课判断句骨架写整句。","わたしはきゃくです","わたしはきゃくです。","客人"],
+      ["我看书。用わたし、ほん、みます写整句。","わたしはほんをみます","わたしはほんをみます。","看书"],
+      ["将あたらしい改成礼貌否定，输入完整谓语。","あたらしくないです","あたらしくないです。","不是新的"],
+      ["いそぎます。じかんがありません。用から连成「因为没有时间，所以赶快」。","じかんがありませんからいそぎます","じかんがありませんからいそぎます。","没有时间"],
+      ["选择每天看书这一行动，用ことにしました写出接在まいにちほんをみる后的句尾。","ことにしました","まいにちほんをみることにしました。","主动决定"],
+      ["このみせはえきからとおいです。しかし、きゃくがおおいです。这句话提到了客人多的具体原因吗？输入「有」或「没有」。","没有","このみせはえきからとおいです。しかし、きゃくがおおいです。","没有"]
+    ],
+    [
+      ["这里是山。用ここ、やま和本课判断句骨架写整句。","ここはやまです","ここはやまです。","山"],
+      ["我看照片。用わたし、しゃしん、みます写整句。","わたしはしゃしんをみます","わたしはしゃしんをみます。","看照片"],
+      ["将あたらしくないです还原成礼貌肯定，输入完整谓语。","あたらしいです","あたらしいです。","是新的"],
+      ["でかけません。あめです。用ので连成「因为下雨，所以不出门」。","あめですのででかけません","あめですのででかけません。","下雨"],
+      ["报告「从不会说到会说」的能力变化。写出接在はなせる后的完整句尾。","ようになりました","はなせるようになりました。","能力变化"],
+      ["このみせはえきからとおいです。しかし、りょうりがおいしいです。这句话有没有说客人多？输入「有」或「没有」。","没有","このみせはえきからとおいです。しかし、りょうりがおいしいです。","没有"]
+    ]
+  ];
+  const audioForms=[
+    [["ここはやまです。","山"],["わたしはしゃしんをみます。","看照片"],["さむいです。","冷"],
+      ["あめですので、でかけません。","下雨"],["まいにちほんをみることにしました。","主动决定"],
+      ["このみせはえきからとおいです。しかし、りょうりがおいしいです。","没有"]],
+    [["わたしはきゃくです。","客人"],["わたしはほんをみます。","看书"],["さむくないです。","不冷"],
+      ["じかんがありませんから、いそぎます。","没有时间"],["にほんごがはなせるようになりました。","能力变化"],
+      ["このみせはえきからとおいです。しかし、きゃくがおおいです。","没有"]]
+  ];
+  function bank(book,form) {
+    const f=form==="B"?1:0;
+    if(book==="week1")return kanaForms[f].flatMap(([jp,roman],day)=>[
+      {day,skill:"音形回忆",prompt:`假名组合解码（不考词义）：不用选项，输入「${jp}」的罗马字。`,answer:roman},
+      {day,skill:"组合听写",prompt:"听一段假名组合，输入听到的假名。此题不考词义。",answer:jp,speech:jp}
+    ]);
+    return sentenceForms[f].flatMap(([prompt,answer],day)=>[
+      {day,skill:day===5?"阅读信息":"句型应用",prompt,answer},
+      {day,skill:"听力理解",prompt:[f?"说话人是什么身份？":"这里是什么？","说话人做什么？","这句表示冷还是不冷？","行动的原因是什么？","句子报告能力变化还是主动决定？","音频是否明确说出客人多的具体原因？输入「有」或「没有」。"][day]+" 用中文回答。",answer:audioForms[f][day][1],speech:audioForms[f][day][0]}
+    ]);
+  }
+  function store() {core.state.depthChecks ||= {history:[],draft:null};return core.state.depthChecks;}
+  function coverage(book) {
+    const events=core.state.events.filter(e=>e.source==="course"),prefix=book==="week1"?"lesson":`lesson:${book}`;
+    return Array.from({length:6},(_,d)=> {
+      const depth=window.ModiDepth.build(null,d,book);
+      const ids=[...depth.dictate.map((_,i)=>`${prefix}:${d+1}:dictate:${i}`),...depth.apply.map((_,i)=>`${prefix}:${d+1}:apply:${i}`)];
+      return ids.every(id=>events.some(e=>e.itemId===id));
+    }).filter(Boolean).length;
+  }
+  function render() {
+    if(!core.newPlanActive())return;
+    const target=document.querySelector("#motion-summary");if(!target)return;
+    document.querySelector("#depth-evidence")?.remove();
+    const book=core.courseKey(),data=store(),history=data.history.filter(r=>r.book===book),latest=history.at(-1);
+    const panel=document.createElement("section");panel.id="depth-evidence";panel.className="report-panel";
+    const events=core.state.events.filter(e=>e.source==="course"&&core.meta(e.itemId)?.courseKey===book);
+    const retained=events.filter(e=>{
+      const meta=core.meta(e.itemId);if(meta?.evidence!=="recall"||!meta.prerequisite)return false;
+      const [previousBook,day]=meta.prerequisite.split(":");
+      const prefix=`${previousBook==="week1"?"lesson":`lesson:${previousBook}`}:${Number(day)+1}:`;
+      return core.state.events.some(old=>old.source==="course"&&old.itemId.startsWith(prefix)&&Date.parse(e.at)-Date.parse(old.at)>=86400000);
+    });
+    panel.innerHTML=`<h2>学习深度与本册检验</h2><p>最终目标 N2；N3 是途中里程碑。完成课件不等于通过级别测试。</p>
+      ${Object.entries(labels).map(([key,label])=>{
+        const rows=events.filter(e=>core.meta(e.itemId)?.evidence===key),correct=rows.filter(e=>e.correct&&!e.hint).length;
+        return `<p>${label}：${rows.length?`${correct} / ${rows.length} 次无提示答对`:"尚无记录"}</p>`;
+      }).join("")}
+      <p>距上一课作答至少 24 小时的回忆：${retained.length?`${retained.filter(e=>e.correct&&!e.hint).length} / ${retained.length} 次无提示答对`:"尚无可核对记录"}。这只是部分旧词的保留证据，不是整个阶段掌握。打字与跟读自确认不能证明手写或口语能力。</p>
+      <p>新增内容覆盖 ${coverage(book)} / 6 个课程日。检验使用保留材料，整卷交完才显示答案；A、B 两卷至少间隔 24 小时。用完两卷后，只能回看，需另编新卷才能继续独立检验。</p>
+      <p>${latest?`最近 ${latest.form} 卷：${latest.correct} / ${latest.total} 题正确；覆盖 ${latest.coverage} / 6 日。`:"尚未参加本册检验。"} ${history.length===2?"两卷已用完。":""}</p>
+      <p>本检验仅覆盖两册的选定内容：第 1 册不是完整 46 音随机认读测验，第 2 册不是完整 N5、N4 或 N3 测验。不给官方等级或自动通关。</p>
+      <button type="button" class="btn btn-secondary" id="depth-start">${data.draft?.book===book?"继续本册检验":history.length>=2?"回看最近检验":"开始本册检验"}</button>
+      <div id="depth-test"></div><p id="depth-status" class="feedback" role="status"></p>`;
+    target.append(panel);
+    panel.querySelector("#depth-start").addEventListener("click",()=>{
+      if(history.length>=2)return showResult(latest);
+      if(data.draft && data.draft.book!==book){panel.querySelector("#depth-status").textContent="另一册有未完成检验，请切回该册继续。";return;}
+      if(!data.draft) {
+        if(latest&&Date.now()-Date.parse(latest.completedAt)<86400000){panel.querySelector("#depth-status").textContent="B 卷请在 A 卷交卷至少 24 小时后再做；先回收错项。";return;}
+        data.draft={book,form:history.length?"B":"A",startedAt:new Date().toISOString(),index:0,answers:{},listened:{}};
+        core.save();
+      }
+      showQuestion();
+    });
+  }
+  let audio=null;
+  function showQuestion() {
+    const run=store().draft;if(!run)return;
+    const questions=bank(run.book,run.form),q=questions[run.index],host=document.querySelector("#depth-test");
+    if(!host)return;
+    audio=null;
+    host.innerHTML=`<h3>${run.form} 卷 · ${run.index+1} / ${questions.length}</h3><p>${esc(q.prompt)}</p>${q.speech?'<button type="button" class="btn btn-secondary btn-small" id="depth-audio">听音频</button>':""}<label class="study-note" for="depth-answer">独立输入；不会可写「不知道」。</label><input class="text-answer" id="depth-answer" autocomplete="off" value="${esc(run.answers[run.index]||"")}"><button type="button" class="btn btn-primary" id="depth-next">${run.index===questions.length-1?"交卷并看反馈":"保存并继续"}</button>`;
+    host.querySelector("#depth-answer").addEventListener("input",e=>{run.answers[run.index]=e.target.value;core.save();});
+    host.querySelector("#depth-audio")?.addEventListener("click",()=>{audio={run,index:run.index,text:q.speech};core.speak(q.speech);});
+    host.querySelector("#depth-next").addEventListener("click",()=>{
+      const status=document.querySelector("#depth-status"),answer=host.querySelector("#depth-answer").value.trim();
+      if(!answer){status.textContent="请先输入答案；不会可写「不知道」。";return;}
+      if(q.speech&&!run.listened[run.index]){status.textContent="请先完整听音；播放失败时请启用设备日语语音后重试。";return;}
+      run.answers[run.index]=answer;status.textContent="";
+      if(run.index<questions.length-1){run.index++;core.save();showQuestion();return;}
+      run.completedAt=new Date().toISOString();run.coverage=coverage(run.book);run.total=questions.length;
+      const equivalents={"下雨":["雨"],"没有时间":["没时间"],"冷":["很冷"],"不冷":["没有很冷"],"主动决定":["决定"],"能力变化":["变化"],
+        "わたしはきゃくです":["私は客です"],"ここはやまです":["ここは山です"],"わたしはほんをみます":["私は本を見ます"],
+        "わたしはしゃしんをみます":["私は写真を見ます"],"あたらしくないです":["新しくないです"],"あたらしいです":["新しいです"],
+        "じかんがありませんからいそぎます":["時間がありませんから急ぎます"],"あめですのででかけません":["雨ですので出かけません"]};
+      run.results=questions.map((question,i)=>({...question,answerGiven:run.answers[i],correct:[question.answer,...equivalents[question.answer]||[]].some(a=>core.normalize(a)===core.normalize(run.answers[i]))}));
+      run.correct=run.results.filter(r=>r.correct).length;
+      store().history.push(run);store().draft=null;core.save();render();showResult(run);
+    });
+  }
+  function showResult(run) {
+    const host=document.querySelector("#depth-test");if(!host)return;
+    const skills=[...new Set(run.results.map(r=>r.skill))];
+    host.innerHTML=`<h3>${run.form} 卷反馈 · ${run.correct} / ${run.total}</h3>
+      ${skills.map(skill=>{const rs=run.results.filter(r=>r.skill===skill);return `<p>${skill}：${rs.filter(r=>r.correct).length} / ${rs.length}；${rs.some(r=>!r.correct)?"回看对应课程讲解，再用下一卷检验":"本次正确，仍需跨日复测"}。</p>`;}).join("")}
+      <p>错误回收：先确定是不认识词、句型关系错、漏听助词／词尾，还是补出了原文没有的信息。回到对应 Day 的词卡和讲解，遮住答案重新写，再隔日用另一卷。</p>
+      ${run.results.map((r,i)=>`<details><summary>第 ${i+1} 题 · ${r.correct?"正确":"需回收"} · Day ${r.day+1}</summary><p>${esc(r.prompt)}</p><p>你的答案：${esc(r.answerGiven)}；参考：${esc(r.answer)}</p>${r.speech?`<p lang="ja">音频原文：${esc(r.speech)}</p>`:""}</details>`).join("")}
+      <p>分数只描述本卷表现。阶段晋级门槛仍待讨论，不根据这个小样本自动开放 N5–N2 阶段。</p>`;
+  }
+  document.addEventListener("modi:audio",e=>{
+    if(audio&&store().draft===audio.run&&audio.text===e.detail.text) {
+      audio.run.listened[audio.index]=true;core.save();audio=null;
+    }
+  });
+  document.addEventListener("modi:lesson",()=>queueMicrotask(render));
+  document.addEventListener("modi:completion",()=>queueMicrotask(render));
+  document.addEventListener("click",e=>{if(e.target.closest('[data-mode="summary"],[data-report-range],[data-view="report"],[data-report-tab="study"]'))queueMicrotask(renderReport);});
+  function renderReport() {
+    render();
+    const host=document.querySelector("#report-host");if(!host||core.state.view!=="report")return;
+    document.querySelector("#depth-report")?.remove();
+    const node=document.createElement("section");node.id="depth-report";node.className="report-panel";
+    const data=store();
+    node.innerHTML=`<h2>独立检验记录</h2><p>学习练习与保留卷分开。A／B 卷不重复计入日课题数；记录随学习报告 JSON 导出。</p>${data.history.length?data.history.map(r=>`<p>${esc(r.book==="week1"?"第 1 册":"第 2 册")} ${r.form} 卷 · ${esc(r.completedAt.slice(0,10))} · ${r.correct} / ${r.total} · 内容覆盖 ${r.coverage} / 6 日</p>`).join(""):"<p>尚无完整交卷记录。</p>"}<p>这是内容检验记录，不是 JLPT 等级判定。尚未测完整级别、自然语速听力、手写或口语。</p>`;
+    host.append(node);
+  }
+  window.ModiCheckpoint={bank,coverage,render,renderReport};
+  render();
 })();
 
 </script>
