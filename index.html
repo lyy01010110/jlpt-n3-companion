@@ -5084,9 +5084,14 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
         return `<p>${label}：${rows.length?`${correct} / ${rows.length} 次无提示答对`:"尚无记录"}</p>`;
       }).join("")}
       <p>距上一课作答至少 24 小时的回忆：${retained.length?`${retained.filter(e=>e.correct&&!e.hint).length} / ${retained.length} 次无提示答对`:"尚无可核对记录"}。这只是部分旧词的保留证据，不是整个阶段掌握。打字与跟读自确认不能证明手写或口语能力。</p>
-      <p>新增内容覆盖 ${coverage(book)} / 6 个课程日。检验使用保留材料，整卷交完才显示答案；A、B 两卷至少间隔 24 小时。用完两卷后，只能回看，需另编新卷才能继续独立检验。</p>
+      <p>新增内容覆盖 ${coverage(book)} / 6 个课程日。检验使用保留材料，整卷交完才显示答案；新启动的 A、B 两卷至少间隔 48 小时，建议 48–72 小时。用完两卷后，只能回看，需另编新卷才能继续独立检验。</p>
       <p>${latest?`最近 ${latest.form} 卷：${latest.correct} / ${latest.total} 题正确；覆盖 ${latest.coverage} / 6 日。`:"尚未参加本册检验。"} ${history.length===2?"两卷已用完。":""}</p>
       <p>本检验仅覆盖两册的选定内容：第 1 册不是完整 46 音随机认读测验，第 2 册不是完整 N5、N4 或 N3 测验。不给官方等级或自动通关。</p>
+      <details class="progression-policy"><summary>正式晋级规则 · 允许少量弱项带专项复习</summary>
+      <p>2026-11-02 生效。完整阶段覆盖后，A／B 两份新卷总体均至少 80%，各主要分项至少 70%，无提示回忆至少 80%，核心前置能力没有持续缺口。B 至少隔 48 小时。这是内部教学试行标准，不是 JLPT 官方合格线。</p>
+      <p>带入弱项最多两个具体目标，集中在一个主要能力分项；其他分项均至少 80%。例如长音漏听可以专项回收；若反复漏听否定，导致无法理解后续句子，应先补再进。</p>
+      <p>第 1、第 3、最迟第 7 个学习日安排日间专项复习，每次约 10–15 分钟，纳入原日间预算。每个目标两次不同日期的新题均至少 4／5 无提示正确、间隔至少 48 小时，且核心错误不重复，才能关闭。未关闭则先暂停依赖该缺口的新内容。</p>
+      <p>评价分为晋级、带专项复习晋级、先补后进、证据不足。当前本册小卷不能直接判定整个阶段晋级，仍需完整阶段题型与足够分项题量；由教练结合实际学习报告核对。旧记录与已开始检验保留，历史不足 48 小时间隔的记录不作正式延迟证据。</p></details>
       <button type="button" class="btn btn-secondary" id="depth-start">${data.draft?.book===book?"继续本册检验":history.length>=2?"回看最近检验":"开始本册检验"}</button>
       <div id="depth-test"></div><p id="depth-status" class="feedback" role="status"></p>`;
     target.append(panel);
@@ -5094,7 +5099,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       if(history.length>=2)return showResult(latest);
       if(data.draft && data.draft.book!==book){panel.querySelector("#depth-status").textContent="另一册有未完成检验，请切回该册继续。";return;}
       if(!data.draft) {
-        if(latest&&Date.now()-Date.parse(latest.completedAt)<86400000){panel.querySelector("#depth-status").textContent="B 卷请在 A 卷交卷至少 24 小时后再做；先回收错项。";return;}
+        if(latest&&Date.now()-Date.parse(latest.completedAt)<172800000){panel.querySelector("#depth-status").textContent="B 卷请在 A 卷交卷至少 48 小时后再做，建议 48–72 小时；先回收错项。";return;}
         data.draft={book,form:history.length?"B":"A",startedAt:new Date().toISOString(),index:0,answers:{},listened:{}};
         core.save();
       }
@@ -5133,7 +5138,7 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       ${skills.map(skill=>{const rs=run.results.filter(r=>r.skill===skill);return `<p>${skill}：${rs.filter(r=>r.correct).length} / ${rs.length}；${rs.some(r=>!r.correct)?"回看对应课程讲解，再用下一卷检验":"本次正确，仍需跨日复测"}。</p>`;}).join("")}
       <p>错误回收：先确定是不认识词、句型关系错、漏听助词／词尾，还是补出了原文没有的信息。回到对应 Day 的词卡和讲解，遮住答案重新写，再隔日用另一卷。</p>
       ${run.results.map((r,i)=>`<details><summary>第 ${i+1} 题 · ${r.correct?"正确":"需回收"} · Day ${r.day+1}</summary><p>${esc(r.prompt)}</p><p>你的答案：${esc(r.answerGiven)}；参考：${esc(r.answer)}</p>${r.speech?`<p lang="ja">音频原文：${esc(r.speech)}</p>`:""}</details>`).join("")}
-      <p>分数只描述本卷表现。阶段晋级门槛仍待讨论，不根据这个小样本自动开放 N5–N2 阶段。</p>`;
+      <p>分数只描述本卷表现。正式规则允许少量弱项带专项复习晋级；当前本册小卷证据不足以判定整个阶段，不自动开放 N5–N2 阶段。</p>`;
   }
   document.addEventListener("modi:audio",e=>{
     if(audio&&store().draft===audio.run&&audio.text===e.detail.text) {
