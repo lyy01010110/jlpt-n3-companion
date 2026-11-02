@@ -3600,7 +3600,10 @@ body .motion-current,body .motion-current .subtask-card { background:transparent
       if (!eventMap.has(event.itemId)) eventMap.set(event.itemId, []);
       eventMap.get(event.itemId).push(event);
     });
-    return [...studied].filter(id => itemMeta(id)).sort((a, b) => {
+    return [...studied].filter(id => {
+      const meta=itemMeta(id);
+      return meta && (!meta.evidence || taskHasAnswer(id));
+    }).sort((a, b) => {
       const score = id => {
         const plan = state.mastery[id] || {};
         const events = eventMap.get(id) || [];
