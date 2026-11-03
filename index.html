@@ -7501,6 +7501,11 @@ window.ModiCourseResources = {
           script==="hiragana"?g.sentence:pairs.slice(0,3).map(c=>c.kana).join("、")+"。"],
         pairs.map(c=>[`输入${c.sound}对应的${script==="hiragana"?"平":"片"}假名。`,[c.kana],`${c.kana}读${c.sound}；对应${c.pair}。`,"音形回忆"]));
       const l=data.lessons.at(-1);
+      const sequence=text.split(/[、。]/).filter(Boolean);
+      const targetIndex=sequence.findIndex(word=>targets.includes(word));
+      l.listening.transcript=text;
+      l.listening.answerExplanation=`音频依次为：${sequence.join(" → ")}。本题问第 ${targetIndex+1} 个词，答案是 ${targets.join(" / ")}。`;
+      l.listening.question=`音频依次播放 ${sequence.length} 个${script==="hiragana"?"词":"片假名"}，写出第 ${targetIndex+1} 个。`;
       l.kana=pairs.map(c=>c.kana);
       l.prerequisite=created.length?[created.at(-1)]:[];
       created.push(l.id);
@@ -8861,7 +8866,7 @@ ___時計は父のです。この／これ~この~___は父の時計です。こ
       ...[`read:${l.id}`,`listen:${l.id}`,...(l.coverageLesson?[]:[`keyword:${l.id}`,`sentence:${l.id}`])],
       ...tasks(l).map(q=>q.id)
     ];
-    return l.vocabulary.every((_,i)=>r.cards?.includes(i))&&l.grammar.every((_,i)=>r.teach?.includes(i))&&ids.every(id=>r.answers?.[id]?.at(-1)?.correct)&&checks(l).every(c=>r.depthChecks?.[c.id]?.confirmed);
+    return l.vocabulary.every((_,i)=>r.cards?.includes(i))&&l.grammar.every((_,i)=>r.teach?.includes(i))&&ids.every(id=>r.answers?.[id]?.length)&&checks(l).every(c=>r.depthChecks?.[c.id]?.confirmed);
   }
   function sync(s){
     for(const [id,r] of Object.entries(s.records)){
@@ -8871,6 +8876,11 @@ ___時計は父のです。この／これ~この~___は父の時計です。こ
         r.curriculumRevision=revision;
       }
       if(r.dayDone&&!complete(l,r)){r.dayDone=false;r.completed=false;}
+      if(complete(l,r)){
+        r.dayDone=true;r.dayDoneAt||=new Date().toISOString();
+        r.correctionIds=[];r.retry={};
+        if(["read","shadow","recall"].every(k=>r.night?.[k]))r.completed=true;
+      }
     }
   }
   // Additional coverage lessons receive their own six-lesson A/B assessments.
@@ -9682,7 +9692,7 @@ function panel(html,cls=""){return `<section class="lesson-shell preview-pane ${
 function petSmall(text){return `<div class="preview-pet"><button class="btn btn-quiet" data-pet aria-label="查看墨滴仔">${core.avatar(core.pet())}</button><div><strong>墨滴仔</strong><p>${text}</p></div></div>`;}
 function render(){
 trackStudyTime();window.ModiDailyCurriculum.sync(s);
-clearTimeout(timer);disposeDeck();
+clearTimeout(timer);disposeDeck();stopAudio();
 if(core.state.systemCourse?.mobileUI!==s)s=window.ModiMobileBridge.load(lessons,papers,DATE);window.ModiDailyCurriculum.sync(s);const nowDate=core.today();if(nowDate!==DATE){DATE=nowDate;month=DATE.slice(0,7);selectedDate=DATE;for(const r of Object.values(s.records)){r.night={};r.nightDate=DATE;}s.screen="home";s.tab="learn";save();}window.ModiMobileBridge.schedule(s,lessons,papers,DATE);
 if(new Date(DATE+"T00:00:00Z").getUTCDay()===0){const id=`weekly-date-${DATE}`,known=lessons.filter(l=>s.records[l.id]?.cards.length).map(l=>l.id);if(known.length&&!s.scheduled.some(t=>t.id===id)){s.scheduled.push({id,kind:"weekly",title:"本周已学内容周测",date:DATE,lessonIds:known.slice(-6)});save();}}
 document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("is-active",b.dataset.tab===s.tab));$("test-badge").hidden=!due().length;$("test-badge").textContent=due().length;$("preview-title").textContent={learn:"墨滴伴学",calendar:"学习日历",tests:"定期考核",report:"学习报告"}[s.tab]||"墨滴伴学";
@@ -9705,8 +9715,8 @@ const l=current(),r=record(),tasks=due(),upcoming=s.scheduled.filter(t=>!s.exams
 $("preview-content").innerHTML=petSmall(tasks.length?"今天有考核待做，学习和测试都在这里。":"跟着当前课继续，一次只学一件事。")+
 `<div class="preview-tabs" role="tablist" aria-label="学习时段"><button data-period="day" role="tab" aria-selected="${s.period==="day"}">白天 · 学习</button><button data-period="night" role="tab" aria-selected="${s.period==="night"}">晚间 · 巩固</button></div>`+
 (tasks.length?`<div class="preview-due" role="status"><div><strong>${tasks.some(t=>t.date<DATE)?"有测试尚未完成":"今天有测试待做"}</strong><small>${esc(tasks[0].title)}${tasks.length>1?`等 ${tasks.length} 项`:""}</small></div><button class="btn btn-secondary" data-open-test="${esc(tasks[0].id)}">去测试</button></div>`:upcoming?`<div class="preview-due"><div><strong>下次考核 · ${upcoming.date.slice(5)}</strong><small>${esc(upcoming.title)}</small></div><button class="btn btn-secondary" data-open-test="${esc(upcoming.id)}">查看</button></div>`:"")+
-panel(`<div class="preview-context"><span>${esc(names[l.stage])} · 第 ${l.number} 课</span><button class="btn btn-quiet btn-small" data-directory>课程</button></div><h1>${esc(l.title.replace(/^平假名：/,""))}</h1><p>${s.period==="night"?"用日间已经学过的词句朗读、跟读、遮文复现。":r.dayDone?"日间已完成，晚上继续同一材料。":"已学回忆 → 新词与逐字音形 → 讲解 → 回忆、应用与听写 → 书写自检"}</p><p class="preview-small">${l.vocabulary.length} 张词卡 · ${l.grammar.length} 页讲解 · ${2*l.vocabulary.length+l.tasks.length+(l.coverageLesson?2:4)+window.ModiDailyCurriculum.tasks(l).length} 道练习 · 2 项自检。白天可戴耳机，无需出声；45–60 分钟为试运行目标，按实际用时调整。</p><div class="preview-line"><span>白天</span><span>${r.dayDone?"已完成":r.previousCompletion?"补充课程待完成":"待完成"}</span></div><div class="preview-line"><span>晚间</span><span>${["read","shadow","recall"].every(k=>r.night[k])?"已完成":"待完成"}</span></div>`)+`<p class="preview-small">学习记录自动保存在本机；课件就在当前学习流程。</p>`;
-setPrimary(r.completed?"查看下一课":s.period==="night"?"继续晚间巩固":r.dayDone?"查看日间收尾":"开始 / 继续学习",()=>{if(r.completed){const next=lessons[lessons.indexOf(l)+1];if(next){s.lessonId=next.id;s.cursor={kind:"cards",i:0};save();}go("home","learn");}else if(s.period==="night"){s.cursor={kind:"night",i:["read","shadow","recall"].findIndex(k=>!r.night[k])};go("learning","learn");}else if(r.dayDone)go("day-end","learn");else{chooseCursor();go(s.screen==="day-end"?"day-end":"learning","learn");}});
+panel(`<div class="preview-context"><span>${esc(names[l.stage])} · 第 ${l.number} 课</span><button class="btn btn-quiet btn-small" data-directory>课程</button></div><h1>${esc(l.title.replace(/^平假名：/,""))}</h1><p>${s.period==="night"?"用日间已经学过的词句朗读、跟读、遮文复现。":r.dayDone?"日间已完成，晚上继续同一材料。":"已学回忆 → 新词与逐字音形 → 讲解 → 回忆、应用与听写 → 书写自检"}</p><p class="preview-small">${l.vocabulary.length} 张词卡 · ${l.grammar.length} 页讲解 · ${2*l.vocabulary.length+l.tasks.length+(l.coverageLesson?2:4)+window.ModiDailyCurriculum.tasks(l).length} 道练习 · 2 项自检。白天可戴耳机，无需出声；45–60 分钟为试运行目标，按实际用时调整。</p><div class="preview-line"><span>上午</span><span>${r.dayDone?"已完成":r.previousCompletion?"补充课程待完成":"待完成"}</span></div><div class="preview-line"><span>晚间</span><span>${["read","shadow","recall"].every(k=>r.night[k])?"已完成":"待完成"}</span></div>`)+`<p class="preview-small">学习记录自动保存在本机；课件就在当前学习流程。</p>`;
+setPrimary(r.completed?"查看下一课":s.period==="night"?"继续晚间巩固":r.dayDone?"上午已完成":"开始 / 继续学习",()=>{if(r.completed){const next=lessons[lessons.indexOf(l)+1];if(next){s.lessonId=next.id;s.cursor={kind:"cards",i:0};save();}go("home","learn");}else if(s.period==="night"){s.cursor={kind:"night",i:["read","shadow","recall"].findIndex(k=>!r.night[k])};go("learning","learn");}else if(r.dayDone)go("home","learn");else{chooseCursor();go(s.screen==="day-end"?"day-end":"learning","learn");}});
 }
 function priorTasks(l){const previous=lessons[lessons.indexOf(l)-1];if(!previous)return[];
 return previous.vocabulary.map((v,i)=>({id:`prior:${previous.id}:${i}`,prompt:`“${v.meaning}”的日语是什么？`,answers:/^[a-z]+$/i.test(v.reading)?[v.word]:[v.word,v.reading],explain:`${v.word}（${v.reading}）· ${v.meaning}`,skill:"课前回忆",source:previous.id,type:"input"})).filter((q,i)=>learned(previous,i)).filter((q,i,a)=>Array.from({length:Math.min(6,a.length)},(_,n)=>Math.floor(n*a.length/Math.min(6,a.length))).includes(i));}
@@ -9715,7 +9725,7 @@ const qs=[];
 l.vocabulary.forEach((v,i)=>{if(learned(l,i))qs.push({id:`word:${l.id}:${i}`,prompt:`“${v.meaning}”的日语是什么？`,answers:/^[a-z]+$/i.test(v.reading)?[v.word]:[v.word,v.reading],explain:`${v.word}（${v.reading}）· ${v.meaning}`,skill:"独立回忆",type:"input",source:l.id});});
 l.tasks.forEach((q,i)=>qs.push({...q,id:`apply:${l.id}:${i}`,skill:q.skill||"应用",type:"input",source:l.id}));
 qs.push({id:`read:${l.id}`,text:l.reading.text,prompt:l.reading.question,answers:l.reading.answers,explain:l.reading.translation,skill:"阅读",type:"input",source:l.id});
-qs.push({id:`listen:${l.id}`,speech:l.listening.text,prompt:l.listening.question,answers:l.listening.answers,explain:l.listening.sentence,skill:"听力",type:"input",source:l.id});
+qs.push({id:`listen:${l.id}`,speech:l.listening.text,prompt:l.listening.question,answers:l.listening.answers,explain:l.listening.answerExplanation||`音频原文：${l.listening.text}。参考答案：${l.listening.answers.join(" / ")}`,skill:"听力",type:"input",source:l.id});
 
 qs.push({id:`keyword:${l.id}`,speech:l.listening.text,prompt:l.listening.keyword,answers:l.listening.keyAnswers,explain:l.listening.keyAnswers.join(" / "),skill:"关键词听写",source:l.id});
 qs.push({id:`sentence:${l.id}`,speech:l.listening.sentence,prompt:"听写关键句。",answers:[l.listening.sentence],explain:l.listening.sentence,skill:"句子听写",source:l.id});
@@ -9729,16 +9739,14 @@ const ps=basePhases(),r=record(),questions=ps.filter(p=>["quiz","prior"].include
 const items=(r.correctionIds||[]).map(id=>questions.find(q=>q.id===id)).filter(Boolean);
 return items.length?[...ps,{kind:"correction",items}]:ps;
 }
+
 function chooseCursor(){
 const r=record(),ps=basePhases();
 for(const p of ps){
 const i=p.items.findIndex((q,i)=>p.kind==="cards"?!r.cards.includes(i):p.kind==="teach"?!r.teach.includes(i):p.kind==="checks"?!r.depthChecks?.[q.id]?.confirmed:!r.answers[q.id]?.length);
 if(i>=0){s.cursor={kind:p.kind,i};return;}
 }
-const wrong=ps.filter(p=>["prior","quiz"].includes(p.kind)).flatMap(p=>p.items).filter(q=>!r.answers[q.id]?.at(-1)?.correct);
-r.correctionIds=wrong.map(q=>q.id);
-if(wrong.length){r.retry||={};r.retry[wrong[0].id]=true;s.cursor={kind:"correction",i:0};return;}
-completeDay();
+r.correctionIds=[];r.retry={};completeDay();
 }
 function advanceLearning(){
 if(s.cursor.kind==="correction"){
@@ -9753,7 +9761,7 @@ if(s.cursor.i<p.items.length-1)s.cursor.i++;
 else{const i=ps.findIndex(p=>p.kind===s.cursor.kind),next=ps.slice(i+1).find(p=>p.items.length);if(next)s.cursor={kind:next.kind,i:0};else {chooseCursor();return render();}}
 save();render();
 }
-function completeDay(){if(!window.ModiDailyCurriculum.complete(current(),record()))throw new Error("Daily curriculum prerequisites incomplete");record().dayDone=true;record().dayDoneAt=new Date().toISOString();record().curriculumRevision="R26";if(["read","shadow","recall"].every(k=>record().night[k]))record().completed=true;s.screen="day-end";save();render();}
+function completeDay(){if(!window.ModiDailyCurriculum.complete(current(),record()))throw new Error("Daily curriculum prerequisites incomplete");record().dayDone=true;record().dayDoneAt=new Date().toISOString();record().curriculumRevision="R26";if(["read","shadow","recall"].every(k=>record().night[k]))record().completed=true;s.screen="home";save();render();}
 
 let activityAnchor=performance.now();
 function trackStudyTime(){
@@ -9907,13 +9915,38 @@ function renderPet(){
 const pet=core.pet();
 $("preview-content").insertAdjacentHTML("beforeend",panel(`<h2>墨滴仔一直陪你</h2>${core.avatar(pet,"preview-report-pet")}<div class="preview-context"><span>Lv.${pet.level} ${esc(pet.name)}</span><span>按实际学习记录成长</span></div><p>成长、已解锁装扮与穿戴状态沿用原记录。</p><button class="btn btn-secondary" data-legacy="report">查看成长与换装</button>`));setPrimary("回到今日学习",()=>go("home","learn"));
 }
+
+let audioRun=0,audioTimer=0;
+function stopAudio(){audioRun++;clearTimeout(audioTimer);if("speechSynthesis"in window)speechSynthesis.cancel();}
 function speak(text){
-const status=$("mobile-audio-status");
+const status=$("mobile-audio-status");stopAudio();
 if(!("speechSynthesis"in window)){if(status)status.textContent="此浏览器不支持语音播放，稍后补听力。";return;}
-const voices=speechSynthesis.getVoices(),voice=voices.find(v=>v.lang.toLowerCase().startsWith("ja"));if(!voice){if(status)status.textContent="未检测到日语语音，暂不把听力记为已完成。";return;}
-const u=new SpeechSynthesisUtterance(text);u.lang="ja-JP";u.voice=voice;u.rate=0.75;if(status)status.textContent="正在播放 · 0.75×…";
-u.onend=()=>{if(status)status.textContent="播放完成";if(s.screen==="exam"){const t=s.scheduled.find(t=>t.id===s.activeExam.id),q=(s.exams[t.id].questions||schedulePaper(t).questions)[s.activeExam.index];if(q.speech!==text)return;s._examListened||=[];if(!s._examListened.includes(q.id))s._examListened.push(q.id);}else if(["quiz","prior","correction"].includes(s.cursor.kind)){const q=phases().find(p=>p.kind===s.cursor.kind)?.items[s.cursor.i];if(q?.speech!==text)return;s._listened||=[];if(!s._listened.includes(q.id))s._listened.push(q.id);}save();};
-u.onerror=()=>{if(status)status.textContent="播放失败，请重试；这项听力仍未完成。";};speechSynthesis.cancel();speechSynthesis.speak(u);
+const voice=speechSynthesis.getVoices().find(v=>v.lang.toLowerCase().startsWith("ja"));
+if(!voice){if(status)status.textContent="未检测到日语语音，暂不把听力记为已完成。";return;}
+const run=audioRun;
+const parts=/^[ぁ-ゖァ-ヶー、。\s]+$/.test(text)&&text.includes("、")?text.split(/[、。]/).map(v=>v.trim()).filter(Boolean):[text];
+let index=0;
+function play(){
+if(run!==audioRun)return;
+const u=new SpeechSynthesisUtterance(parts[index]);u.lang="ja-JP";u.voice=voice;u.rate=.75;
+if(status)status.textContent=`正在播放 · 0.75×${parts.length>1?` · ${index+1}/${parts.length}`:""}`;
+u.onerror=()=>{if(run===audioRun&&status)status.textContent="播放失败，请重试；这项听力仍未完成。";};
+u.onend=()=>{
+if(run!==audioRun)return;
+if(++index<parts.length){audioTimer=setTimeout(play,350);return;}
+if(status)status.textContent="完整播放完成 · 0.75×";
+if(s.screen==="exam"){
+const t=s.scheduled.find(t=>t.id===s.activeExam.id),q=(s.exams[t.id].questions||schedulePaper(t).questions)[s.activeExam.index];
+if(q.speech!==text)return;s._examListened||=[];if(!s._examListened.includes(q.id))s._examListened.push(q.id);
+}else if(["quiz","prior","correction"].includes(s.cursor.kind)){
+const q=phases().find(p=>p.kind===s.cursor.kind)?.items[s.cursor.i];
+if(q?.speech!==text)return;s._listened||=[];if(!s._listened.includes(q.id))s._listened.push(q.id);
+}
+save();
+};
+speechSynthesis.speak(u);
+}
+play();
 }
 document.addEventListener("click",e=>{
 const b=e.target.closest("button");if(!b||b.disabled)return;const d=b.dataset;
