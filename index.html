@@ -2142,6 +2142,20 @@ body.mobile-history #mobile-history-back{display:block}
 .preview-options button:disabled{opacity:.85;cursor:default}
 @media(prefers-reduced-motion:reduce){.preview-options button{transition:none!important;transform:none!important}}
 
+.preview-growth{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:18px}
+.preview-growth>span{display:grid;gap:6px;padding:10px 3px;text-align:center;border:1px solid #fff9;border-radius:13px;font-size:12px}
+.preview-growth .reached{background:#e8eaffb3;border-color:#929bc9}
+.preview-growth small{font-size:10px}
+.preview-outfit-slots{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+.preview-outfit-slots>div{display:grid;gap:4px;padding:9px 12px;max-width:100%;border-radius:12px;background:#ffffff60}
+.preview-outfit-slots strong{font-size:12px}
+.preview-wardrobe{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.preview-wardrobe article{display:flex;flex-direction:column;align-items:center;gap:9px;padding:12px 8px;border:1px solid #fff9;border-radius:16px;background:#ffffff48;text-align:center;min-width:0}
+.preview-wardrobe article.is-equipped{background:#e8eaffb3;border-color:#929bc9}
+.preview-wardrobe img{width:100%;max-width:106px;height:94px;object-fit:contain}
+.preview-wardrobe h3{font-size:15px;margin:0}.preview-wardrobe p{font-size:12px;margin:0}
+.preview-wardrobe button{margin-top:auto;min-height:44px;max-width:100%}
+
 </style>
 </head>
 <body>
@@ -4656,12 +4670,25 @@ body.mobile-history #mobile-history-back{display:block}
       </div>`;
     }).join("")}</div>`;
   }
-  function toggleAccessory(itemId) {
+  function toggleAccessory(itemId, renderLegacy = true) {
     const item = modizaiAccessories.find(accessory => accessory.id === itemId);
-    if (!item || !isAccessoryUnlocked(item)) return;
+    if (!item || !isAccessoryUnlocked(item)) return false;
     state.equippedAccessories[item.slotId] = state.equippedAccessories[item.slotId] === item.id ? null : item.id;
     saveState();
-    renderReport();
+    if (renderLegacy) renderReport();
+    return true;
+  }
+  function companionWardrobe() {
+    const days = studiedCourseDayCount();
+    return {
+      days, pet: {...currentCompanionLevel()},
+      levels: modizaiLevels.filter(level => !level.hidden).map(level => ({...level})),
+      slots: accessorySlots.map(slot => ({...slot, item: equippedAccessory(slot.id)?.name || null})),
+      items: modizaiAccessories.map(item => ({
+        ...item, unlocked: isAccessoryUnlocked(item),
+        equipped: equippedAccessory(item.slotId)?.id === item.id
+      }))
+    };
   }
   function renderReport() {
     const courseProgress = courseProgressSummary();
@@ -4734,6 +4761,7 @@ body.mobile-history #mobile-history-back{display:block}
     progress: courseDayProgress, periodIds: periodTaskIds, meta: itemMeta,
     courseKey: currentCourseKey, partKey: lessonPartKey, normalize, save: saveState,
     show: showView, speak, kanaQuestions, begin: startAttempt, pet: currentCompanionLevel, avatar: renderCompanionAvatar, enterToday,
+    wardrobe: companionWardrobe, toggleAccessory: id => toggleAccessory(id, false),
     selectCourse(key) {
       if (!["week1", "week2"].includes(key)) return;
       state.activeCourseKey = key; alignToday(); saveState(); showView("course");
@@ -9859,7 +9887,7 @@ if(core.state.systemCourse?.mobileUI!==s)s=window.ModiMobileBridge.load(lessons,
 if(new Date(DATE+"T00:00:00Z").getUTCDay()===0){const id=`weekly-date-${DATE}`,known=lessons.filter(l=>s.records[l.id]?.cards.length).map(l=>l.id);if(known.length&&!s.scheduled.some(t=>t.id===id)){s.scheduled.push({id,kind:"weekly",title:"本周已学内容周测",date:DATE,lessonIds:known.slice(-6)});save();}}
 document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("is-active",b.dataset.tab===s.tab));$("test-badge").hidden=!due().length;$("test-badge").textContent=due().length;$("preview-title").textContent={learn:"墨滴伴学",calendar:"学习日历",tests:"定期考核",report:"学习报告"}[s.tab]||"墨滴伴学";
 $("preview-settings").textContent=s.screen==="settings"?"返回":"学习导览";$("preview-content").scrollTop=0;setPrimary("",null);
-if(s.screen==="settings")return renderSettings();
+if(s.screen==="wardrobe")return renderWardrobe();if(s.screen==="settings")return renderSettings();
 if(s.screen==="exam")return renderExam();
 if(s.screen==="exam-result")return renderExamResult();
 if(s.screen==="reference")return renderReference();
@@ -10095,9 +10123,18 @@ const events=s.events,first=Object.values(s.records).flatMap(r=>Object.values(r.
 $("preview-content").insertAdjacentHTML("beforeend",panel(`<h2>学习统计</h2><p class="preview-report-scope">系统主课 · 首答与订正分别保存</p><div class="preview-metrics"><article><span>早晚完成课程</span><strong>${done}</strong><small> / ${lessons.length}</small></article><article><span>主课首答正确率</span><strong>${first.length?Math.round(correctN/first.length*100)+"%":"—"}</strong><small>${first.length?"":" 尚未作答"}</small></article><article><span>主课练习提交</span><strong>${events.length}</strong><small> 次</small></article><article><span>已完成考核</span><strong>${tests.length}</strong><small> 份</small></article></div><div class="preview-context"><span>${names[s.stage]}主课覆盖</span><span>${lessons.filter(l=>l.stage===s.stage&&s.records[l.id]?.completed).length} / ${lessons.filter(l=>l.stage===s.stage).length}</span></div><div class="preview-track"><i style="width:${lessons.filter(l=>l.stage===s.stage&&s.records[l.id]?.completed).length/lessons.filter(l=>l.stage===s.stage).length*100}%"></i></div><p class="preview-report-scope">主课完成不等于阶段达标；晚练为自确认。</p>`)+panel(`<h2>最近考核</h2><div class="preview-history">${tests.slice(-3).reverse().map(([id,r])=>`<article><strong>${esc(s.scheduled.find(t=>t.id===id)?.title||id)} · ${r.score}%</strong><small>${r.date} · ${r.seed?"预置示例":"已交卷"}</small><button class="btn btn-quiet btn-small" data-open-test="${id}">查看结果</button></article>`).join("")||"<p>完成测试后这里出现成绩。</p>"}</div>`)+`<details class="preview-policy"><summary>近期作答与统计来源</summary><button class="btn btn-secondary" data-legacy="report">完整报告与备份</button><p>这里统计系统主课的首答、订正和考核。原课程、认读摸底、历史周测与装扮记录保留在完整报告。</p>${events.slice(-8).reverse().map(e=>`<p>${esc(e.skill)} · ${e.correct?"正确":"待复习"} · ${e.date}</p>`).join("")}</details>`);
 }
 
+
+function renderWardrobe(){
+const model=core.wardrobe(),pet=model.pet,next=model.levels.find(l=>l.minDays>model.days);
+$("preview-title").textContent="成长与换装";
+$("preview-content").innerHTML=`<div class="preview-context"><button class="btn btn-quiet btn-small" data-wardrobe-back>返回墨滴仔</button><span>学习报告 · 墨滴仔</span></div>`+
+panel(`<h1>Lv.${pet.level} ${esc(pet.name)}</h1><p>${esc(pet.title)}</p>${core.avatar(pet,"preview-report-pet")}<p>累计 ${model.days} 个学习日${next?` · 再学习 ${next.minDays-model.days} 日成长为 ${esc(next.name)}`:" · 已达到当前最高形态"}。</p><p class="preview-small">当前主课与保留的历史学习共同累计成长；换装不会改变学习进度。</p><div class="preview-growth">${model.levels.map(l=>`<span class="${model.days>=l.minDays?"reached":""}"><strong>Lv.${l.level}</strong>${esc(l.name)}<small>${l.minDays} 学习日</small></span>`).join("")}</div>`)+
+panel(`<h2>墨滴仔的衣橱</h2><p>${model.items.filter(i=>i.unlocked).length} / ${model.items.length} 件已解锁 · 同一槽位佩戴一件</p><div class="preview-outfit-slots">${model.slots.map(slot=>`<div><small>${esc(slot.label)}</small><strong>${esc(slot.item||"未佩戴")}</strong></div>`).join("")}</div><div class="preview-wardrobe">${model.items.map(item=>`<article class="${item.equipped?"is-equipped":""}"><img src="${item.image}" alt="${esc(item.name)}" loading="lazy"><h3>${esc(item.name)}</h3><p>${esc(item.slot)} · ${esc(item.rarity)}</p>${item.unlocked?`<button type="button" class="btn btn-secondary btn-small" data-mobile-accessory="${esc(item.id)}" aria-pressed="${item.equipped}">${item.equipped?"卸下":"佩戴"}</button>`:`<p class="preview-small">${esc(item.rule)}</p><button type="button" class="btn btn-quiet btn-small" disabled>待解锁</button>`}</article>`).join("")}</div><p class="preview-small">已解锁装扮与穿戴状态沿用已有记录，选择后自动保存。${pet.level>=4?"当前立绘自带帽子，头饰不会重复叠戴。":""}</p>`);
+setPrimary("返回墨滴仔",()=>{reportTab="pet";go("report","report");});
+}
 function renderPet(){
 const pet=core.pet();
-$("preview-content").insertAdjacentHTML("beforeend",panel(`<h2>墨滴仔一直陪你</h2>${core.avatar(pet,"preview-report-pet")}<div class="preview-context"><span>Lv.${pet.level} ${esc(pet.name)}</span><span>按实际学习记录成长</span></div><p>成长、已解锁装扮与穿戴状态沿用原记录。</p><button class="btn btn-secondary" data-legacy="report">查看成长与换装</button>`));setPrimary("回到今日学习",()=>go("home","learn"));
+$("preview-content").insertAdjacentHTML("beforeend",panel(`<h2>墨滴仔一直陪你</h2>${core.avatar(pet,"preview-report-pet")}<div class="preview-context"><span>Lv.${pet.level} ${esc(pet.name)}</span><span>按实际学习记录成长</span></div><p>成长、已解锁装扮与穿戴状态沿用原记录。</p><button class="btn btn-secondary" data-wardrobe>查看成长与换装</button>`));setPrimary("回到今日学习",()=>go("home","learn"));
 }
 
 
@@ -10185,7 +10222,7 @@ else if(d.stageTest){const pair=d.stageTest,id=`stage-${s.stage}-${pair}`;if(!s.
 else if("examExit"in d){save();go("tests","tests");}
 else if(d.reportTab){reportTab=d.reportTab;render();}
 else if("pet"in d){reportTab="pet";go("report","report");}
-else if(d.legacy)window.ModiMobileBridge.history(d.legacy);
+else if("wardrobe"in d)go("wardrobe","report");else if("wardrobeBack"in d){reportTab="pet";go("report","report");}else if(d.mobileAccessory){if(core.toggleAccessory(d.mobileAccessory))render();}else if(d.legacy)window.ModiMobileBridge.history(d.legacy);
 });
 window.ModiMobile={choiceExamQuestions,get state(){return s;},get lessons(){return lessons;},get papers(){return papers;},due,examReady,priorTasks,save,render,phases};
 save();render();document.addEventListener("visibilitychange",()=>{if(!document.hidden&&core.today()!==DATE)render();});setInterval(()=>{if(core.today()!==DATE)render();},60000);
