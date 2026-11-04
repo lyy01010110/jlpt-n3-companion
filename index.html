@@ -2136,6 +2136,12 @@ body.mobile-history #mobile-history-back{display:block}
 .preview-pet .companion-avatar{width:92px;height:92px}
 .preview-report-pet.companion-avatar{width:175px;height:175px}
 
+.preview-options button{touch-action:manipulation;transform-origin:center;transition:background-color 120ms,border-color 120ms;color:var(--text,#26344b)}
+.preview-options button.picked{background:#e8eaff;border-color:#929bc9;box-shadow:inset 0 1px 0 #ffffff}
+.preview-options button:focus-visible{outline:3px solid #7688b7;outline-offset:3px}
+.preview-options button:disabled{opacity:.85;cursor:default}
+@media(prefers-reduced-motion:reduce){.preview-options button{transition:none!important;transform:none!important}}
+
 </style>
 </head>
 <body>
@@ -8905,6 +8911,162 @@ ___時計は父のです。この／これ~この~___は父の時計です。こ
 
 </script>
   <script>
+/* R29: recognition first, with a small independent recall lane.
+   IDs remain unchanged. Submitted attempts are never regraded or migrated. */
+(() => {
+  "use strict";
+  const lessons=window.ModiSystemCourse.lessons;
+  const normal=v=>String(v??"").normalize("NFKC").toLowerCase().replace(/[\s、。，,.！？?!「」『』・]/g,"");
+  const equal=(a,b)=>normal(a)===normal(b);
+  const unique=a=>a.filter((v,i)=>v!=null&&String(v).trim()&&!a.slice(0,i).some(w=>equal(w,v)));
+  const hash=text=>[...text].reduce((n,c)=>(n*31+c.charCodeAt(0))>>>0,0);
+  function choice(q,pool,prompt=q.prompt){
+    const target=q.answers[0],wrong=unique(pool).filter(v=>!q.answers.some(a=>equal(v,a)));
+    if(wrong.length<2)return q;
+    const offset=hash(q.id)%wrong.length;
+    const options=[target,...wrong.slice(offset).concat(wrong.slice(0,offset)).slice(0,3)];
+    const shift=hash(`${q.id}:position`)%options.length;
+    return {...q,prompt,type:"choice",responseMode:"recognition",options:options.slice(shift).concat(options.slice(0,shift))};
+  }
+  // These contrasts were checked against the actual course passage and prompt.
+  const contextual={
+    "n5-01":{
+      read:["学生","先生","中国人"],
+      listen:["はい、会社員です","はい、学生です","はい、日本人です"],
+      apply:[["私は先生です","私は会社員です","私は日本人です"],["先生です","先生でした","先生ではありませんでした"],["中国人","会社員","学生"]]
+    },
+    "n5-02":{
+      read:["私","リンさん","田中さん"],listen:["私","先生","田中さん"],
+      apply:[["これ","それ","あれ"],["これは先生の辞書です","あれは先生の辞書です","それは私の辞書です"],["先生","私","リンさん"]]
+    },
+    "n5-03":{
+      read:["八百円","六百円","千円"],listen:["三百円","八百円","千円"],
+      apply:[["受付は何ですか","受付はいくらですか","受付は誰ですか"],["はちひゃく","はちびゃく","はっひゃく"],["一階","三階","八階"]]
+    },
+    "n5-04":{
+      read:["はい、働きました","はい、起きました","はい、寝ました"],listen:["七時","九時","十一時"],
+      apply:[["働きました","働きません","働きます"],["で","を","と"],["六時","九時","十一時"]]
+    },
+    "n5-05":{
+      read:["友達","駅","日曜日"],listen:["友達と","先生と","家族と"],
+      apply:[["友達に帰ります","友達で帰ります","友達を帰ります"],["に、で","へ、で","と、へ"],["京都へ行きました","駅へ行きました","友達と行きました"]]
+    },
+    "n5-06":{
+      read:["食堂","学校","駅"],listen:["明日","土曜日","昨日"],
+      apply:[["に、を","を、で","で、に"],["一緒に本を読みました","一緒に本を読んでいます","一緒に本を読みません"],["明日映画を見たい","日曜日は仕事がある","映画は好きではない"]]
+    }
+  };
+  function convert(l,qs,s,{exam=false}={}){
+    if(!l)return qs;
+    const index=lessons.indexOf(l);
+    const taught=lessons.slice(0,index+1).filter(p=>p.stage===l.stage);
+    // Daily source words are taught before these tasks. Earlier recall/tests only
+    // draw distractors from cards actually learned; do not expose unseen words.
+    const prior=qs.some(q=>q.id.startsWith("prior:")||q.review);
+    const words=prior||exam?taught.flatMap(p=>p.vocabulary.filter((_,i)=>s.records[p.id]?.cards?.includes(i))):l.vocabulary;
+    const forms=unique(words.flatMap(v=>[v.word,...(/^[a-z]+$/i.test(v.reading)?[]:[v.reading])]));
+    const kana=exam?taught.filter(p=>s.records[p.id]?.dayDone).flatMap(p=>p.dailyKana||[]):l.dailyKana||[];
+    const chars=unique(kana.map(c=>c.kana));
+    const sounds=unique(kana.map(c=>c.sound));
+    const keep=new Set([
+      `word:${l.id}:0`,`word:${l.id}:2`,`dict:${l.id}:0`,`dict:${l.id}:2`,
+      `apply:${l.id}:0`,`apply:${l.id}:5`,`keyword:${l.id}`,`sentence:${l.id}`
+    ]);
+    const examples=taught.flatMap(p=>p.grammar.filter(g=>g.translation&&g.example&&
+      !g.kanji&&!g.form.startsWith("逐字")&&!g.form.startsWith("阅读与听力")).map(g=>({ja:g.example,zh:g.translation})));
+    return qs.map(original=>{
+      let q={...original};
+      if(q.options)return {...q,responseMode:"recognition"};
+      if(!exam&&(q.review||q.id.startsWith("prior:")))return {...q,responseMode:"recall"};
+      if(!exam&&keep.has(q.id)){
+        // Replace full sentence dictation by one meaningful short gap, keeping ID.
+        if(q.id.startsWith("sentence:")){
+          const sentence=q.speech;
+          const token=l.listening.keyAnswers.find(a=>a.length<=6&&sentence.includes(a))||
+            unique(l.vocabulary.flatMap(v=>[v.word,v.reading])).filter(a=>a.length>=2&&a.length<=6&&sentence.includes(a)).sort((a,b)=>b.length-a.length)[0];
+          if(token)q={...q,prompt:`听音频，补出缺少的一处：${sentence.replace(token,"〔　〕")}`,answers:unique([token,...q.answers]),explain:`缺少：${token}。完整原文：${sentence}`};
+        }
+        if(q.id.startsWith("apply:")&&q.answers[0].length>6&&!q.prompt.includes("___")){
+          const text=q.answers[0],token=unique(l.vocabulary.flatMap(v=>[v.word,v.reading])).filter(a=>a.length>=2&&text.includes(a)).sort((a,b)=>b.length-a.length)[0];
+          if(token)q={...q,prompt:`${q.prompt.replace(/写成|写出/g,"补成")} 只补缺少的一处：${text.replace(token,"〔　〕")}`,answers:unique([token,...q.answers]),explain:`缺少：${token}。完整参考：${text}。${q.explain}`};
+        }
+        return {...q,responseMode:"recall"};
+      }
+      if(q.id.includes(":shape:"))return choice(q,sounds);
+      if(q.id.includes(":sound:"))return choice(q,chars,"听完整发音，选出对应的本课假名。");
+      if(q.id.startsWith("word:")||q.id.startsWith("dict:")||exam&&/word:/.test(q.id)){
+        const v=words.find(v=>q.answers.some(a=>equal(a,v.word)||equal(a,v.reading)));
+        const pool=words.filter(w=>!v||(!equal(w.meaning,v.meaning)&&!equal(w.reading,v.reading))).map(w=>w.word);
+        return choice(q,pool,q.speech?"听完整发音，选择对应的已学词语。":q.prompt);
+      }
+      if(q.id.includes(":reading:")){
+        const v=l.vocabulary.find(v=>q.answers.includes(v.reading));
+        return choice(q,words.filter(w=>!v||!equal(w.reading,v.reading)).map(w=>w.reading),q.prompt.replace("写出","选择"));
+      }
+      if(q.id.includes(":grammar:")){
+        const e=examples.find(e=>q.answers.some(a=>equal(a,e.ja)));
+        if(e)return choice(q,examples.filter(w=>!equal(w.zh,e.zh)).map(w=>w.ja),`哪一句与以下课件含义一致？${e.zh}`);
+      }
+      const key=q.id.startsWith("read:")?"read":q.id.startsWith("listen:")?"listen":null;
+      if(key&&contextual[l.id]?.[key])return choice(q,contextual[l.id][key]);
+      const apply=q.id.match(/^apply:[^:]+:(\d+)$/);
+      if(apply&&contextual[l.id]?.apply[+apply[1]])return choice(q,contextual[l.id].apply[+apply[1]]);
+      if(l.stage==="KANA"){
+        const target=q.answers[0];
+        if(/^\d+$/.test(target))return choice(q,["1","2","3","4","5","6"],q.prompt.replace("写数字","选择数字"));
+        if(chars.some(c=>equal(c,target)))return choice(q,chars,q.prompt.replace(/写出|输入/g,"选择"));
+        if(sounds.some(c=>equal(c,target)))return choice(q,sounds,q.prompt.replace(/写出|输入/g,"选择"));
+        if(forms.some(c=>equal(c,target)))return choice(q,forms,q.prompt.replace(/写出|用日文写|写“/g,"选择").replace("写对应","选对应"));
+        if(q.speech&&q.answers[0].includes("、")){
+          const seq=q.answers[0].split(/[、。]/).filter(Boolean);
+          if(seq.length>1)return choice(q,seq.slice(1).map((_,i)=>seq.slice(i+1).concat(seq.slice(0,i+1)).join("、")), "听完整发音，选择正确的词语顺序。");
+        }
+      }
+      if(exam&&forms.some(v=>equal(v,q.answers[0]))){
+        const v=words.find(v=>q.answers.some(a=>equal(a,v.word)||equal(a,v.reading)));
+        return choice(q,words.filter(w=>!v||!equal(w.reading,v.reading)&&!equal(w.meaning,v.meaning)).map(v=>v.word),q.prompt.replace(/听写|写出|平假名写|不看字表，写出/g,"选择"));
+      }
+      // A bounded, already taught short answer can use other learned terms.
+      // Open explanations and underspecified grammar blanks remain short input.
+      if((key||exam)&&forms.some(v=>equal(v,q.answers[0])))return choice(q,words.filter(v=>!q.answers.some(a=>equal(a,v.word)||equal(a,v.reading))).map(v=>v.word));
+      return {...q,responseMode:"recall"};
+    });
+  }
+  function examChoices(q,qs){
+    if(q.options)return q;
+    if(q.pieces?.length===4){
+      const target=q.pieces[1];
+      return choice({...q,answers:[target],prompt:"把四个片段排成完整句子。〔　〕 ★ 〔　〕 〔　〕：★ 位置是哪一项？",explain:`完整句子：${q.answers[0]}。★ 是第 2 项：${target}。`},q.pieces);
+    }
+    const target=q.answers[0];
+    // Preserve synonym sets, including alternative particles accepted in context.
+    const equivalent=[["に","へ"],["では","じゃ"],["だから","ですから"],["しかし","ただ"],["つまり","すなわち"],["是","はい"],["否","いいえ","不是"]];
+    const equivalents=equivalent.filter(set=>set.some(v=>q.answers.some(a=>equal(v,a)))).flat();
+    const kind=v=>/^[0-9]+$/.test(v)?"number":/[\u3400-\u9fff]/.test(v)&&!/[ぁ-ゖァ-ヶ]/.test(v)?"chinese":v.length>8?"sentence":"term";
+    const pool=qs.filter(w=>w.section===q.section&&w.id!==q.id&&w.answers?.length).map(w=>w.answers[0])
+      .filter(v=>(q.section==="语法"||kind(v)===kind(target))&&!equivalents.some(a=>equal(a,v)));
+    let out=choice(q,pool,q.prompt.replace(/不看字表，写出|写出|听写|用日文作答|用日文回答/g,"选择"));
+    if(out.options)return out;
+    // Numeric comparisons and short structural contrasts have bounded answers.
+    if(/^\d+$/.test(target))out=choice(q,[String(+target-1),String(+target+1),String(+target+2)].filter(v=>+v>=0));
+    const quantity=q.answers.map(a=>a.match(/^(\d+)(円|時|分)$/)).find(Boolean);
+    if(!out.options&&quantity){
+      const n=+quantity[1],unit=quantity[2],delta=unit==="円"?100:unit==="分"?10:1;
+      out=choice(q,[n-delta,n+delta,n+2*delta].filter(n=>n>=0).map(n=>`${n}${unit}`));
+    }
+    if(!out.options&&q.prompt==="何曜日ですか。")out=choice(q,["月曜日","火曜日","水曜日","木曜日","金曜日","土曜日","日曜日"]);
+    if(!out.options&&q.prompt==="最初に何をしますか。")out=choice(q,["物を配る","隣の部屋へ移動する","開始時刻に会場へ来る"]);
+    if(!out.options&&q.answers.some(a=>["いいえ","否","不是","はい","是"].includes(a))){
+      const ja=target==="いいえ"||target==="はい";
+      out=choice(q,ja?["はい","いいえ","材料からは判断できない"]:["是","否","材料未说明"]);
+    }
+    return out;
+  }
+  window.ModiChoiceCurriculum={convert,examChoices,revision:"R29"};
+})();
+
+</script>
+  <script>
 (() => {
   "use strict";
   const core=window.ModiCore, data=window.ModiSystemCourse, exams=window.ModiSystemExams;
@@ -9730,7 +9892,7 @@ qs.push({id:`listen:${l.id}`,speech:l.listening.text,prompt:l.listening.question
 qs.push({id:`keyword:${l.id}`,speech:l.listening.text,prompt:l.listening.keyword,answers:l.listening.keyAnswers,explain:l.listening.keyAnswers.join(" / "),skill:"关键词听写",source:l.id});
 qs.push({id:`sentence:${l.id}`,speech:l.listening.sentence,prompt:"听写关键句。",answers:[l.listening.sentence],explain:l.listening.sentence,skill:"句子听写",source:l.id});
 l.vocabulary.forEach((v,i)=>{if(learned(l,i))qs.push({id:`dict:${l.id}:${i}`,speech:/^[a-z]+$/i.test(v.reading)?v.word:v.reading,prompt:`听写本课词语 ${i+1}。`,answers:/^[a-z]+$/i.test(v.reading)?[v.word]:[v.word,v.reading],explain:`${v.word}（${v.reading}）· ${v.meaning}`,skill:"词汇听写",source:l.id});});
-return [...qs,...window.ModiDailyCurriculum.tasks(l)].filter(q=>!l.coverageLesson||(!q.id.startsWith("keyword:")&&!q.id.startsWith("sentence:")));
+return window.ModiChoiceCurriculum.convert(l,[...qs,...window.ModiDailyCurriculum.tasks(l)].filter(q=>!l.coverageLesson||(!q.id.startsWith("keyword:")&&!q.id.startsWith("sentence:"))),s);
 }
 function basePhases(){const l=current();return[{kind:"prior",items:[...priorTasks(l),...window.ModiMobileBridge.reviews(s,DATE)]},{kind:"cards",items:l.vocabulary},{kind:"teach",items:l.grammar},{kind:"quiz",items:dailyTasks(l)},{kind:"checks",items:window.ModiDailyCurriculum.checks(l)}];}
 
@@ -9792,15 +9954,15 @@ const previous=r.answers[q.id]?.at(-1);
 if(previous){r.drafts||={};r.drafts[q.id]??=previous.value;$("preview-content").insertAdjacentHTML("beforeend",panel(`<p>原题已有作答记录，正在订正。上次答案：${esc(previous.value)}。</p><p>参考：${esc(q.answers.join(" / "))}。${esc(q.explain)}</p>`));}
 }
 
-const last=r.retry?.[q.id]?null:r.answers[q.id]?.at(-1),list=q.options;
-$("preview-content").insertAdjacentHTML("beforeend",panel(`${q.speech?`<div class="preview-audio"><button class="btn btn-secondary" data-speak="${esc(q.speech)}">听材料</button><span>合成示范 · 0.75×</span></div><div id="mobile-audio-status" class="preview-warning" role="status"></div>`:""}${q.text?`<p class="preview-exam-text" lang="ja">${esc(q.text)}</p>`:""}<h2>${esc(q.prompt)}</h2>${list?`<div class="preview-options">${list.map(o=>`<button data-choice="${esc(o)}" ${last?"disabled":""}>${esc(o)}</button>`).join("")}</div>`:`<label for="preview-answer" class="preview-small">输入日语或题目要求的答案</label><input class="preview-answer" id="preview-answer" autocomplete="off" value="${last?esc(last.value):esc(r.drafts?.[q.id]||"")}" ${last?"disabled":""}><p class="preview-small">不会可填“不知道”，下一题会保留本次答案。</p>`}<div class="preview-feedback" id="mobile-practice-feedback" role="status">${last?(last.correct?"答对了。":`正确参考：${esc(q.answers.join(" / "))}。${esc(q.explain)}`):""}</div>`));
-setPrimary(s.cursor.kind==="correction"?(last&&!last.correct?"修改这道错题":"提交订正"):"下一题",()=>{if(r.answers[q.id]?.length&&!r.retry?.[q.id]){if(s.cursor.kind==="correction"&&!r.answers[q.id].at(-1).correct){r.retry||={};r.retry[q.id]=true;save();return render();}return advanceLearning();}const value=$("preview-answer")?.value.trim();if(!value){$("mobile-practice-feedback").textContent="先作答；不会可填“不知道”。";return;}if(q.speech&&!s._listened?.includes(q.id)){$("mobile-audio-status").textContent="先听完整材料；若设备没有日语声音，请稍后补这项听力。";return;}answer(q,value);});
-document.querySelectorAll("[data-choice]").forEach(b=>b.onclick=()=>answer(q,b.dataset.choice));
+const last=r.retry?.[q.id]?null:r.answers[q.id]?.at(-1),list=q.options,selected=last?.value??r.drafts?.[q.id]??"";
+$("preview-content").insertAdjacentHTML("beforeend",panel(`${q.speech?`<div class="preview-audio"><button class="btn btn-secondary" data-speak="${esc(q.speech)}">听材料</button><span>合成示范 · 0.75×</span></div><div id="mobile-audio-status" class="preview-warning" role="status"></div>`:""}${q.text?`<p class="preview-exam-text" lang="ja">${esc(q.text)}</p>`:""}<h2>${esc(q.prompt)}</h2>${list?`<div class="preview-options">${list.map(o=>`<button type="button" data-choice="${esc(o)}" aria-pressed="${selected===o}" class="${selected===o?"picked":""}" ${last?"disabled":""}>${esc(o)}</button>`).join("")}</div>`:`<label for="preview-answer" class="preview-small">输入日语或题目要求的答案</label><input class="preview-answer" id="preview-answer" autocomplete="off" value="${last?esc(last.value):esc(r.drafts?.[q.id]||"")}" ${last?"disabled":""}><p class="preview-small">不会可填“不知道”，下一题会保留本次答案。</p>`}${last&&list?`<p class="preview-small">已提交答案：${esc(last.value)}</p>`:""}${!last&&list?`<p class="preview-small">选中后可修改，点击“下一题”才验证正误。</p>`:""}<div class="preview-feedback" id="mobile-practice-feedback" role="status">${last?(last.correct?"答对了。":`正确参考：${esc(q.answers.join(" / "))}。${esc(q.explain)}`):""}</div>`));
+setPrimary(s.cursor.kind==="correction"?(last&&!last.correct?"修改这道错题":"提交订正"):"下一题",()=>{if(r.answers[q.id]?.length&&!r.retry?.[q.id]){if(s.cursor.kind==="correction"&&!r.answers[q.id].at(-1).correct){r.retry||={};r.retry[q.id]=true;save();return render();}return advanceLearning();}const value=list?r.drafts?.[q.id]:$("preview-answer")?.value.trim();if(!value){$("mobile-practice-feedback").textContent=list?"先选择一个选项，再点击下一题。":"先作答；不会可填“不知道”。";return;}if(q.speech&&!s._listened?.includes(q.id)){$("mobile-audio-status").textContent="先听完整材料；若设备没有日语声音，请稍后补这项听力。";return;}answer(q,value);});
+document.querySelectorAll("[data-choice]").forEach(b=>b.onclick=()=>{if(last)return;r.drafts||={};r.drafts[q.id]=b.dataset.choice;selectOption(b,"data-choice");$("mobile-practice-feedback").textContent="";save();});
 $("preview-answer")?.addEventListener("input",e=>{r.drafts||={};r.drafts[q.id]=e.target.value;save();});
 }
 function answer(q,value){
-const r=record(),ok=correct(value,q.answers),ev={id:q.id,lesson:s.lessonId,source:q.source,value,correct:ok,skill:q.skill,date:DATE,at:new Date().toISOString()};
-r.retry||={};delete r.retry[q.id];r.answers[q.id]||=[];r.answers[q.id].push(ev);if(r.drafts)delete r.drafts[q.id];s.events.push(ev);if(!s.learningDates.includes(DATE))s.learningDates.push(DATE);window.ModiMobileBridge.reviewAnswer(s,q,ev,DATE);save();render();if(ok)timer=setTimeout(advanceLearning,600);
+const r=record(),ok=correct(value,q.answers),ev={id:q.id,lesson:s.lessonId,source:q.source,value,correct:ok,skill:q.responseMode==="recognition"?q.skill.replace(/独立回忆|词汇听写/g,"词形选择").replace("逐字听写","音形听辨").replace("文型复现","文型辨义"):q.skill,responseMode:q.responseMode||"recall",date:DATE,at:new Date().toISOString()};
+r.retry||={};delete r.retry[q.id];r.answers[q.id]||=[];r.answers[q.id].push(ev);if(r.drafts)delete r.drafts[q.id];s.events.push(ev);if(!s.learningDates.includes(DATE))s.learningDates.push(DATE);window.ModiMobileBridge.reviewAnswer(s,q,ev,DATE);save();if(ok)return advanceLearning();render();
 }
 function renderFan(l){
 const panelNode=document.createElement("section");panelNode.className="preview-study-card";$("preview-content").append(panelNode);
@@ -9844,7 +10006,7 @@ setPrimary("返回当前课",()=>go("home","learn"));
 }
 
 function renderSettings(){
-$("preview-content").innerHTML=panel(`<h1>每天从这里继续</h1><p>白天：已学回忆 → 新词卡与音形 → 文型、汉字讲解 → 回忆、应用和听写 → 理解与书写自检。N5–N2 分级库已分配到主课与后续巩固课，学习按钮依次带你完成。晚间：朗读 → 跟读 → 遮文复现。</p><p>点击“下一题”提交答案；答对自动前进，答错先看解析。课件按钮随时可看，已提交答案只读。</p><div class="preview-toolbar"><button class="btn btn-secondary" data-legacy="course">分级词库、文型与完整课件</button><button class="btn btn-secondary" data-legacy="report">完整报告、备份与装扮</button><button class="btn btn-quiet" data-legacy="review">历史周测与专项补课</button></div><details class="preview-policy"><summary>数据和声音</summary><p>原学习记录保留，当前设备自动保存。换设备可导出备份；合成日语示范需设备支持。晚练是自确认。</p></details>`);
+$("preview-content").innerHTML=panel(`<h1>每天从这里继续</h1><p>白天：已学回忆 → 新词卡与音形 → 文型、汉字讲解 → 回忆、应用和听写 → 理解与书写自检。N5–N2 分级库已分配到主课与后续巩固课，学习按钮依次带你完成。晚间：朗读 → 跟读 → 遮文复现。</p><p>点击“下一题”提交答案；答对自动前进，答错先看解析。选择题先选选项，再点“下一题”验证；输入题保留少量短回忆与听写。课件按钮随时可看，已提交答案只读。</p><div class="preview-toolbar"><button class="btn btn-secondary" data-legacy="course">分级词库、文型与完整课件</button><button class="btn btn-secondary" data-legacy="report">完整报告、备份与装扮</button><button class="btn btn-quiet" data-legacy="review">历史周测与专项补课</button></div><details class="preview-policy"><summary>数据和声音</summary><p>原学习记录保留，当前设备自动保存。换设备可导出备份；合成日语示范需设备支持。晚练是自确认。</p></details>`);
 setPrimary("继续今天",()=>go("home","learn"));
 }
 function calendarDays(){
@@ -9883,15 +10045,37 @@ const ready=examReady(t);if(!ready.ready){s.notice=ready.reason;testTab="todo";g
 if(!schedulePaper(t)?.questions.length){s.notice="这份试卷尚未配置题目";return go("tests","tests");}
 s.activeExam||={};s.activeExam={id,index:s.exams[id]?.cursor||0};s.exams[id]||={answers:{},startedAt:new Date().toISOString(),cursor:0};go("exam","tests");
 }
+
+function choiceExamQuestions(t,qs){
+const scope=t.lessonIds||papers.find(p=>p.id===t.paperId)?.lessonIds||lessons.filter(l=>l.stage===t.stage&&s.records[l.id]?.dayDone).map(l=>l.id);
+const fallback=lessons.filter(l=>scope.includes(l.id)).at(-1),groups=new Map(),convertedById=new Map();
+qs=qs.map(q=>{
+if(q.speech&&/^[a-z]+$/i.test(q.speech)){
+const kana=q.answers.find(a=>/[ぁ-ゖァ-ヶ]/.test(a));
+if(kana)return {...q,speech:kana,answers:[kana,...q.answers.filter(a=>a!==kana)]};
+}return q;
+});
+for(const q of qs){
+const source=q.source||t.lessonIds?.find(id=>q.id.includes(`:${id}:`));
+const l=lessons.find(l=>l.id===source)||fallback;
+if(!groups.has(l))groups.set(l,[]);groups.get(l).push(q);
+}
+for(const [l,items]of groups)for(const q of window.ModiChoiceCurriculum.convert(l,items,s,{exam:true}))convertedById.set(q.id,q);
+return qs.map(q=>{
+const converted=convertedById.get(q.id);
+const out=t.kind==="probe"?converted:window.ModiChoiceCurriculum.examChoices(converted,qs);
+return out.options?{...out,section:out.section==="回忆"?"词形选择":out.section==="听写"?"听辨":out.section}:out;
+});
+}
 function renderExam(){
 const t=s.scheduled.find(t=>t.id===s.activeExam?.id);if(!t)return go("tests","tests");
-const paper=schedulePaper(t),r=s.exams[t.id],qs=(r.questions||=window.ModiMobileBridge.shuffleQuestions(paper.questions)),q=qs[s.activeExam.index],value=r.answers?.[q.id]??"",i=s.activeExam.index;
+const paper=schedulePaper(t),r=s.exams[t.id],qs=(r.questions||=window.ModiMobileBridge.shuffleQuestions(choiceExamQuestions(t,paper.questions))),q=qs[s.activeExam.index],value=r.answers?.[q.id]??"",i=s.activeExam.index;
 $("preview-title").textContent=t.kind==="weekly"?"周测":"独立考核";
-$("preview-content").innerHTML=`<div class="preview-context"><button class="btn btn-quiet btn-small" data-exam-exit>保存退出</button><span>${i+1} / ${qs.length} · ${esc(q.section)}</span></div>`+panel(`<p class="preview-small">${esc(t.title)} · ${paper.minutes||15} 分钟参考</p>${q.text?`<p class="preview-exam-text" lang="ja">${esc(q.text)}</p>`:""}${q.speech?`<div class="preview-audio"><button class="btn btn-secondary" data-speak="${esc(q.speech)}">听材料</button><span>合成示范 · 0.75×</span></div><div id="mobile-audio-status" class="preview-warning" role="status"></div>`:""}${q.pieces?`<p class="preview-exam-text" lang="ja">${esc(q.pieces.join(" / "))}</p>`:""}<h2>${esc(q.prompt)}</h2>${q.options?`<div class="preview-options">${q.options.map(o=>`<button data-exam-choice="${esc(o)}" class="${value===o?"picked":""}">${esc(o)}</button>`).join("")}</div>`:`<label class="preview-small" for="mobile-exam-answer">输入答案，不会可写“不知道”</label><input class="preview-answer" id="mobile-exam-answer" value="${esc(value)}" autocomplete="off">`}<div id="mobile-exam-message" class="preview-feedback" role="status"></div><p class="preview-small">整卷提交后显示解析。保存退出不丢失当前答案。</p>`);
+$("preview-content").innerHTML=`<div class="preview-context"><button class="btn btn-quiet btn-small" data-exam-exit>保存退出</button><span>${i+1} / ${qs.length} · ${esc(q.section)}</span></div>`+panel(`<p class="preview-small">${esc(t.title)} · ${paper.minutes||15} 分钟参考</p>${q.text?`<p class="preview-exam-text" lang="ja">${esc(q.text)}</p>`:""}${q.speech?`<div class="preview-audio"><button class="btn btn-secondary" data-speak="${esc(q.speech)}">听材料</button><span>合成示范 · 0.75×</span></div><div id="mobile-audio-status" class="preview-warning" role="status"></div>`:""}${q.pieces?`<p class="preview-exam-text" lang="ja">${esc(q.pieces.join(" / "))}</p>`:""}<h2>${esc(q.prompt)}</h2>${q.options?`<div class="preview-options">${q.options.map(o=>`<button type="button" data-exam-choice="${esc(o)}" aria-pressed="${value===o}" class="${value===o?"picked":""}">${esc(o)}</button>`).join("")}</div>`:`<label class="preview-small" for="mobile-exam-answer">输入答案，不会可写“不知道”</label><input class="preview-answer" id="mobile-exam-answer" value="${esc(value)}" autocomplete="off">`}<div id="mobile-exam-message" class="preview-feedback" role="status"></div><p class="preview-small">整卷提交后显示解析。保存退出不丢失当前答案。</p>`);
 setPrimary(i===qs.length-1?"交卷并看结果":"下一题",()=>{const input=$("mobile-exam-answer"),answer=input?input.value.trim():s.exams[t.id].answers[q.id];if(!String(answer||"").trim()){$("mobile-exam-message").textContent="先选择或输入答案；不会可以写“不知道”。";return;}
 if(q.speech&&!s._examListened?.includes(q.id)){$("mobile-exam-message").textContent="先听完整材料再继续；音频无法播放时保存退出，稍后补听力。";return;}
 r.answers[q.id]=answer;if(i<qs.length-1){s.activeExam.index++;r.cursor=s.activeExam.index;save();render();}else submitExam(t,paper);});
-document.querySelectorAll("[data-exam-choice]").forEach(b=>b.onclick=()=>{r.answers[q.id]=b.dataset.examChoice;save();render();});
+document.querySelectorAll("[data-exam-choice]").forEach(b=>b.onclick=()=>{r.answers[q.id]=b.dataset.examChoice;selectOption(b,"data-exam-choice");save();});
 $("mobile-exam-answer")?.addEventListener("input",e=>{r.answers[q.id]=e.target.value;save();});
 }
 function submitExam(t,paper){
@@ -9916,6 +10100,38 @@ const pet=core.pet();
 $("preview-content").insertAdjacentHTML("beforeend",panel(`<h2>墨滴仔一直陪你</h2>${core.avatar(pet,"preview-report-pet")}<div class="preview-context"><span>Lv.${pet.level} ${esc(pet.name)}</span><span>按实际学习记录成长</span></div><p>成长、已解锁装扮与穿戴状态沿用原记录。</p><button class="btn btn-secondary" data-legacy="report">查看成长与换装</button>`));setPrimary("回到今日学习",()=>go("home","learn"));
 }
 
+
+function selectOption(button,attribute){
+button.closest(".preview-options").querySelectorAll(`[${attribute}]`).forEach(b=>{
+const picked=b===button;b.classList.toggle("picked",picked);b.setAttribute("aria-pressed",String(picked));
+});
+}
+// Option-only physical spring, re-targetable from current position and velocity.
+const optionSprings=new WeakMap(),optionMotion=matchMedia("(prefers-reduced-motion:reduce)");
+function optionButton(event){return event.target.closest?.("[data-choice],[data-exam-choice]");}
+function moveOption(b,pressed){
+if(!b||b.disabled)return;
+let p=optionSprings.get(b);
+if(!p){p={x:1,v:0,target:1,frame:0,time:0};optionSprings.set(b,p);}
+if(optionMotion.matches){cancelAnimationFrame(p.frame);p.frame=0;p.x=p.target=1;p.v=0;b.style.transform="";return;}
+if(pressed){p.x=.97;p.target=.97;p.v=0;b.style.transform="scale(.97)";}
+else {p.target=1;p.v=Math.max(p.v,.55);}
+function step(now){
+if(!b.isConnected||optionMotion.matches){p.frame=0;b.style.transform="";return;}
+const dt=Math.min((now-(p.time||now-16))/1000,.016);p.time=now;
+p.v+=(520*(p.target-p.x)-27*p.v)*dt;p.x+=p.v*dt;
+b.style.transform=`scale(${p.x})`;
+if(Math.abs(p.target-p.x)>.0002||Math.abs(p.v)>.003)p.frame=requestAnimationFrame(step);
+else {p.frame=0;p.time=0;p.x=p.target;p.v=0;b.style.transform=p.target===1?"":`scale(${p.target})`;}
+}
+if(!p.frame){p.time=0;p.frame=requestAnimationFrame(step);}
+}
+document.addEventListener("pointerdown",e=>{if(e.button!==0)return;const b=optionButton(e);if(b){b._optionPointer=e.pointerId;moveOption(b,true);}});
+document.addEventListener("pointerup",e=>document.querySelectorAll("[data-choice],[data-exam-choice]").forEach(b=>{if(b._optionPointer===e.pointerId){delete b._optionPointer;moveOption(b,false);}}));
+document.addEventListener("pointercancel",e=>document.querySelectorAll("[data-choice],[data-exam-choice]").forEach(b=>{if(b._optionPointer===e.pointerId){delete b._optionPointer;moveOption(b,false);}}));
+document.addEventListener("keydown",e=>{if(!e.repeat&&[" ","Enter"].includes(e.key))moveOption(optionButton(e),true);});
+document.addEventListener("keyup",e=>{if([" ","Enter"].includes(e.key))moveOption(optionButton(e),false);});
+document.addEventListener("focusout",e=>{const b=optionButton(e);if(b)moveOption(b,false);});
 let audioRun=0,audioTimer=0;
 function stopAudio(){audioRun++;clearTimeout(audioTimer);if("speechSynthesis"in window)speechSynthesis.cancel();}
 function speak(text){
@@ -9971,7 +10187,7 @@ else if(d.reportTab){reportTab=d.reportTab;render();}
 else if("pet"in d){reportTab="pet";go("report","report");}
 else if(d.legacy)window.ModiMobileBridge.history(d.legacy);
 });
-window.ModiMobile={get state(){return s;},get lessons(){return lessons;},get papers(){return papers;},due,examReady,priorTasks,save,render,phases};
+window.ModiMobile={choiceExamQuestions,get state(){return s;},get lessons(){return lessons;},get papers(){return papers;},due,examReady,priorTasks,save,render,phases};
 save();render();document.addEventListener("visibilitychange",()=>{if(!document.hidden&&core.today()!==DATE)render();});setInterval(()=>{if(core.today()!==DATE)render();},60000);
 })();
 
