@@ -2155,6 +2155,77 @@ body.mobile-history #mobile-history-back{display:block}
 .preview-wardrobe img{width:100%;max-width:106px;height:94px;object-fit:contain}
 .preview-wardrobe h3{font-size:15px;margin:0}.preview-wardrobe p{font-size:12px;margin:0}
 .preview-wardrobe button{margin-top:auto;min-height:44px;max-width:100%}
+/* Shared material; selection changes tint only, never the glass substrate. */
+body .preview-pane.lesson-shell,
+body .preview-panel.lesson-shell {
+  background: rgb(255 255 255 / 8%) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(165%) brightness(1.045);
+  backdrop-filter: blur(8px) saturate(165%) brightness(1.045);
+  box-shadow: inset 1px 1px 1px #ffffffb0, inset -1px -1px 1px #ba91b347,
+    inset 0 0 0 3px #ffffff12, inset 0 -5px 8px -8px #ffffffb0,
+    0 2px 4px #68455b16, 0 15px 27px #80577320 !important;
+}
+body .preview-nav.main-nav {
+  background: rgb(255 255 255 / 18%) !important;
+  -webkit-backdrop-filter: blur(3px) saturate(165%) brightness(1.045);
+  backdrop-filter: blur(3px) saturate(165%) brightness(1.045);
+  box-shadow: inset 1px 1px 1px #ffffffc0, inset -1px -1px 1px #b38ca247,
+    inset 0 0 0 3px #ffffff12, 0 2px 4px #6944571c, 0 12px 24px #80577326;
+}
+body :is(.preview-pane.lesson-shell,.preview-panel.lesson-shell,.preview-nav.main-nav)::before {
+  content: ""; position: absolute; inset: 2px; pointer-events: none;
+  border-radius: 23px; border: 2px solid transparent;
+  background: linear-gradient(135deg,#ffffff65,transparent 30%,#b09cbb18 65%,#ffffff48 89%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+body :is(.preview-pane.lesson-shell,.preview-panel.lesson-shell,.preview-nav.main-nav)::after {
+  content: none;
+}
+body .preview-nav.main-nav::before { border-radius: 21px; }
+.preview-options button {
+  --option-glass-shadow: inset 1px 1px 1px #ffffffbf, inset -1px -2px 2px #977ea238,
+    inset 0 0 0 3px #ffffff12, inset 0 -5px 8px -8px #ffffffc0,
+    0 2px 3px #674e6716, 0 5px 10px #80638112;
+  position: relative; isolation: isolate; overflow: hidden;
+  background: #ffffff35; color: #493042;
+  -webkit-backdrop-filter: blur(1.5px) saturate(105%) brightness(1.02);
+  backdrop-filter: blur(1.5px) saturate(105%) brightness(1.02);
+  box-shadow: var(--option-glass-shadow);
+  transition: border-color 120ms;
+}
+.preview-options button::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  border-radius: inherit; background: rgb(142 152 202 / 21%);
+  mix-blend-mode: multiply; opacity: 0; transition: opacity 120ms;
+}
+.preview-options button.picked {
+  background: #ffffff35; border-color: #929bc9;
+  box-shadow: var(--option-glass-shadow);
+}
+.preview-options button::after {
+  content: ""; position: absolute; inset: 2px; pointer-events: none;
+  border-radius: 12px; border: 2px solid transparent;
+  background: linear-gradient(135deg,#ffffff65,transparent 30%,#b09cbb18 65%,#ffffff48 89%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+}
+.preview-options button.picked::before { opacity: 1; }
+.preview-options button:disabled { opacity: 1; }
+.preview-options button.right::before,.preview-options button.wrong::before { opacity: 0; }
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))) {
+  body :is(.preview-pane.lesson-shell,.preview-panel.lesson-shell) { background:#f1e3eedb!important; }
+  body .preview-nav.main-nav { background:#f1e3eedb!important; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .preview-options button,.preview-options button::before { transition:none!important; }
+}
 
 </style>
 </head>
