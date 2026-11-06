@@ -9954,6 +9954,18 @@ ___時計は父のです。この／これ~この~___は父の時計です。こ
   function rememberDay(s,id,date){
     (s.dayLessonByDate||={})[date]=id;
   }
+  function applyCourseAssignment(s,lessons,date){
+    // A learner-confirmed plan selects the lesson; it never awards completion.
+    const assignments={"2026-11-06":"kana-04"},id=assignments[date];
+    if(!id||s.courseAssignments?.[date]===id)return;
+    (s.courseAssignments||={})[date]=id;
+    const target=lessons.findIndex(l=>l.id===id),current=lessons.findIndex(l=>l.id===s.lessonId);
+    if(target<0||current>target)return;
+    s.lessonId=id;s.stage=lessons[target].stage;s.period="day";s.cursor={kind:"cards",i:0};
+    delete s.manualLessonId;delete s.nightReturn;delete s.studyResume;
+    delete s.guideReturn;delete s.referencePlace;delete s.browseReturn;delete s.tabLocations;
+    s.dayRouteDate=date;s.assignedLesson={date,id};
+  }
   function resumeDate(s,lessons,date){
     if(s.dayRouteDate===date)return;
     if(s.nightReturn){
@@ -9975,6 +9987,7 @@ ___時計は父のです。この／これ~この~___は父の時計です。こ
       s.lessonId=lessons[index].id;s.stage=lessons[index].stage;s.period="day";
       s.cursor={kind:"cards",i:0};
       s.dayTransition={date,from,to:s.lessonId};
+      delete s.studyResume;delete s.tabLocations;delete s.guideReturn;delete s.referencePlace;
     }
     s.dayRouteDate=date;
   }
@@ -10012,9 +10025,11 @@ ___時計は父のです。この／これ~この~___は父の時計です。こ
     if(sc.mobileUI?.version===2){
       const s=sc.mobileUI;
       if(s.browseReturn){Object.assign(s,s.browseReturn);delete s.browseReturn;}
+      if(s.screen==="learning")s.studyResume={date:s.dayRouteDate||date,lessonId:s.lessonId,period:s.period,screen:"learning",tab:"learn",cursor:clone(s.cursor)};
       window.ModiDailyCurriculum.sync(s);
       restoreNight(s,date);
       window.ModiDailyCurriculum.sync(s);
+      applyCourseAssignment(s,lessons,date);
       resumeDate(s,lessons,date);
       s.screen="home";s.tab="learn";
       if(s.nightReturn)s.manualLessonId=s.lessonId;else delete s.manualLessonId;
@@ -10061,7 +10076,7 @@ ___時計は父のです。この／これ~この~___は父の時計です。こ
       const m=e.id.match(/^word:([^:]+):(\d+)$/),v=m?l?.vocabulary[+m[2]]:null;
       if(v&&!s.reviewQueue.some(w=>w.id===e.id))s.reviewQueue.push({id:e.id,prompt:`“${v.meaning}”的日语是什么？`,answers:[v.word,v.reading],explain:`${v.word}（${v.reading}）· ${v.meaning}`,skill:"词汇回忆",source:l.id,originalLesson:l.id,addedIndex:Math.max(0,s.learningDates.indexOf(e.date)+1),checks:[]});
     }
-    restoreNight(s,date);window.ModiDailyCurriculum.sync(s);resumeDate(s,lessons,date);sc.mobileUI=s;return s;
+    restoreNight(s,date);window.ModiDailyCurriculum.sync(s);applyCourseAssignment(s,lessons,date);resumeDate(s,lessons,date);sc.mobileUI=s;return s;
   }
   function paperTask(p,date){
     const pair=p.pair||p.variant,kind=p.type==="unit"?"unit":p.type==="probe"?"probe":"stage";
@@ -10219,7 +10234,7 @@ ___時計は父のです。この／これ~この~___は父の時計です。こ
     }
     scrollTo(0,0);
   }
-  window.ModiMobileBridge={load,save,schedule,weekly,shuffleQuestions,reviews,reviewAnswer,history,restoreNight,confirmNight,rememberDay,dayLesson,resumeDate};
+  window.ModiMobileBridge={load,save,schedule,weekly,shuffleQuestions,reviews,reviewAnswer,history,restoreNight,confirmNight,rememberDay,dayLesson,resumeDate,applyCourseAssignment};
 })();
 
 </script>
@@ -10250,7 +10265,7 @@ if(t.kind==="weekly")return{ready:t.lessonIds.some(id=>s.records[id]?.cards.leng
 if(t.kind==="probe"){const p=papers.find(p=>p.id===t.paperId);return {ready:!["C","D"].includes(p?.pair)||!!core.state.systemCourse.remediation?.[p?.topic]?.done,reason:"先完成专项补课"};}if(t.kind==="unit"){const p=papers.find(p=>p.id===t.paperId);const group=lessons.filter(l=>(p?.lessonIds||[]).includes(l.id));return{ready:group.every(l=>s.records[l.id]?.completed),reason:"先完成本单元主课与配套教学"};}
 return{ready:lessons.filter(l=>l.stage===t.stage).every(l=>s.records[l.id]?.completed),reason:"先完成阶段主线；短卷成绩不自动判晋级"};}
 function setPrimary(label,action,disabled=false){$("preview-bottom").hidden=!label;$("preview-primary").textContent=label||"";$("preview-primary").disabled=disabled;$("preview-primary").onclick=action||null;}
-function go(screen,tab=s.tab){if(screen==="learning"&&s.period==="day")window.ModiMobileBridge.rememberDay(s,s.lessonId,DATE);clearTimeout(timer);disposeDeck();s.screen=screen;s.tab=tab;save();render();}
+function go(screen,tab=s.tab){if(s.screen==="learning")s.studyResume=captureLocation();if(screen==="learning"&&s.period==="day")window.ModiMobileBridge.rememberDay(s,s.lessonId,DATE);clearTimeout(timer);disposeDeck();s.screen=screen;s.tab=tab;save();render();}
 function panel(html,cls=""){return `<section class="lesson-shell preview-pane ${cls}">${html}</section>`;}
 function petSmall(text){return `<div class="preview-pet"><button class="btn btn-quiet" data-pet aria-label="查看墨滴仔">${core.avatar(core.pet())}</button><div><strong>墨滴仔</strong><p>${text}</p></div></div>`;}
 function render(){
@@ -10330,7 +10345,7 @@ $("preview-content").insertAdjacentHTML("beforeend",panel(`<h2>${esc(item.title)
 setPrimary(r.depthChecks?.[item.id]?.confirmed?"已确认，继续":"确认完成，继续",()=>{if(r.depthChecks?.[item.id]?.confirmed)return advanceLearning();if(!$("mobile-depth-confirm").checked)return;r.depthChecks||={};r.depthChecks[item.id]={confirmed:true,at:new Date().toISOString(),date:DATE};save();advanceLearning();});
 }
 function renderLearn(){
-const l=current(),r=record(),kind=s.cursor.kind,phase=phases().find(p=>p.kind===kind);
+rememberLearningPlace();const l=current(),r=record(),kind=s.cursor.kind,phase=phases().find(p=>p.kind===kind);
 if(!phase||!phase.items.length){chooseCursor();return render();}
 s.cursor.i=Math.min(s.cursor.i,phase.items.length-1);
 const item=phase.items[s.cursor.i],label={prior:"课前回忆",cards:"新词卡",teach:"本课讲解",quiz:"本课练习",correction:"错题订正",checks:"理解与书写自检"}[kind];
@@ -10382,13 +10397,13 @@ disposeDeck=()=>{cancelAnimationFrame(frame);frame=0;last=0;};
 function renderReference(){
 const l=referenceReturn?.lessonId?lessons.find(l=>l.id===referenceReturn.lessonId):current();
 $("preview-content").innerHTML=panel(`<h2>本题对应课件</h2>${l.vocabulary.map(v=>`<div class="preview-line"><strong lang="ja">${esc(v.word)}</strong><span>${esc(v.reading)} · ${esc(v.meaning)}</span></div>`).join("")}<details class="preview-policy"><summary>本课讲解</summary>${l.grammar.map(g=>`<p><strong>${esc(g.form)}</strong><br>${esc(g.rule)}</p>`).join("")}</details>`);
-setPrimary("返回原题",()=>{s.screen=referenceReturn?.screen||"learning";referenceReturn=null;save();render();});
+setPrimary(s.referencePlace?.screen==="learning"?"返回原题":"返回打开前的位置",closeReference);
 }
 function renderDayEnd(){
 const l=current(),r=record();$("preview-content").innerHTML=petSmall("日间完成了，晚间用同一份材料巩固。")+panel(`<h1>日间已完成</h1><p>${esc(l.title)}</p><p class="preview-small">前台活动估算 ${Math.round((r.studySeconds||0)/60)} 分钟 · 以实际投入和次日保留校准；书写、理解自检不计自动正确率。</p><div class="preview-line"><span>晚间待完成</span><span>${3-["read","shadow","recall"].filter(k=>r.night[k]).length} 项</span></div><p>朗读 · 跟读 · 遮文复现</p>${due().length?`<button class="btn btn-secondary" data-open-test="${due()[0].id}">还有考核待做</button>`:""}`);setPrimary("返回今天",()=>go("home","learn"));
 }
 function renderNight(){
-const l=current(),r=record(),known=l.vocabulary.filter((v,i)=>learned(l,i));if(!known.length){$("preview-content").innerHTML=panel("<h1>先学日间材料</h1><p>当前课还没有已学词卡；先认识新词，再安排出声巩固。</p>");return setPrimary("去学新词卡",()=>{s.period="day";s.cursor={kind:"cards",i:0};go("learning","learn");});}
+rememberLearningPlace();const l=current(),r=record(),known=l.vocabulary.filter((v,i)=>learned(l,i));if(!known.length){$("preview-content").innerHTML=panel("<h1>先学日间材料</h1><p>当前课还没有已学词卡；先认识新词，再安排出声巩固。</p>");return setPrimary("去学新词卡",()=>{s.period="day";s.cursor={kind:"cards",i:0};go("learning","learn");});}
 const keys=["read","shadow","recall"],i=Math.max(0,Math.min(2,s.cursor.i)),k=keys[i],titles={read:"朗读",shadow:"跟读",recall:"遮文复现"},text=known.map(v=>v.reading).join("、")+(r.teach.length===l.grammar.length?"。"+l.listening.sentence:"");
 $("preview-content").innerHTML=`<div class="preview-context"><button class="btn btn-quiet btn-small" data-home>返回</button><span>晚间 ${i+1} / 3 · ${titles[k]}</span></div><p class="preview-small">材料来源：${learningDateLabel(l)||"所选课程"} · 第 ${l.number} 课 · ${esc(l.title)}</p><button class="btn btn-quiet btn-small" data-browse-cards>回看白天词卡</button>`+panel(`<h2>${titles[k]}</h2><p>${k==="read"?"逐词读一遍，注意字形与节拍。":k==="shadow"?"先分段听，再跟着读两遍。":"看中文说日语，再翻回原文自检。"}</p><div class="preview-night-text" lang="ja">${k==="recall"?known.map(v=>esc(v.meaning)).join(" · "):esc(text)}</div><button class="btn btn-secondary" data-speak="${esc(text)}">听示范</button><div id="mobile-audio-status" class="preview-warning" role="status"></div><p class="preview-small">仅使用本课已学词句 · 自确认，不计自动正确率</p>`);
 setPrimary("练习完成，继续",()=>{window.ModiMobileBridge.confirmNight(s,l.id,k,DATE);if(i<2){s.cursor.i++;save();render();}else{r.completed=r.dayDone;if(r.completed&&!r.completionCounted){r.completionCounted=true;s.completedLearnDays++;if(!s.learningDates.includes(DATE))s.learningDates.push(DATE);scheduleAfterComplete(l);}save();go("home","learn");}});
@@ -10565,8 +10580,8 @@ play();
 }
 document.addEventListener("click",e=>{
 const b=e.target.closest("button");if(!b||b.disabled)return;const d=b.dataset;
-if(d.tab){const screen=d.tab==="learn"?"home":d.tab;go(screen,d.tab);}
-else if(b.id==="preview-settings"){if(s.screen==="settings")go("home","learn");else go("settings",s.tab);}
+if(d.tab)switchTab(d.tab);
+else if(b.id==="preview-settings"){if(s.screen==="settings")closeGuide();else openGuide();}
 else if("practicePrev"in d){s.cursor.i=Math.max(0,s.cursor.i-1);save();render();}else if("home"in d)go("home","learn");
 else if(d.period){s.period=d.period;if(d.period==="night"&&!s.manualLessonId){const id=window.ModiMobileBridge.dayLesson(s,DATE);if(id){s.lessonId=id;s.cursor={kind:"night",i:0};}}go("home","learn");}
 else if(d.reviewNight){s.nightReturn||={lessonId:s.lessonId,period:s.period};s.lessonId=d.reviewNight;s.manualLessonId=d.reviewNight;s.period="night";go("home","learn");}
@@ -10574,16 +10589,16 @@ else if("nightReturn"in d){const back=s.nightReturn;delete s.nightReturn;delete 
 else if("reportContinue"in d)go("home","learn");
 else if("browseCards"in d)openDayCards();
 else if("browseBack"in d)closeDayCards();
-else if("browseNotes"in d){referenceReturn={screen:s.screen,lessonId:s.lessonId};go("reference",s.tab);}
+else if("browseNotes"in d)openReference();
 else if("exportReport"in d)document.getElementById("export-study-report").click();
-else if(d.guideTool){if(d.guideTool==="library"){resourceStage=s.stage==="KANA"?"N5":s.stage;go("library","learn");}else if(d.guideTool==="report"){reportTab="data";go("report","report");}else if(d.guideTool==="tests"){testTab="history";go("tests","tests");}else go("settings",s.tab);}
+else if(d.guideTool)openGuideTool(d.guideTool);
 else if(d.libraryStage){resourceStage=d.libraryStage;resourcePage=0;render();document.querySelector(`[data-library-stage="${resourceStage}"]`)?.focus({preventScroll:true});}
 else if(d.libraryKind){resourceKind=d.libraryKind;resourcePage=0;render();document.querySelector(`[data-library-kind="${resourceKind}"]`)?.focus({preventScroll:true});}
 else if(d.libraryPage){resourcePage+=Number(d.libraryPage);render();}
 else if("directory"in d)go("directory","learn");
 else if(d.dirStage){directoryStage=d.dirStage;render();}
 else if(d.selectLesson){s.lessonId=d.selectLesson;s.manualLessonId=d.selectLesson;s.period="day";s.cursor={kind:"cards",i:0};go("home","learn");}
-else if("reference"in d){const q=phases().find(p=>p.kind===s.cursor.kind)?.items[s.cursor.i];referenceReturn={screen:s.screen,lessonId:q?.source||s.lessonId};go("reference",s.tab);}
+else if("reference"in d){const q=phases().find(p=>p.kind===s.cursor.kind)?.items[s.cursor.i];openReference(q?.source||s.lessonId);}
 else if(d.speak)speak(d.speak);
 else if(d.calendarTab){calendarTab=d.calendarTab;render();}
 else if(d.month){const n=Number(d.month),y=Number(month.slice(0,4)),m=Number(month.slice(5));month=new Date(Date.UTC(y,m-1+n,1)).toISOString().slice(0,7);render();}
@@ -10599,6 +10614,62 @@ else if("wardrobe"in d)go("wardrobe","report");else if("wardrobeBack"in d){repor
 });
 /* Included inside the mobile runtime by apply-mobile-learning-flow.py. */
 let resourceStage="N5",resourceKind="vocabulary",resourceQuery="",resourcePage=0;
+function captureLocation(){
+  return {date:DATE,screen:s.screen,tab:s.tab,lessonId:s.lessonId,period:s.period,cursor:{...s.cursor},
+    manualLessonId:s.manualLessonId||null,
+    scrollTop:$("preview-content").scrollTop,referenceReturn:referenceReturn?{...referenceReturn}:null,
+    resourceStage,resourceKind,resourceQuery,resourcePage,reportTab,testTab,calendarTab,month,selectedDate,directoryStage};
+}
+function restoreLocation(place){
+  if(!place||place.date&&place.date!==DATE)return go("home","learn");
+  for(const key of ["screen","tab","lessonId","period","cursor"])if(place[key]!==undefined)s[key]=key==="cursor"?{...place[key]}:place[key];
+  if(place.manualLessonId)s.manualLessonId=place.manualLessonId;else delete s.manualLessonId;
+  referenceReturn=place.referenceReturn||null;
+  resourceStage=place.resourceStage||resourceStage;resourceKind=place.resourceKind||resourceKind;
+  resourceQuery=place.resourceQuery??resourceQuery;resourcePage=place.resourcePage??resourcePage;
+  reportTab=place.reportTab||reportTab;testTab=place.testTab||testTab;calendarTab=place.calendarTab||calendarTab;
+  month=place.month||month;selectedDate=place.selectedDate||selectedDate;directoryStage=place.directoryStage||directoryStage;
+  save();render();$("preview-content").scrollTop=place.scrollTop||0;
+}
+function rememberLearningPlace(){
+  if(s.screen==="learning")s.studyResume=captureLocation();
+}
+function resumeStudy(){
+  const place=s.studyResume;
+  if(place?.lessonId===s.lessonId&&place.period===s.period&&place.screen==="learning"){
+    const phase=s.period==="night"?{items:["read","shadow","recall"]}:phases().find(p=>p.kind===place.cursor?.kind);
+    if(phase&&place.cursor.i>=0&&place.cursor.i<phase.items.length)return restoreLocation({...place,date:DATE});
+  }
+  chooseCursor();go(s.screen==="day-end"?"day-end":"learning","learn");
+}
+function switchTab(tab){
+  const previous=s.tab;
+  if(previous===tab)return go(tab==="learn"?"home":tab,tab);
+  const place=captureLocation();(s.tabLocations||={})[previous]=place;
+  if(s.screen==="learning")s.studyResume=place;
+  const target=s.tabLocations[tab];
+  if(target&&target.date===DATE)return restoreLocation(target);
+  go(tab==="learn"?"home":tab,tab);
+}
+function openGuide(){s.guideReturn=captureLocation();go("settings",s.tab);}
+function closeGuide(){const place=s.guideReturn;delete s.guideReturn;restoreLocation(place);}
+function openGuideTool(tool){
+  if(tool==="library"){resourceStage=current().stage==="KANA"?"N5":current().stage;return go("library",s.tab);}
+  if(tool==="report"||tool==="tests"){
+    (s.tabLocations||={})[s.tab]=s.guideReturn||captureLocation();
+    if(tool==="report"){reportTab="stats";return go("report","report");}
+    testTab="history";return go("tests","tests");
+  }
+  go("settings",s.guideReturn?.tab||"learn");
+}
+function openReference(lessonId=s.lessonId){
+  s.referencePlace=captureLocation();referenceReturn={screen:s.screen,lessonId};go("reference",s.tab);
+}
+function closeReference(){
+  const place=s.referencePlace;delete s.referencePlace;
+  if(place)return restoreLocation(place);
+  const screen=referenceReturn?.screen||"learning";referenceReturn=null;go(screen,"learn");
+}
 const learningDateLabel=l=>{
   const r=s.records[l.id]||{};
   const days=[...Object.keys(s.dayLessonByDate||{}).filter(day=>s.dayLessonByDate[day]===l.id),
@@ -10640,12 +10711,16 @@ function renderHome(){
   const sourceDate=learningDateLabel(l),progress=dayProgress(l,r),remaining=progress.filter(p=>p.done<p.total);
   const pending=pendingNights().filter(v=>v.id!==l.id),next=lessons[lessons.indexOf(l)+1];
   const transition=s.dayTransition?.date===DATE&&s.dayTransition.to===l.id;
+  const resume=s.studyResume?.lessonId===l.id&&s.studyResume.period===s.period?s.studyResume:null;
+  const resumeLabel=resume?`${{prior:"课前回忆",cards:"词卡",teach:"讲解",quiz:"练习",checks:"自检",correction:"订正",night:"晚练"}[resume.cursor.kind]||"学习"} · 第 ${resume.cursor.i+1} ${["cards","teach"].includes(resume.cursor.kind)?"页":["quiz","prior","correction"].includes(resume.cursor.kind)?"题":"项"}`:"";
   $("preview-content").innerHTML=petSmall(tasks.length?"有考核待做，也可以先继续当前课。":"白天学新内容，晚上巩固同一课。")+
     `<div class="preview-tabs" role="tablist" aria-label="学习时段"><button data-period="day" role="tab" aria-selected="${s.period==="day"}">白天 · 学习</button><button data-period="night" role="tab" aria-selected="${s.period==="night"}">晚间 · 巩固</button></div>`+
     (transition?`<p class="learning-date-note" role="status">${DATE} · 已衔接下一课，上一课记录保留。</p>`:"")+
     (tasks.length?`<div class="preview-due" role="status"><div><strong>${tasks.some(t=>t.date<DATE)?"有测试尚未完成":"今天有测试待做"}</strong><small>${esc(tasks[0].title)}${tasks.length>1?`等 ${tasks.length} 项`:""}</small></div><button class="btn btn-secondary" data-open-test="${esc(tasks[0].id)}">去测试</button></div>`:"")+
     panel(`<div class="preview-context"><span>${esc(names[l.stage])} · 第 ${l.number} 课</span><button class="btn btn-quiet btn-small" data-directory>课程</button></div><h1>${esc(l.title.replace(/^平假名：/,""))}</h1>
       <p>${s.period==="night"?"朗读 → 跟读 → 遮文复现，沿用这节课的已学词句。":r.dayDone?"白天已完成，可回看词卡与讲解。":"已学回忆 → 新词与讲解 → 练习与自检"}</p>
+      ${s.assignedLesson?.date===DATE&&s.assignedLesson.id===l.id?'<p class="preview-small">今日安排：第4课 · 第3课的学习记录保留</p>':""}
+      ${resume&&!r.dayDone?`<p class="preview-small">继续位置：${esc(resumeLabel)}</p>`:""}
       ${s.period==="night"?`<p class="preview-small">材料来源：${sourceDate?sourceDate+" 白天学习":"当前所选课程"} · 第 ${l.number} 课${sourceDate&&sourceDate!==DATE?"（历史课）":""}</p>`:""}
       ${s.nightReturn?'<button class="btn btn-secondary" data-night-return>返回原来的白天课程</button>':""}
       <div class="learning-session-status"><span>白天 · ${r.dayDone?"已完成":r.previousCompletion?"待补充":"待完成"}</span><span>晚间 · ${nightDone?"已完成":"待完成"}</span></div>
@@ -10660,10 +10735,11 @@ function renderHome(){
     if(r.completed&&next)return moveToNext(l);
     if(s.period==="night"){
       if(nightDone){s.period="day";return go("home","learn");}
+      if(resume?.cursor.kind==="night")return restoreLocation({...resume,date:DATE});
       s.cursor={kind:"night",i:["read","shadow","recall"].findIndex(k=>!r.night[k])};return go("learning","learn");
     }
     if(r.dayDone)return next?moveToNext(l):go("home","learn");
-    chooseCursor();go(s.screen==="day-end"?"day-end":"learning","learn");
+    resumeStudy();
   });
 }
 function renderSettings(){
@@ -10684,7 +10760,7 @@ function renderSettings(){
       <button data-guide-tool="report">${svg("report")}<span><b>完整学习报告</b><small>当前进度、成绩、备份与墨滴仔</small></span><span aria-hidden="true">→</span></button>
       <button data-guide-tool="tests">${svg("tests")}<span><b>周测与考核记录</b><small>已交卷结果与当前待做考核</small></span><span aria-hidden="true">→</span></button>
     </nav><details class="preview-policy"><summary>保存、声音与复习安排</summary><p>记录保存在当前浏览器，换设备前可导出备份。合成日语示范需设备支持；晚练为自确认，不计自动正确率。</p><p>前课词与旧错项在白天的课前回忆中回收。晚间默认衔接当天白天学习的课，也可从课程目录回看历史课。</p></details>`);
-  setPrimary("回到当前课",()=>go("home","learn"));
+  setPrimary(s.guideReturn?.screen==="learning"?"返回学习位置":"返回打开前的位置",closeGuide);
 }
 function renderDayCards(){
   const l=current();
@@ -10693,14 +10769,12 @@ function renderDayCards(){
   renderFan(l);
 }
 function openDayCards(){
-  if(!s.browseReturn)s.browseReturn={screen:s.screen,tab:s.tab,period:s.period,lessonId:s.lessonId,cursor:{...s.cursor}};
+  if(!s.browseReturn)s.browseReturn=captureLocation();
   s.cursor={kind:"cards",i:0};s.screen="day-cards";render();
 }
 function closeDayCards(){
   const previous=s.browseReturn;delete s.browseReturn;
-  if(previous)Object.assign(s,previous);
-  else s.screen="home";
-  save();render();
+  restoreLocation(previous);
 }
 function renderResourceLibrary(){
   const data=window.ModiReferenceLibrary,zh=window.ModiReferenceChinese;
