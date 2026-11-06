@@ -2388,7 +2388,7 @@ html[data-trial-transparency="reduced"] body :is(.preview-pane.lesson-shell,.pre
 /* Learning paths and resource rows share the approved glass surface. */
 .learning-material-actions { display:flex; flex-wrap:wrap; gap:12px; margin:16px 0; }
 .learning-material-actions .btn { min-height:44px; flex:1 1 120px; }
-.learning-material-actions [aria-pressed=true] { background:#ffffff65; border-color:var(--trial-selection); }
+.learning-material-actions [aria-pressed=true] { background:#dce8f4d9; border-color:#839ab4; color:var(--trial-ink); font-weight:600; box-shadow:inset 0 1px 0 #fff,0 3px 8px #61769212; }
 .learning-route { margin:20px 0; }
 .learning-route h2 { display:flex; align-items:center; gap:10px; margin:0 0 16px; font-size:18px; }
 .learning-route svg,.learning-guide-links svg { width:22px; height:22px; flex:none; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
@@ -2412,6 +2412,50 @@ html[data-trial-transparency="reduced"] body :is(.preview-pane.lesson-shell,.pre
 .learning-library-rows>article { padding:20px 0; border-bottom:1px solid var(--trial-rule); overflow-wrap:anywhere; }
 .learning-library-rows h2 { margin:0 0 8px; }
 .learning-library-rows p { margin:8px 0; }
+.learning-levels { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+.learning-levels button { min-height:44px; border:1px solid transparent; display:flex; align-items:center; justify-content:center; gap:4px; transition:background-color 160ms,border-color 160ms; }
+.learning-levels button[aria-pressed=true] { background:#dce8f4d9; border-color:#839ab4; color:var(--trial-ink); font-weight:650; box-shadow:inset 0 1px 0 #fff,0 3px 8px #61769212; }
+.learning-level-mark { visibility:hidden; font-size:12px; }
+[aria-pressed=true] .learning-level-mark { visibility:visible; }
+.learning-library-current { font-weight:600; color:var(--trial-ink); }
+.learning-library-kinds { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+.learning-library-kinds .btn { min-width:0; padding-inline:6px; }
+.learning-session-status { display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px; padding:12px 0; border-bottom:1px solid var(--trial-rule); font-size:13px; color:var(--trial-secondary); }
+.learning-step-status { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; list-style:none; padding:0; margin:16px 0 8px; }
+.learning-step-status li { display:grid; gap:4px; padding:8px 0; border-top:2px solid #b8afbf; font-size:13px; color:var(--trial-secondary); }
+.learning-step-status li.is-done { border-color:#7d94ac; }
+.learning-step-status b { font-size:14px; font-weight:600; color:var(--trial-ink); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.learning-step-status small { font-size:12px; }
+.preview-pane .learning-remaining { font-size:13px; line-height:1.7; }
+.learning-date-note { margin:12px 4px; font-size:13px; line-height:1.6; color:var(--trial-ink); }
+.learning-pending-nights { display:grid; gap:12px; margin-top:16px; }
+.learning-pending-nights button { display:flex; flex-wrap:wrap; gap:8px; justify-content:space-between; text-align:start; min-height:48px; }
+.learning-pending-nights span { flex:1 1 140px; overflow-wrap:anywhere; }
+.learning-pending-nights small { font-size:12px; }
+.learning-report-summary { display:flex; flex-wrap:wrap; gap:8px 24px; margin:16px 0; }
+.learning-report-summary strong { font-size:22px; font-variant-numeric:tabular-nums; color:var(--trial-ink); }
+.learning-report-overview { padding:4px 4px 12px; }
+.learning-report-overview h1 { font-size:22px; line-height:1.4; color:var(--trial-ink); margin:8px 0 12px; }
+.learning-report-overview .learning-report-summary { margin:12px 0; }
+.learning-report-overview .learning-report-summary p { margin:0; font-size:14px; color:var(--trial-secondary); }
+#preview-app button { touch-action:manipulation; -webkit-tap-highlight-color:#b8c8de40; }
+#preview-app :is(button,input,summary):focus-visible { outline:2px solid #657e9d; outline-offset:3px; }
+#preview-app :is(.preview-context,.preview-due)>:not(button) { min-width:0; overflow-wrap:anywhere; }
+#preview-app .preview-pane { overflow-wrap:anywhere; }
+#preview-app .preview-pane :is(h1,h2) { text-wrap:balance; }
+#preview-app .preview-top button,#preview-app .preview-context .btn { min-height:44px; }
+.learning-library-search input { font-size:16px; }
+.learning-library-search .btn { flex:none; }
+@media(max-width:359px) {
+  #preview-content { padding-inline:12px; }
+  .preview-pane { padding:16px; }
+  .learning-route ol { gap:8px; }
+  .learning-guide-links button { padding:12px; }
+  .learning-levels { gap:4px; }
+  .learning-levels button { font-size:12px; padding-inline:3px; }
+  .learning-step-status { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media(prefers-reduced-motion:reduce) { .learning-levels button { transition:none; } }
 
 </style>
 </head>
@@ -9910,6 +9954,30 @@ ___時計は父のです。この／これ~この~___は父の時計です。こ
   function rememberDay(s,id,date){
     (s.dayLessonByDate||={})[date]=id;
   }
+  function resumeDate(s,lessons,date){
+    if(s.dayRouteDate===date)return;
+    if(s.nightReturn){
+      Object.assign(s,s.nightReturn);delete s.nightReturn;
+    }
+    delete s.manualLessonId;
+    const dayOf=value=>{
+      const ms=Date.parse(value);
+      return Number.isFinite(ms)?new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Shanghai",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(ms)):null;
+    };
+    const from=s.lessonId;
+    let index=lessons.findIndex(l=>l.id===from);
+    while(index>=0&&index<lessons.length-1){
+      const r=s.records[lessons[index].id],finished=dayOf(r?.dayDoneAt);
+      if(!r?.dayDone||!finished||finished>=date)break;
+      index++;
+    }
+    if(index>=0&&lessons[index].id!==from){
+      s.lessonId=lessons[index].id;s.stage=lessons[index].stage;s.period="day";
+      s.cursor={kind:"cards",i:0};
+      s.dayTransition={date,from,to:s.lessonId};
+    }
+    s.dayRouteDate=date;
+  }
   function dayLesson(s,date){
     const saved=s.dayLessonByDate?.[date];
     if(saved&&window.ModiSystemCourse.lessons.some(l=>l.id===saved))return saved;
@@ -9947,8 +10015,9 @@ ___時計は父のです。この／これ~この~___は父の時計です。こ
       window.ModiDailyCurriculum.sync(s);
       restoreNight(s,date);
       window.ModiDailyCurriculum.sync(s);
+      resumeDate(s,lessons,date);
       s.screen="home";s.tab="learn";
-      delete s.manualLessonId;
+      if(s.nightReturn)s.manualLessonId=s.lessonId;else delete s.manualLessonId;
       return s;
     }
     const s={version:2,lessonId:sc.selected||lessons[0].id,stage:"KANA",tab:"learn",screen:"home",period:sc.period||"day",cursor:{kind:"cards",i:0},records:{},events:[],exams:{},scheduled:[],completedLearnDays:0,learningDates:[...(sc.days||[])],stageCoverage:{},activeExam:null,reviewQueue:[],reviewHistory:[]};
@@ -9992,7 +10061,7 @@ ___時計は父のです。この／これ~この~___は父の時計です。こ
       const m=e.id.match(/^word:([^:]+):(\d+)$/),v=m?l?.vocabulary[+m[2]]:null;
       if(v&&!s.reviewQueue.some(w=>w.id===e.id))s.reviewQueue.push({id:e.id,prompt:`“${v.meaning}”的日语是什么？`,answers:[v.word,v.reading],explain:`${v.word}（${v.reading}）· ${v.meaning}`,skill:"词汇回忆",source:l.id,originalLesson:l.id,addedIndex:Math.max(0,s.learningDates.indexOf(e.date)+1),checks:[]});
     }
-    restoreNight(s,date);window.ModiDailyCurriculum.sync(s);sc.mobileUI=s;return s;
+    restoreNight(s,date);window.ModiDailyCurriculum.sync(s);resumeDate(s,lessons,date);sc.mobileUI=s;return s;
   }
   function paperTask(p,date){
     const pair=p.pair||p.variant,kind=p.type==="unit"?"unit":p.type==="probe"?"probe":"stage";
@@ -10150,7 +10219,7 @@ ___時計は父のです。この／これ~この~___は父の時計です。こ
     }
     scrollTo(0,0);
   }
-  window.ModiMobileBridge={load,save,schedule,weekly,shuffleQuestions,reviews,reviewAnswer,history,restoreNight,confirmNight,rememberDay,dayLesson};
+  window.ModiMobileBridge={load,save,schedule,weekly,shuffleQuestions,reviews,reviewAnswer,history,restoreNight,confirmNight,rememberDay,dayLesson,resumeDate};
 })();
 
 </script>
@@ -10187,9 +10256,9 @@ function petSmall(text){return `<div class="preview-pet"><button class="btn btn-
 function render(){
 trackStudyTime();window.ModiDailyCurriculum.sync(s);
 clearTimeout(timer);disposeDeck();stopAudio();
-if(core.state.systemCourse?.mobileUI!==s)s=window.ModiMobileBridge.load(lessons,papers,DATE);window.ModiDailyCurriculum.sync(s);const nowDate=core.today();if(nowDate!==DATE){DATE=nowDate;month=DATE.slice(0,7);selectedDate=DATE;window.ModiMobileBridge.restoreNight(s,DATE);delete s.manualLessonId;s.screen="home";s.tab="learn";save();}window.ModiMobileBridge.schedule(s,lessons,papers,DATE);
+if(core.state.systemCourse?.mobileUI!==s)s=window.ModiMobileBridge.load(lessons,papers,DATE);window.ModiDailyCurriculum.sync(s);const nowDate=core.today();if(nowDate!==DATE){DATE=nowDate;month=DATE.slice(0,7);selectedDate=DATE;window.ModiMobileBridge.restoreNight(s,DATE);window.ModiMobileBridge.resumeDate(s,lessons,DATE);delete s.manualLessonId;delete s.nightReturn;s.screen="home";s.tab="learn";save();}window.ModiMobileBridge.schedule(s,lessons,papers,DATE);
 if(new Date(DATE+"T00:00:00Z").getUTCDay()===0){const id=`weekly-date-${DATE}`,known=lessons.filter(l=>s.records[l.id]?.cards.length).map(l=>l.id);if(known.length&&!s.scheduled.some(t=>t.id===id)){s.scheduled.push({id,kind:"weekly",title:"本周已学内容周测",date:DATE,lessonIds:known.slice(-6)});save();}}
-document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("is-active",b.dataset.tab===s.tab));$("test-badge").hidden=!due().length;$("test-badge").textContent=due().length;$("preview-title").textContent={learn:"墨滴伴学",calendar:"学习日历",tests:"定期考核",report:"学习报告"}[s.tab]||"墨滴伴学";
+document.querySelectorAll("[data-tab]").forEach(b=>{const active=b.dataset.tab===s.tab;b.classList.toggle("is-active",active);if(active)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});$("test-badge").hidden=!due().length;$("test-badge").textContent=due().length;$("preview-title").textContent={learn:"墨滴伴学",calendar:"学习日历",tests:"定期考核",report:"学习报告"}[s.tab]||"墨滴伴学";
 $("preview-settings").textContent=s.screen==="settings"?"返回":"学习导览";$("preview-content").scrollTop=0;setPrimary("",null);
 if(s.screen==="wardrobe")return renderWardrobe();if(s.screen==="settings")return renderSettings();
 if(s.screen==="exam")return renderExam();
@@ -10326,7 +10395,7 @@ setPrimary("练习完成，继续",()=>{window.ModiMobileBridge.confirmNight(s,l
 }
 function scheduleAfterComplete(l){window.ModiMobileBridge.schedule(s,lessons,papers,DATE);}
 function renderDirectory(){
-$("preview-content").innerHTML=`<div class="preview-tabs">${STAGES.map(k=>`<button data-dir-stage="${k}" aria-selected="${k===directoryStage}">${k==="KANA"?"假名":k}</button>`).join("")}</div>`+panel(`<h2>${names[directoryStage]} · ${lessons.filter(l=>l.stage===directoryStage).length} 课</h2><div class="preview-syllabus">${lessons.filter(l=>l.stage===directoryStage).map(l=>`<button data-select-lesson="${l.id}"><strong>${l.number}. ${esc(l.title)}</strong><small>${s.records[l.id]?.completed?"已完成":s.records[l.id]?.previousCompletion?"补充课待完成":Object.values(s.records[l.id]?.answers||{}).some(a=>!a.at(-1)?.correct)?"待复习":s.records[l.id]?.cards.length?"进行中":"未开始"} · ${l.vocabulary.length} 张新词卡 / ${l.grammar.length} 页讲解</small></button>`).join("")}</div>`);
+$("preview-content").innerHTML=`<div class="preview-tabs">${STAGES.map(k=>`<button data-dir-stage="${k}" aria-selected="${k===directoryStage}">${k==="KANA"?"假名":k}</button>`).join("")}</div>`+panel(`<h2>${names[directoryStage]} · ${lessons.filter(l=>l.stage===directoryStage).length} 课</h2><div class="preview-syllabus">${lessons.filter(l=>l.stage===directoryStage).map(l=>`<button data-select-lesson="${l.id}"><strong>${l.number}. ${esc(l.title)}</strong><small>${lessonStatus(l)} · ${l.vocabulary.length} 张新词卡 / ${l.grammar.length} 页讲解</small></button>`).join("")}</div>`);
 setPrimary("返回当前课",()=>go("home","learn"));
 }
 
@@ -10411,7 +10480,7 @@ $("preview-content").innerHTML=petSmall(r.score>=80?"这一卷完成了，结果
 }
 function renderReport(){
 $("preview-content").innerHTML=`<div class="preview-tabs"><button data-report-tab="stats" aria-selected="${reportTab==="stats"}">学习数据</button><button data-report-tab="pet" aria-selected="${reportTab==="pet"}">墨滴仔</button></div>`;
-if(reportTab==="pet")return renderPet();
+if(reportTab==="pet")return renderPet();renderReportOrientation();
 const events=s.events,first=Object.values(s.records).flatMap(r=>Object.values(r.answers).map(a=>a[0])).filter(Boolean),tests=Object.entries(s.exams).filter(([id,r])=>r.submittedAt),done=Object.values(s.records).filter(r=>r.completed).length,correctN=first.filter(e=>e.correct).length;
 $("preview-content").insertAdjacentHTML("beforeend",panel(`<h2>学习统计</h2><p class="preview-report-scope">系统主课 · 首答与订正分别保存</p><div class="preview-metrics"><article><span>早晚完成课程</span><strong>${done}</strong><small> / ${lessons.length}</small></article><article><span>主课首答正确率</span><strong>${first.length?Math.round(correctN/first.length*100)+"%":"—"}</strong><small>${first.length?"":" 尚未作答"}</small></article><article><span>主课练习提交</span><strong>${events.length}</strong><small> 次</small></article><article><span>已完成考核</span><strong>${tests.length}</strong><small> 份</small></article></div><div class="preview-context"><span>${names[s.stage]}主课覆盖</span><span>${lessons.filter(l=>l.stage===s.stage&&s.records[l.id]?.completed).length} / ${lessons.filter(l=>l.stage===s.stage).length}</span></div><div class="preview-track"><i style="width:${lessons.filter(l=>l.stage===s.stage&&s.records[l.id]?.completed).length/lessons.filter(l=>l.stage===s.stage).length*100}%"></i></div><p class="preview-report-scope">主课完成不等于阶段达标；晚练为自确认。</p>`)+panel(`<h2>最近考核</h2><div class="preview-history">${tests.slice(-3).reverse().map(([id,r])=>`<article><strong>${esc(s.scheduled.find(t=>t.id===id)?.title||id)} · ${r.score}%</strong><small>${r.date} · ${r.seed?"预置示例":"已交卷"}</small><button class="btn btn-quiet btn-small" data-open-test="${id}">查看结果</button></article>`).join("")||"<p>完成测试后这里出现成绩。</p>"}</div>`)+`<details class="preview-policy"><summary>近期作答与统计来源</summary><button class="btn btn-secondary" data-export-report>导出完整学习报告与备份</button><p>这里展示当前系统主课的首答、订正和考核。导出备份包含本机保存的系统课、历史答案与装扮；墨滴仔可从上方标签查看。</p>${events.slice(-8).reverse().map(e=>`<p>${esc(e.skill)} · ${e.correct?"正确":"待复习"} · ${e.date}</p>`).join("")}</details>`);
 }
@@ -10500,13 +10569,16 @@ if(d.tab){const screen=d.tab==="learn"?"home":d.tab;go(screen,d.tab);}
 else if(b.id==="preview-settings"){if(s.screen==="settings")go("home","learn");else go("settings",s.tab);}
 else if("practicePrev"in d){s.cursor.i=Math.max(0,s.cursor.i-1);save();render();}else if("home"in d)go("home","learn");
 else if(d.period){s.period=d.period;if(d.period==="night"&&!s.manualLessonId){const id=window.ModiMobileBridge.dayLesson(s,DATE);if(id){s.lessonId=id;s.cursor={kind:"night",i:0};}}go("home","learn");}
+else if(d.reviewNight){s.nightReturn||={lessonId:s.lessonId,period:s.period};s.lessonId=d.reviewNight;s.manualLessonId=d.reviewNight;s.period="night";go("home","learn");}
+else if("nightReturn"in d){const back=s.nightReturn;delete s.nightReturn;delete s.manualLessonId;if(back)Object.assign(s,back);go("home","learn");}
+else if("reportContinue"in d)go("home","learn");
 else if("browseCards"in d)openDayCards();
 else if("browseBack"in d)closeDayCards();
 else if("browseNotes"in d){referenceReturn={screen:s.screen,lessonId:s.lessonId};go("reference",s.tab);}
 else if("exportReport"in d)document.getElementById("export-study-report").click();
 else if(d.guideTool){if(d.guideTool==="library"){resourceStage=s.stage==="KANA"?"N5":s.stage;go("library","learn");}else if(d.guideTool==="report"){reportTab="data";go("report","report");}else if(d.guideTool==="tests"){testTab="history";go("tests","tests");}else go("settings",s.tab);}
-else if(d.libraryStage){resourceStage=d.libraryStage;resourcePage=0;render();}
-else if(d.libraryKind){resourceKind=d.libraryKind;resourcePage=0;render();}
+else if(d.libraryStage){resourceStage=d.libraryStage;resourcePage=0;render();document.querySelector(`[data-library-stage="${resourceStage}"]`)?.focus({preventScroll:true});}
+else if(d.libraryKind){resourceKind=d.libraryKind;resourcePage=0;render();document.querySelector(`[data-library-kind="${resourceKind}"]`)?.focus({preventScroll:true});}
 else if(d.libraryPage){resourcePage+=Number(d.libraryPage);render();}
 else if("directory"in d)go("directory","learn");
 else if(d.dirStage){directoryStage=d.dirStage;render();}
@@ -10533,27 +10605,64 @@ const learningDateLabel=l=>{
     ...Object.values(r.cardDates||{}),...(s.events||[]).filter(e=>(e.lesson||e.source)===l.id).map(e=>e.date)].filter(Boolean).sort();
   return days.at(-1)||null;
 };
+function dayProgress(l,r){
+  const ids=[...l.vocabulary.flatMap((_,i)=>[`word:${l.id}:${i}`,`dict:${l.id}:${i}`]),
+    ...l.tasks.map((_,i)=>`apply:${l.id}:${i}`),`read:${l.id}`,`listen:${l.id}`,
+    ...(l.coverageLesson?[]:[`keyword:${l.id}`,`sentence:${l.id}`]),...window.ModiDailyCurriculum.tasks(l).map(q=>q.id)];
+  return [
+    {label:"词卡",done:l.vocabulary.filter((_,i)=>r.cards?.includes(i)).length,total:l.vocabulary.length},
+    {label:"讲解",done:l.grammar.filter((_,i)=>r.teach?.includes(i)).length,total:l.grammar.length},
+    {label:"练习",done:ids.filter(id=>r.answers?.[id]?.length).length,total:ids.length},
+    {label:"自检",done:window.ModiDailyCurriculum.checks(l).filter(c=>r.depthChecks?.[c.id]?.confirmed).length,total:window.ModiDailyCurriculum.checks(l).length}
+  ];
+}
+const pendingNights=()=>lessons.filter(l=>s.records[l.id]?.dayDone&&!["read","shadow","recall"].every(k=>s.records[l.id].night?.[k]));
+function lessonStatus(l){
+  const r=s.records[l.id];
+  if(!r)return "未开始";
+  const wrong=Object.values(r.answers||{}).some(a=>a.length&&!a.at(-1)?.correct);
+  if(r.completed)return wrong?"已完成 · 待复习":"已完成";
+  if(r.dayDone)return "白天完成 · 待补晚练";
+  if(r.previousCompletion)return "补充课待完成";
+  return wrong?"进行中 · 待复习":r.cards?.length||r.teach?.length?"进行中":"未开始";
+}
+function moveToNext(l){
+  const next=lessons[lessons.indexOf(l)+1];
+  if(next){s.lessonId=next.id;s.stage=next.stage;s.period="day";s.cursor={kind:"cards",i:0};delete s.manualLessonId;}
+  go("home","learn");
+}
+function renderReportOrientation(){
+  const dayDone=lessons.filter(l=>s.records[l.id]?.dayDone).length,nightPending=pendingNights().length,l=current();
+  $("preview-content").insertAdjacentHTML("beforeend",`<section class="learning-report-overview" aria-label="当前学习进度"><h1>学习进度</h1><div class="learning-report-summary"><p><strong>${dayDone}</strong> 课白天已完成</p><p><strong>${nightPending}</strong> 课待补晚练</p></div><div class="preview-context"><span>${esc(names[l.stage])} · 第 ${l.number} 课</span><button class="btn btn-secondary" data-report-continue>回到当前课</button></div></section>`);
+}
 function renderHome(){
   const l=current(),r=record(),tasks=due(),nightDone=["read","shadow","recall"].every(k=>r.night[k]);
-  const sourceDate=learningDateLabel(l);
+  const sourceDate=learningDateLabel(l),progress=dayProgress(l,r),remaining=progress.filter(p=>p.done<p.total);
+  const pending=pendingNights().filter(v=>v.id!==l.id),next=lessons[lessons.indexOf(l)+1];
+  const transition=s.dayTransition?.date===DATE&&s.dayTransition.to===l.id;
   $("preview-content").innerHTML=petSmall(tasks.length?"有考核待做，也可以先继续当前课。":"白天学新内容，晚上巩固同一课。")+
     `<div class="preview-tabs" role="tablist" aria-label="学习时段"><button data-period="day" role="tab" aria-selected="${s.period==="day"}">白天 · 学习</button><button data-period="night" role="tab" aria-selected="${s.period==="night"}">晚间 · 巩固</button></div>`+
+    (transition?`<p class="learning-date-note" role="status">${DATE} · 已衔接下一课，上一课记录保留。</p>`:"")+
     (tasks.length?`<div class="preview-due" role="status"><div><strong>${tasks.some(t=>t.date<DATE)?"有测试尚未完成":"今天有测试待做"}</strong><small>${esc(tasks[0].title)}${tasks.length>1?`等 ${tasks.length} 项`:""}</small></div><button class="btn btn-secondary" data-open-test="${esc(tasks[0].id)}">去测试</button></div>`:"")+
     panel(`<div class="preview-context"><span>${esc(names[l.stage])} · 第 ${l.number} 课</span><button class="btn btn-quiet btn-small" data-directory>课程</button></div><h1>${esc(l.title.replace(/^平假名：/,""))}</h1>
       <p>${s.period==="night"?"朗读 → 跟读 → 遮文复现，沿用这节课的已学词句。":r.dayDone?"白天已完成，可回看词卡与讲解。":"已学回忆 → 新词与讲解 → 练习与自检"}</p>
       ${s.period==="night"?`<p class="preview-small">材料来源：${sourceDate?sourceDate+" 白天学习":"当前所选课程"} · 第 ${l.number} 课${sourceDate&&sourceDate!==DATE?"（历史课）":""}</p>`:""}
-      <div class="preview-line"><span>白天</span><span>${r.dayDone?"已完成":r.previousCompletion?"补充课程待完成":"待完成"}</span></div>
-      <div class="preview-line"><span>晚间</span><span>${nightDone?"已完成":"待完成"}</span></div>
+      ${s.nightReturn?'<button class="btn btn-secondary" data-night-return>返回原来的白天课程</button>':""}
+      <div class="learning-session-status"><span>白天 · ${r.dayDone?"已完成":r.previousCompletion?"待补充":"待完成"}</span><span>晚间 · ${nightDone?"已完成":"待完成"}</span></div>
+      ${s.period==="day"?`<ol class="learning-step-status" aria-label="本课白天完成进度">${progress.map(p=>`<li class="${p.done===p.total?"is-done":""}"><span>${p.label}</span><b>${p.done} / ${p.total}</b><small>${p.done===p.total?"已完成":"待完成"}</small></li>`).join("")}</ol>
+      ${remaining.length?`<p class="learning-remaining">${r.previousCompletion?"旧课记录保留；当前补充内容还需":"本课还需"}${remaining.map(p=>`${p.total-p.done} ${p.label==="练习"?"题":p.label==="自检"?"项":p.label==="词卡"?"张":"页"}${p.label}`).join("、")}。完成后次日衔接下一课。</p>`:""}`:""}
       <div class="learning-material-actions"><button class="btn btn-secondary" data-browse-cards>回看白天词卡</button><button class="btn btn-quiet" data-browse-notes>回看本课讲解</button></div>
-      <details class="preview-policy"><summary>课量与学习记录</summary><p>${l.vocabulary.length} 张词卡 · ${l.grammar.length} 页讲解 · ${2*l.vocabulary.length+l.tasks.length+(l.coverageLesson?2:4)+window.ModiDailyCurriculum.tasks(l).length} 道练习 · 2 项自检。白天可戴耳机，无需出声；45–60 分钟为试运行预算。</p><p>已完成的晚练跨日保留；回看不重新判题，也不清除进度。</p></details>`)+
+      <details class="preview-policy"><summary>课量与学习记录</summary><p>${l.vocabulary.length} 张词卡 · ${l.grammar.length} 页讲解 · ${2*l.vocabulary.length+l.tasks.length+(l.coverageLesson?2:4)+window.ModiDailyCurriculum.tasks(l).length} 道练习 · 2 项自检。白天可戴耳机，无需出声；45–60 分钟为试运行预算。</p><p>白天完成后次日自动衔接；晚练可另行补做。回看与切课保留原记录。</p></details>`)+
+    (pending.length?panel(`<h2>待补晚练 <small>${pending.length} 课</small></h2><p>可继续白天新课，晚练记录分别保留。</p><div class="learning-pending-nights">${pending.slice(-3).reverse().map(v=>`<button class="btn btn-secondary" data-review-night="${v.id}"><span>第 ${v.number} 课 · ${esc(v.title.replace(/^平假名：/,""))}</span><small>补晚练 →</small></button>`).join("")}</div>${pending.length>3?'<p class="preview-small">更多历史课程可从“课程”查看。</p>':""}`):"")+
     `<p class="preview-small">记录自动保存在当前设备的浏览器。</p>`;
-  setPrimary(r.completed?"查看下一课":s.period==="night"?(nightDone?"返回白天学习":"继续晚间巩固"):r.dayDone?"白天已完成":"开始 / 继续学习",()=>{
-    if(r.completed){const next=lessons[lessons.indexOf(l)+1];if(next){s.lessonId=next.id;s.period="day";s.cursor={kind:"cards",i:0};delete s.manualLessonId;}return go("home","learn");}
+  setPrimary(s.nightReturn&&nightDone?"返回原来的白天课程":r.completed&&next?"查看下一课":s.period==="night"?(nightDone?"返回白天学习":"继续晚间巩固"):r.dayDone?(next?"查看下一课":"白天已完成"):"开始 / 继续学习",()=>{
+    if(s.nightReturn&&nightDone){const back=s.nightReturn;delete s.nightReturn;delete s.manualLessonId;Object.assign(s,back);return go("home","learn");}
+    if(r.completed&&next)return moveToNext(l);
     if(s.period==="night"){
       if(nightDone){s.period="day";return go("home","learn");}
       s.cursor={kind:"night",i:["read","shadow","recall"].findIndex(k=>!r.night[k])};return go("learning","learn");
     }
-    if(r.dayDone)return go("home","learn");
+    if(r.dayDone)return next?moveToNext(l):go("home","learn");
     chooseCursor();go(s.screen==="day-end"?"day-end":"learning","learn");
   });
 }
@@ -10569,7 +10678,7 @@ function renderSettings(){
       <li><b>回忆旧词</b><span>先做已学回忆</span></li><li><b>词卡与讲解</b><span>认识新词，理解用法</span></li><li><b>练习与自检</b><span>答题、耳机听辨、书写</span></li></ol></section>
     <section class="learning-route" aria-label="晚间学习路径"><h2>${svg("night")}晚间 · 同课巩固</h2><ol>
       <li><b>朗读</b><span>读白天已学词句</span></li><li><b>跟读</b><span>听示范，跟两遍</span></li><li><b>遮文复现</b><span>看中文回忆日语</span></li></ol></section>
-    <p class="guide-submit-note">选好答案 → 点“下一题”提交；答错先看解析。晚练完成后跨日保留。</p>
+    <details class="preview-policy"><summary>答题与跨日衔接</summary><p>选好答案 → 点“下一题”提交；答错先看解析。白天完成后次日衔接下一课，未完成时接着剩余步骤。晚间记录跨日保留，待补晚练可单独进入。</p></details>
     <nav class="learning-guide-links" aria-label="学习工具">
       <button data-guide-tool="library">${svg("words")}<span><b>分级词库与文型</b><small>当前 N5–N2 资源，可检索</small></span><span aria-hidden="true">→</span></button>
       <button data-guide-tool="report">${svg("report")}<span><b>完整学习报告</b><small>当前进度、成绩、备份与墨滴仔</small></span><span aria-hidden="true">→</span></button>
@@ -10603,10 +10712,10 @@ function renderResourceLibrary(){
   const size=14,pages=Math.max(1,Math.ceil(pool.length/size));resourcePage=Math.max(0,Math.min(pages-1,resourcePage));
   const rows=pool.slice(resourcePage*size,(resourcePage+1)*size);
   $("preview-content").innerHTML=`<div class="preview-context"><button class="btn btn-quiet btn-small" data-guide-tool="guide">返回导览</button><span>当前分级教学资源</span></div>`+
-    panel(`<h1>分级词库与文型</h1><div class="preview-tabs" aria-label="资源级别">${["N5","N4","N3","N2"].map(stage=>`<button data-library-stage="${stage}" aria-pressed="${stage===resourceStage}">${stage}</button>`).join("")}</div>
-    <div class="learning-material-actions" aria-label="资源类型">${[["vocabulary","词汇"],["grammar","文型"],["kanji","汉字"]].map(([kind,label])=>`<button class="btn btn-quiet" data-library-kind="${kind}" aria-pressed="${kind===resourceKind}">${label}</button>`).join("")}</div>
+    panel(`<h1>分级词库与文型</h1><div class="preview-tabs learning-levels" role="group" aria-label="资源级别">${["N5","N4","N3","N2"].map(stage=>`<button data-library-stage="${stage}" aria-pressed="${stage===resourceStage}">${stage}<span class="learning-level-mark" aria-hidden="true">✓</span></button>`).join("")}</div>
+    <div class="learning-material-actions learning-library-kinds" role="group" aria-label="资源类型">${[["vocabulary","词汇"],["grammar","文型"],["kanji","汉字"]].map(([kind,label])=>`<button class="btn btn-quiet" data-library-kind="${kind}" aria-pressed="${kind===resourceKind}">${label}</button>`).join("")}</div>
     <form id="learning-library-search" class="learning-library-search"><label for="learning-library-query">搜索日文、读音或词义</label><div><input id="learning-library-query" value="${esc(resourceQuery)}" autocomplete="off"><button class="btn btn-secondary" type="submit">搜索</button></div></form>
-    <p class="preview-small">${resourceStage} · ${pool.length} 项 · 第 ${resourcePage+1} / ${pages} 页。资源已编入主课与巩固课，浏览不会代替答题。</p>
+    <p class="learning-library-current" role="status" aria-live="polite">当前：${resourceStage} ${ {vocabulary:"词汇",grammar:"文型",kanji:"汉字"}[resourceKind]} · ${pool.length} 项</p><p class="preview-small">第 ${resourcePage+1} / ${pages} 页 · 浏览不代替答题。</p>
     <div class="learning-library-rows">${rows.map(v=>{
       if(resourceKind==="vocabulary")return `<article><h2 lang="ja">${esc(v.word)}</h2><p>${esc(v.reading)} · ${esc(meaning(v))}</p><button class="btn btn-quiet btn-small" data-speak="${esc(v.reading)}">听发音</button>${v.examples?.length?`<details class="preview-policy"><summary>源词典例句与英文对照</summary>${v.examples.slice(0,3).map(e=>`<p lang="ja">${esc(e.ja)}</p><p>${esc(e.en)}</p>`).join("")}</details>`:""}</article>`;
       if(resourceKind==="kanji")return `<article><h2 lang="ja">${esc(v.character)}</h2><p>${esc(meaning(v))}</p><p>音读：${esc(v.onyomi.join("／"))}<br>训读：${esc(v.kunyomi.join("／"))}<br>关联词：${esc(v.words.join("／"))}</p></article>`;
