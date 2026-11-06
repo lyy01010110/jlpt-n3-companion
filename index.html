@@ -2228,6 +2228,162 @@ body .preview-nav.main-nav::before { border-radius: 21px; }
 }
 
 </style>
+  <style>
+/* Approved material styling: shared roles, thin highlights, and consistent elevation. */
+:root {
+  --trial-ink: #422b3c;
+  --trial-secondary: #503648;
+  --trial-brand: #805369;
+  --trial-focus: #716a9b;
+  --trial-selection: #7d83ad;
+  --trial-rule: rgb(108 76 99 / 18%);
+  --trial-radius-card: 26px;
+  --trial-radius-control: 16px;
+  --trial-radius-small: 12px;
+  --trial-shadow-contact: 0 2px 4px rgb(82 49 71 / 9%);
+  --trial-shadow-float: 0 12px 26px rgb(107 69 95 / 9%);
+  --trial-edge: inset 0 1px 1px rgb(255 255 255 / 68%),
+    inset 0 -1px 2px rgb(133 102 128 / 15%);
+  --trial-shadow-card: var(--trial-edge), var(--trial-shadow-contact), var(--trial-shadow-float);
+  --trial-shadow-control: var(--trial-edge),
+    0 1px 3px rgb(82 49 71 / 9%), 0 5px 10px rgb(107 69 95 / 6%);
+}
+#preview-app { color: var(--trial-ink); }
+.preview-top strong { font-weight: 650; letter-spacing: .1px; }
+.preview-top .btn { background: #ffffff20; border-color: #ffffff85; color: var(--trial-secondary); }
+.preview-pane :is(h1,h2),.preview-options button { color: var(--trial-ink); }
+.preview-pane h1 { font-size: 23px; font-weight: 650; line-height: 1.45; }
+.preview-pane h2 { font-size: 20px; font-weight: 650; line-height: 1.5; margin-bottom: 16px; }
+.preview-pane p,.preview-small,.preview-context,.preview-report-scope,.preview-policy summary {
+  color: var(--trial-secondary);
+}
+.preview-pane p { line-height: 1.8; }
+.preview-context { gap: 8px; }
+.preview-context .btn { min-height: 44px; }
+.preview-context,.preview-small { font-size: 13px; }
+body .preview-pane.lesson-shell,body .preview-panel.lesson-shell {
+  background: rgb(255 255 255 / 10%) !important;
+  border-color: rgb(255 255 255 / 65%) !important;
+  border-radius: var(--trial-radius-card);
+  box-shadow: var(--trial-shadow-card) !important;
+}
+body :is(.preview-pane.lesson-shell,.preview-panel.lesson-shell,.preview-nav.main-nav)::before {
+  inset: 2px; border-width: 1px;
+  background: linear-gradient(140deg,#ffffff72,transparent 33%,#ffffff08 67%,#ffffff38 91%,transparent);
+}
+body .preview-nav.main-nav {
+  background: rgb(255 255 255 / 18%) !important;
+  border-color: #ffffffa0;
+  box-shadow: var(--trial-edge), 0 2px 4px #65415a18, 0 12px 26px #65415a1c;
+}
+.preview-nav.main-nav .nav-btn { color: var(--trial-secondary); }
+.preview-nav.main-nav .nav-btn.is-active {
+  background: #ffffff60; color: var(--trial-ink);
+  box-shadow: inset 0 1px 1px #ffffff90,0 2px 5px #65415a0c;
+}
+.preview-nav.main-nav .nav-btn.is-active b { font-weight: 650; }
+.preview-nav.main-nav .nav-btn.is-active::after {
+  content: ""; position: absolute; bottom: 4px; left: calc(50% - 5px);
+  width: 10px; height: 2px; border-radius: 2px; background: var(--trial-selection);
+  pointer-events: none;
+}
+.preview-options { gap: 12px; margin-top: 20px; }
+.preview-options button {
+  --option-glass-shadow: var(--trial-shadow-control);
+  min-height: 56px; padding: 12px 16px; font-size: 20px; line-height: 1.4;
+  border-radius: var(--trial-radius-control); border-color: #ffffffa0;
+  background: #ffffff30;
+  /* The parent already samples the backdrop; avoid an extra nested blur surface. */
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+.preview-options button.picked {
+  background: #ffffff30; border-color: var(--trial-selection);
+  box-shadow: var(--trial-shadow-control);
+}
+.preview-options button::after {
+  inset: 2px; border-width: 1px; border-radius: 13px;
+  background: linear-gradient(140deg,#ffffff75,transparent 34%,#ffffff08 68%,#ffffff38 91%,transparent);
+}
+.preview-options button.right { background: #dbe7f3aa; border-color: #9eb4cd; }
+.preview-options button.wrong { background: #eed9e5b0; border-color: #b98aa1; }
+.preview-study-card .study-word {
+  --trial-word-edge: inset 0 1px 4px #ffffff70,inset 0 -1px 5px #947a911a;
+  background: linear-gradient(145deg,#ffffff55,#ffffff24);
+  border-radius: 24px; border-color: #ffffff70;
+  -webkit-backdrop-filter: blur(6px) saturate(135%);
+  backdrop-filter: blur(6px) saturate(135%);
+  box-shadow: var(--trial-word-edge),0 3px 5px #65415a18,0 13px 24px #65415a1c;
+  color: var(--trial-ink);
+}
+.preview-study-card .study-word[aria-pressed=true] {
+  --trial-word-edge: inset 0 1px 4px #ffffff85,inset 0 -1px 5px #947a911a;
+  border-color: #ffffff90;
+  background: linear-gradient(145deg,#ffffff80,#ffffff35);
+  box-shadow: var(--trial-word-edge),0 3px 5px #65415a20,0 18px 30px #65415a24;
+}
+.preview-study-card .study-word strong { font-size: 29px; font-weight: 600; line-height: 1.4; }
+.preview-study-card .study-word :is(small,span) { color: var(--trial-secondary); font-size: 12px; }
+.preview-study-card .word-explanation {
+  padding: 16px 18px; margin-top: 12px; border-radius: 22px;
+  background: #ffffff40; border-color: #ffffffa0; box-shadow: var(--trial-shadow-card);
+}
+.preview-study-card .word-explanation h2 { font-size: 27px; font-weight: 650; margin-bottom: 6px; }
+.preview-study-card .word-explanation p { color: var(--trial-secondary); line-height: 1.6; }
+.preview-study-card .inline-actions { margin-top: 12px; gap: 12px; }
+.preview-study-card .inline-actions .btn { min-height: 44px; }
+.preview-study-card .deck-pages { margin-top: 8px; font-variant-numeric: tabular-nums; }
+.preview-study-card .deck-pages .btn { min-height: 44px; }
+.preview-tabs { border-color: #ffffff95; padding: 4px; gap: 4px; }
+.preview-tabs button { min-height: 44px; color: var(--trial-secondary); }
+.preview-tabs button[aria-selected=true] { background: #ffffff65; color: var(--trial-ink); font-weight: 600; }
+body:has([data-report-tab]) .preview-pane.lesson-shell {
+  background: rgb(255 255 255 / 24%) !important;
+}
+.preview-metrics { gap: 20px 16px; margin: 20px 0 24px; }
+.preview-metrics article { padding-bottom: 14px; border-color: var(--trial-rule); }
+.preview-metrics span { color: var(--trial-secondary); font-size: 13px; margin-bottom: 6px; }
+.preview-metrics strong {
+  font-size: 29px; line-height: 1.2; font-weight: 650; color: #625078;
+  font-variant-numeric: tabular-nums; letter-spacing: -.4px;
+}
+.preview-metrics small { color: var(--trial-secondary); font-size: 12px; }
+.preview-track { height: 7px; background: #aa96b330; box-shadow: inset 0 1px 2px #70547718; }
+.preview-track i { background: #8d9fba; }
+.preview-history article { border-color: var(--trial-rule); }
+body:has(.preview-wardrobe) .preview-pane.lesson-shell { background: #ffffff30 !important; }
+.preview-growth { gap: 8px; }
+.preview-growth > span { background: #ffffff18; border-color: #ffffff90; line-height: 1.5; }
+.preview-growth .reached { background: #ffffff50; border-color: var(--trial-selection); }
+.preview-growth small { font-size: 11px; }
+.preview-outfit-slots > div { background: #ffffff38; border: 1px solid #ffffff70; border-radius: var(--trial-radius-small); }
+.preview-wardrobe { gap: 12px; }
+.preview-wardrobe article {
+  padding: 16px 12px; gap: 10px; border-radius: 18px; border-color: #ffffffa0;
+  background: #ffffff28; box-shadow: var(--trial-shadow-control);
+}
+.preview-wardrobe article.is-equipped { background: #e8eaff45; border-color: var(--trial-selection); }
+.preview-wardrobe h3 { font-size: 16px; font-weight: 600; line-height: 1.5; color: var(--trial-ink); }
+.preview-wardrobe p { color: var(--trial-secondary); line-height: 1.65; }
+.preview-wardrobe article:has(button:disabled) img { opacity: .6; filter: saturate(.65); }
+.preview-wardrobe article:has(button:disabled) { box-shadow: var(--trial-edge),0 1px 3px #65415a0a; }
+.preview-wardrobe button[aria-pressed=true] { border-color: var(--trial-selection); color: var(--trial-ink); background: #ffffff55; }
+.preview-wardrobe button:disabled { opacity: 1; color: var(--trial-secondary); }
+#preview-app :is(button,input,select):focus-visible {
+  outline: 2px solid var(--trial-focus); outline-offset: 3px;
+}
+#preview-content { scrollbar-color: #b29ab0 transparent; }
+#preview-app ::selection { background: #d5b4d0; color: var(--trial-ink); }
+#preview-app input { caret-color: var(--trial-brand); }
+html[data-trial-transparency="reduced"] body :is(.preview-pane.lesson-shell,.preview-panel.lesson-shell,.preview-nav.main-nav) {
+  background: #f1e6eedf !important; -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+@media(max-width:359px) {
+  .preview-pane h1 { font-size: 21px; }
+  .preview-options button { font-size: 19px; }
+  .preview-context { font-size: 12px; }
+}
+
+</style>
 </head>
 <body>
   <div class="cloud-background" aria-hidden="true"></div>
