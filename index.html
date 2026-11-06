@@ -2398,7 +2398,14 @@ html[data-trial-transparency="reduced"] body :is(.preview-pane.lesson-shell,.pre
 .learning-route li:not(:last-child)::after { content:""; position:absolute; left:34px; right:-4px; top:13px; height:1px; background:#b6a6bb85; }
 .learning-route li b { font-size:14px; line-height:1.5; font-weight:600; }
 .learning-route li span { font-size:12px; line-height:1.6; color:var(--trial-secondary); }
-.guide-submit-note { padding:16px 0; border-block:1px solid var(--trial-rule); font-size:13px; }
+.learning-guide.preview-pane { margin-block:12px; }
+.learning-guide .learning-route { margin:16px 0; }
+.learning-guide .learning-route h2 { margin-bottom:12px; }
+.learning-guide .learning-guide-context { margin:12px 0 20px; font-size:13px; line-height:1.7; }
+.learning-guide .learning-tools-title { margin:20px 0 12px; font-size:16px; }
+.learning-guide .learning-guide-links { margin:0 0 16px; }
+.learning-guide-help { border-top:1px solid var(--trial-rule); padding-top:4px; }
+.learning-guide-help h3 { margin:20px 0 6px; font-size:14px; line-height:1.6; color:var(--trial-ink); }
 .learning-guide-links { display:grid; gap:12px; margin:24px 0; }
 .learning-guide-links button { width:100%; min-height:70px; padding:12px 16px; display:flex; align-items:center; gap:12px; color:var(--trial-ink); background:#ffffff30; border:1px solid #ffffffa0; border-radius:16px; box-shadow:var(--trial-shadow-control); text-align:left; font:inherit; cursor:pointer; }
 .learning-guide-links button>span:nth-child(2) { display:grid; gap:5px; flex:1; min-width:0; }
@@ -2456,6 +2463,165 @@ html[data-trial-transparency="reduced"] body :is(.preview-pane.lesson-shell,.pre
   .learning-step-status { grid-template-columns:repeat(2,minmax(0,1fr)); }
 }
 @media(prefers-reduced-motion:reduce) { .learning-levels button { transition:none; } }
+
+/* Row 3: reading size and content-driven reflow; keep the approved material. */
+#preview-app {
+  --learning-body:1rem;
+  --learning-note:.875rem;
+  --learning-space:clamp(12px,4vw,20px);
+  font-size:var(--learning-body);
+}
+#preview-content { padding-inline:var(--learning-space); }
+#preview-app .preview-pane { padding:var(--learning-space); min-width:0; }
+#preview-app .preview-pane h1 { font-size:1.4375rem; line-height:1.45; }
+#preview-app .preview-pane h2 { font-size:1.25rem; line-height:1.5; }
+#preview-app .preview-pane p { font-size:var(--learning-body); line-height:1.75; }
+#preview-app :is(.preview-small,.preview-pane .preview-small,.learning-guide-context,
+  .learning-remaining,.preview-policy p,.preview-policy li,.preview-policy summary,
+  .preview-context,.preview-feedback,.learning-library-search) {
+  font-size:var(--learning-note); line-height:1.7;
+}
+#preview-app .preview-pane :is(p,h1,h2,h3),#preview-app .preview-options button {
+  word-break:normal; overflow-wrap:anywhere; line-break:strict;
+}
+#preview-app .preview-options { min-width:0; grid-template-columns:minmax(0,1fr); }
+#preview-app .preview-options button {
+  min-width:0; max-width:100%; height:auto; white-space:normal;
+  font-size:1.125rem; line-height:1.65; padding:12px 14px;
+}
+#preview-app :is(.preview-context,.preview-line,.preview-due) { flex-wrap:wrap; }
+#preview-app .preview-context .btn { flex-shrink:0; }
+#preview-app .btn { max-width:100%; white-space:normal; overflow-wrap:anywhere; line-height:1.5; }
+#preview-app :is(.learning-material-actions,.preview-audio,.inline-actions) { gap:12px; flex-wrap:wrap; }
+#preview-app .learning-material-actions .btn { flex-basis:9rem; min-width:0; }
+#preview-app .learning-library-kinds { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); }
+#preview-app .learning-library-search { grid-template-columns:minmax(0,1fr); }
+#preview-app .learning-library-search>div { min-width:0; flex-wrap:wrap; gap:12px; }
+#preview-app .learning-library-search input { flex:1 1 8rem; width:auto; max-width:100%; font-size:1rem; }
+#preview-app .learning-library-search .btn { min-height:44px; min-width:min(100%,4.5rem); font-size:var(--learning-note); }
+#preview-app .learning-levels { gap:8px; }
+#preview-app .learning-levels button { min-width:0; font-size:var(--learning-note); padding-inline:4px; }
+#preview-app .learning-step-status { grid-template-columns:repeat(auto-fit,minmax(min(100%,5rem),1fr)); }
+#preview-app .learning-step-status b { white-space:normal; }
+#preview-app .preview-metrics { grid-template-columns:repeat(auto-fit,minmax(min(100%,8rem),1fr)); }
+#preview-app .preview-metrics article { min-width:0; overflow-wrap:anywhere; }
+#preview-app .learning-guide { container:learning-guide / inline-size; }
+#preview-app .learning-guide .learning-route h2 { font-size:1.125rem; gap:8px; }
+#preview-app .learning-route li b { font-size:1rem; line-height:1.5; }
+#preview-app .learning-route li span { font-size:var(--learning-note); line-height:1.65; }
+#preview-app .learning-guide-links b { font-size:1rem; }
+#preview-app .learning-guide-links small { font-size:var(--learning-note); }
+#preview-app .learning-guide-help h3 { font-size:1rem; }
+@container learning-guide (max-width:18rem) {
+  #preview-app .learning-route ol { grid-template-columns:minmax(0,1fr); gap:12px; }
+  #preview-app .learning-route li { padding:0 0 0 38px; min-height:32px; gap:2px; }
+  #preview-app .learning-route li:not(:last-child)::after {
+    left:13px; right:auto; top:30px; bottom:-8px; width:1px; height:auto;
+  }
+}
+
+/* Row 4: report values have explicit units and comparable, labelled rails. */
+#preview-app .learning-report-overview { padding:4px 0 8px; }
+#preview-app .learning-report-panel h2 { margin-bottom:12px; }
+#preview-app .learning-report-panel h3 { margin:0; font-size:1rem; line-height:1.5; font-weight:600; }
+#preview-app .learning-report-completion { margin:12px 0 16px; gap:16px 24px; }
+#preview-app .learning-report-completion article { padding-bottom:12px; }
+#preview-app .learning-report-completion span { font-size:.875rem; line-height:1.6; margin-bottom:6px; }
+#preview-app .learning-report-completion strong { font-size:2rem; line-height:1.3; color:var(--trial-ink); }
+#preview-app .learning-report-completion small { font-size:.875rem; line-height:1.6; }
+#preview-app .learning-report-pending { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; }
+#preview-app .learning-report-pending p { margin:0; font-size:1rem; }
+#preview-app .learning-report-pending strong { font-variant-numeric:tabular-nums; }
+#preview-app .learning-report-pending .btn { min-height:44px; font-size:.875rem; }
+#preview-app .learning-report-value { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:8px 16px; }
+#preview-app .learning-report-value>:first-child { flex:1 1 8rem; min-width:0; overflow-wrap:anywhere; }
+#preview-app .learning-report-value>:last-child { flex:none; font-variant-numeric:tabular-nums; }
+#preview-app .learning-report-accuracy { margin-block:16px 24px; }
+#preview-app .learning-report-accuracy strong { font-size:1.75rem; font-weight:650; line-height:1.3; color:var(--trial-ink); }
+#preview-app .learning-report-rail { height:8px; margin-block:10px 8px; border-radius:8px; background:#75647c26; overflow:hidden; }
+#preview-app .learning-report-rail i { display:block; height:100%; background:#7f9db7; border-radius:inherit; }
+#preview-app .learning-report-accuracy.is-latest .learning-report-rail i { background:#9a8ab0; }
+#preview-app .learning-report-panel .learning-report-accuracy p { margin:0; }
+#preview-app .learning-report-counts { display:flex; flex-wrap:wrap; gap:8px 24px; margin-top:16px; padding-top:12px; border-top:1px solid var(--trial-rule); }
+#preview-app .learning-report-counts p { margin:0; font-size:.875rem; }
+#preview-app .learning-report-counts strong { font-size:1rem; font-weight:600; color:var(--trial-ink); font-variant-numeric:tabular-nums; }
+#preview-app .learning-report-stage { margin-block:16px 20px; }
+#preview-app .learning-report-stage .learning-report-value span { font-size:.875rem; }
+#preview-app .learning-report-stage .learning-report-value strong { font-size:1.25rem; color:var(--trial-ink); }
+#preview-app .learning-report-stage .learning-report-rail { height:6px; }
+#preview-app .learning-report-stage p { margin:0; }
+#preview-app .learning-report-other-stages { border-top:1px solid var(--trial-rule); }
+#preview-app .learning-report-panel .preview-history article { padding-block:16px; }
+#preview-app .learning-report-panel .preview-history strong { font-size:1rem; line-height:1.6; }
+#preview-app .learning-report-panel .learning-report-score { font-size:1.375rem; font-weight:650; line-height:1.4; color:var(--trial-ink); }
+#preview-app .learning-report-panel .preview-history small { font-size:.875rem; line-height:1.7; margin-block:6px 12px; }
+#preview-app .learning-report-source { margin-block:20px; }
+
+/* Row 5: safe-area chrome stays separate from the scrollable learning content. */
+body { touch-action:pan-y pinch-zoom; }
+#preview-app .study-deck { touch-action:pan-y pinch-zoom; }
+#preview-app {
+  top:var(--learning-viewport-top,0px);
+  height:var(--learning-viewport-height,100dvh);
+  bottom:auto;
+  --learning-safe-top:env(safe-area-inset-top,0px);
+  --learning-safe-left:env(safe-area-inset-left,0px);
+  --learning-safe-right:env(safe-area-inset-right,0px);
+  --learning-safe-bottom:env(safe-area-inset-bottom,0px);
+}
+#preview-app .preview-top {
+  padding-top:max(10px,var(--learning-safe-top));
+  padding-left:max(16px,var(--learning-safe-left));
+  padding-right:max(16px,var(--learning-safe-right));
+}
+#preview-content {
+  margin:0; width:100%; max-width:none;
+  /* Legacy desktop main rules use !important; scope their mobile replacement. */
+  padding-top:7px!important; padding-bottom:16px!important;
+  padding-left:max(var(--learning-space),var(--learning-safe-left))!important;
+  padding-right:max(var(--learning-space),var(--learning-safe-right))!important;
+  scroll-padding-block:16px;
+}
+#preview-content:has(.preview-study-card) { padding-top:0!important; padding-bottom:4px!important; }
+#preview-content :is(button,input,select,summary,a) { scroll-margin-block:16px; }
+#preview-app .preview-bottom {
+  padding-inline:max(16px,var(--learning-safe-left)) max(16px,var(--learning-safe-right));
+}
+#preview-app .preview-bottom .btn { font-size:1rem; line-height:1.5; height:auto; }
+#preview-app .preview-nav.main-nav {
+  display:grid!important; grid-template-columns:repeat(4,minmax(0,1fr))!important; gap:8px;
+  margin-left:max(12px,var(--learning-safe-left));
+  margin-right:max(12px,var(--learning-safe-right));
+  margin-bottom:calc(10px + var(--learning-safe-bottom));
+  padding:6px;
+}
+#preview-app .preview-nav .nav-btn {
+  min-width:44px; min-height:48px!important; padding:6px 2px;
+  font-size:.8125rem!important; line-height:1.3; gap:4px;
+}
+#preview-app .preview-nav .nav-btn svg { width:20px; height:20px; }
+#preview-app .preview-top :is(strong,.btn) { line-height:1.5; }
+#preview-app .preview-top>div { min-width:0; }
+#preview-app .preview-top .btn { flex:none; }
+#preview-app.is-keyboard-open .preview-nav { display:none!important; }
+#preview-app.is-keyboard-open .preview-bottom { padding-bottom:12px; }
+#preview-app :is(select,a):focus-visible { outline:2px solid #657e9d; outline-offset:3px; }
+#preview-app .preview-skip {
+  position:absolute; left:16px; top:8px; z-index:100;
+  padding:12px 16px; border-radius:12px; background:#fff; color:var(--trial-ink);
+  transform:translateY(-150%); font-size:1rem;
+}
+#preview-app .preview-skip:focus { transform:none; }
+#preview-app label:has(input[type=checkbox]) {
+  display:flex; align-items:center; gap:12px; min-height:44px; line-height:1.6;
+}
+#preview-app .study-deck.is-dragging { user-select:none; -webkit-user-select:none; }
+@media(max-height:500px) {
+  #preview-app .preview-top { padding-bottom:4px; }
+  #preview-app .preview-bottom { padding-block:6px; }
+  #preview-app .preview-nav.main-nav { margin-bottom:calc(6px + var(--learning-safe-bottom)); padding:4px; }
+  #preview-app .preview-nav .nav-btn { min-height:44px!important; padding-block:4px; gap:2px; }
+}
 
 </style>
 </head>
@@ -10239,7 +10405,7 @@ ___時計は父のです。この／これ~この~___は父の時計です。こ
 
 </script>
   <script>
-document.body.insertAdjacentHTML("beforeend","<div id=\"preview-app\">\n<header class=\"preview-top\"><div><strong id=\"preview-title\">墨滴伴学</strong></div><button class=\"btn btn-quiet btn-small\" id=\"preview-settings\">学习导览</button></header>\n<div id=\"preview-content\"></div>\n<div class=\"preview-bottom\" id=\"preview-bottom\"><button class=\"btn btn-primary\" id=\"preview-primary\">继续学习</button></div>\n<nav class=\"main-nav preview-nav\" aria-label=\"主导航\">\n<button class=\"nav-btn is-active\" data-tab=\"learn\"><span aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\"><path d=\"M4 19.5A2.5 2.5 0 0 1 6.5 17H20\"/><path d=\"M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z\"/></svg></span><b>学习</b></button>\n<button class=\"nav-btn\" data-tab=\"calendar\"><span aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M7 3v4m10-4v4M3 11h18m-13 5h2m4 0h2\"/></svg></span><b>日历</b></button>\n<button class=\"nav-btn\" data-tab=\"tests\"><span aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\"><path d=\"m9 11 3 3 10-10\"/><path d=\"M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11\"/></svg></span><b>考核</b><small class=\"preview-badge\" id=\"test-badge\">1</small></button>\n<button class=\"nav-btn\" data-tab=\"report\"><span aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\"><path d=\"M3 3v18h18\"/><path d=\"m7 16 4-5 4 3 5-7\"/></svg></span><b>报告</b></button>\n</nav>\n</div>");
+document.body.insertAdjacentHTML("beforeend","<div id=\"preview-app\">\n<a class=\"preview-skip\" href=\"#preview-content\">跳到学习内容</a><header class=\"preview-top\"><div><strong id=\"preview-title\">墨滴伴学</strong></div><button class=\"btn btn-quiet btn-small\" id=\"preview-settings\">学习导览</button></header>\n<main id=\"preview-content\" tabindex=\"-1\" aria-label=\"学习内容\"></main>\n<div class=\"preview-bottom\" id=\"preview-bottom\"><button class=\"btn btn-primary\" id=\"preview-primary\">继续学习</button></div>\n<nav class=\"main-nav preview-nav\" aria-label=\"主导航\">\n<button class=\"nav-btn is-active\" data-tab=\"learn\"><span aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\"><path d=\"M4 19.5A2.5 2.5 0 0 1 6.5 17H20\"/><path d=\"M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z\"/></svg></span><b>学习</b></button>\n<button class=\"nav-btn\" data-tab=\"calendar\"><span aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M7 3v4m10-4v4M3 11h18m-13 5h2m4 0h2\"/></svg></span><b>日历</b></button>\n<button class=\"nav-btn\" data-tab=\"tests\"><span aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\"><path d=\"m9 11 3 3 10-10\"/><path d=\"M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11\"/></svg></span><b>考核</b><small class=\"preview-badge\" id=\"test-badge\">1</small></button>\n<button class=\"nav-btn\" data-tab=\"report\"><span aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\"><path d=\"M3 3v18h18\"/><path d=\"m7 16 4-5 4 3 5-7\"/></svg></span><b>报告</b></button>\n</nav>\n</div>");
 
 (() => {
 "use strict";
@@ -10389,8 +10555,8 @@ $("mobile-deck-word").textContent=words[word].word;$("mobile-deck-meaning").text
 const missing=words.findIndex((w,i)=>!r.cards.includes(i));if(browsing){setPrimary("返回原来的学习位置",closeDayCards);move();return;}setPrimary(missing>=0?"下一张词卡":"继续本课讲解",()=>{if(missing>=0)setWord(missing);else{s.cursor={kind:"teach",i:r.teach.length<l.grammar.length?r.teach.length:0};save();render();}});move();
 }
 deck.addEventListener("pointerdown",e=>{if(e.button!==0)return;drag={id:e.pointerId,x:e.clientX,y:e.clientY,lastX:e.clientX,time:e.timeStamp,v:0,word,dx:0,moved:false,vertical:false};suppress=false;});
-deck.addEventListener("pointermove",e=>{if(!drag||drag.id!==e.pointerId)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(!drag.moved&&Math.abs(dy)>10&&Math.abs(dy)>Math.abs(dx))drag.vertical=true;if(drag.vertical)return;if(!drag.moved&&Math.abs(dx)>8){drag.moved=true;deck.setPointerCapture(e.pointerId);}if(!drag.moved)return;drag.v=(e.clientX-drag.lastX)/Math.max(1,e.timeStamp-drag.time)*1000;drag.lastX=e.clientX;drag.time=e.timeStamp;drag.dx=120*Math.tanh(dx/120);setWord(drag.word-Math.round(dx/65));poses.forEach((p,i)=>{p.x=target(i).x;p.vx=drag.v*.12;});paint();});
-const release=(e,cancel)=>{if(!drag||drag.id!==e.pointerId)return;const d=drag;if(d.moved){suppress=true;if(!cancel)setWord(d.word-Math.round((e.clientX-d.x+(e.timeStamp-d.time<100?d.v*.08:0))/65));if(deck.hasPointerCapture(e.pointerId))deck.releasePointerCapture(e.pointerId);setTimeout(()=>suppress=false,0);}drag=null;move();};
+deck.addEventListener("pointermove",e=>{if(!drag||drag.id!==e.pointerId)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(!drag.moved&&Math.abs(dy)>10&&Math.abs(dy)>Math.abs(dx))drag.vertical=true;if(drag.vertical)return;if(!drag.moved&&Math.abs(dx)>8){drag.moved=true;deck.setPointerCapture(e.pointerId);deck.classList.add("is-dragging");}if(!drag.moved)return;drag.v=(e.clientX-drag.lastX)/Math.max(1,e.timeStamp-drag.time)*1000;drag.lastX=e.clientX;drag.time=e.timeStamp;drag.dx=120*Math.tanh(dx/120);setWord(drag.word-Math.round(dx/65));poses.forEach((p,i)=>{p.x=target(i).x;p.vx=drag.v*.12;});paint();});
+const release=(e,cancel)=>{if(!drag||drag.id!==e.pointerId)return;const d=drag;if(d.moved){suppress=true;if(!cancel)setWord(d.word-Math.round((e.clientX-d.x+(e.timeStamp-d.time<100?d.v*.08:0))/65));if(deck.hasPointerCapture(e.pointerId))deck.releasePointerCapture(e.pointerId);setTimeout(()=>suppress=false,0);}drag=null;deck.classList.remove("is-dragging");move();};
 deck.addEventListener("pointerup",e=>release(e,false));deck.addEventListener("pointercancel",e=>release(e,true));$("mobile-deck-prev").onclick=()=>setWord(word-1);$("mobile-deck-next").onclick=()=>setWord(word+1);$("mobile-deck-speak").onclick=()=>speak(/^[a-z]+$/i.test(words[word].reading)?words[word].word:words[word].reading);setWord(word);
 disposeDeck=()=>{cancelAnimationFrame(frame);frame=0;last=0;};
 }
@@ -10493,14 +10659,6 @@ function renderExamResult(){
 const r=s.exams[s.resultId],t=s.scheduled.find(t=>t.id===s.resultId);if(!r?.submittedAt)return go("tests","tests");
 $("preview-content").innerHTML=petSmall(r.score>=80?"这一卷完成了，结果已同步到日历和报告。":"这一卷已完成，先回看错项对应的课件。")+panel(`<h1>${r.score}%</h1><p>${esc(t?.title||"考核结果")} · ${r.date}</p><div class="preview-line"><span>状态</span><span>已交卷</span></div><p class="preview-small">${t?.kind==="weekly"?"已学词汇抽样周测，不替代阶段检验。":"这一份是抽样检验，不自动判全阶段达标；B 卷至少 48 小时后。"}${r.seed?" 此成绩为预置示例。":""}</p><details class="preview-policy"><summary>查看分项与错题解析</summary>${Object.entries(r.sections||{}).map(([k,v])=>`<div class="preview-line"><span>${esc(k)}</span><span>${v}%</span></div>`).join("")}${(r.items||[]).filter(q=>!q.correct).map(q=>`<p><strong>${esc(q.prompt)}</strong><br>你的答案：${esc(q.value)}<br>参考：${esc(q.answers.join(" / "))}<br>${esc(q.explain)}</p>`).join("")||"<p>没有可显示的错项。</p>"}</details>`);setPrimary("返回今天",()=>go("home","learn"));
 }
-function renderReport(){
-$("preview-content").innerHTML=`<div class="preview-tabs"><button data-report-tab="stats" aria-selected="${reportTab==="stats"}">学习数据</button><button data-report-tab="pet" aria-selected="${reportTab==="pet"}">墨滴仔</button></div>`;
-if(reportTab==="pet")return renderPet();renderReportOrientation();
-const events=s.events,first=Object.values(s.records).flatMap(r=>Object.values(r.answers).map(a=>a[0])).filter(Boolean),tests=Object.entries(s.exams).filter(([id,r])=>r.submittedAt),done=Object.values(s.records).filter(r=>r.completed).length,correctN=first.filter(e=>e.correct).length;
-$("preview-content").insertAdjacentHTML("beforeend",panel(`<h2>学习统计</h2><p class="preview-report-scope">系统主课 · 首答与订正分别保存</p><div class="preview-metrics"><article><span>早晚完成课程</span><strong>${done}</strong><small> / ${lessons.length}</small></article><article><span>主课首答正确率</span><strong>${first.length?Math.round(correctN/first.length*100)+"%":"—"}</strong><small>${first.length?"":" 尚未作答"}</small></article><article><span>主课练习提交</span><strong>${events.length}</strong><small> 次</small></article><article><span>已完成考核</span><strong>${tests.length}</strong><small> 份</small></article></div><div class="preview-context"><span>${names[s.stage]}主课覆盖</span><span>${lessons.filter(l=>l.stage===s.stage&&s.records[l.id]?.completed).length} / ${lessons.filter(l=>l.stage===s.stage).length}</span></div><div class="preview-track"><i style="width:${lessons.filter(l=>l.stage===s.stage&&s.records[l.id]?.completed).length/lessons.filter(l=>l.stage===s.stage).length*100}%"></i></div><p class="preview-report-scope">主课完成不等于阶段达标；晚练为自确认。</p>`)+panel(`<h2>最近考核</h2><div class="preview-history">${tests.slice(-3).reverse().map(([id,r])=>`<article><strong>${esc(s.scheduled.find(t=>t.id===id)?.title||id)} · ${r.score}%</strong><small>${r.date} · ${r.seed?"预置示例":"已交卷"}</small><button class="btn btn-quiet btn-small" data-open-test="${id}">查看结果</button></article>`).join("")||"<p>完成测试后这里出现成绩。</p>"}</div>`)+`<details class="preview-policy"><summary>近期作答与统计来源</summary><button class="btn btn-secondary" data-export-report>导出完整学习报告与备份</button><p>这里展示当前系统主课的首答、订正和考核。导出备份包含本机保存的系统课、历史答案与装扮；墨滴仔可从上方标签查看。</p>${events.slice(-8).reverse().map(e=>`<p>${esc(e.skill)} · ${e.correct?"正确":"待复习"} · ${e.date}</p>`).join("")}</details>`);
-}
-
-
 function renderWardrobe(){
 const model=core.wardrobe(),pet=model.pet,next=model.levels.find(l=>l.minDays>model.days);
 $("preview-title").textContent="成长与换装";
@@ -10587,6 +10745,7 @@ else if(d.period){s.period=d.period;if(d.period==="night"&&!s.manualLessonId){co
 else if(d.reviewNight){s.nightReturn||={lessonId:s.lessonId,period:s.period};s.lessonId=d.reviewNight;s.manualLessonId=d.reviewNight;s.period="night";go("home","learn");}
 else if("nightReturn"in d){const back=s.nightReturn;delete s.nightReturn;delete s.manualLessonId;if(back)Object.assign(s,back);go("home","learn");}
 else if("reportContinue"in d)go("home","learn");
+else if("reportPending"in d){go("home","learn");requestAnimationFrame(()=>document.querySelector(".learning-pending-nights,[data-period='night']")?.scrollIntoView({block:"center"}));}
 else if("browseCards"in d)openDayCards();
 else if("browseBack"in d)closeDayCards();
 else if("browseNotes"in d)openReference();
@@ -10613,6 +10772,29 @@ else if("pet"in d){reportTab="pet";go("report","report");}
 else if("wardrobe"in d)go("wardrobe","report");else if("wardrobeBack"in d){reportTab="pet";go("report","report");}else if(d.mobileAccessory){if(core.toggleAccessory(d.mobileAccessory))render();}else if(d.legacy)window.ModiMobileBridge.history(d.legacy);
 });
 /* Included inside the mobile runtime by apply-mobile-learning-flow.py. */
+// Resize the shell only for an editing keyboard; keep native pinch zoom intact.
+let learningViewportFrame=0;
+function syncLearningViewport(){
+  cancelAnimationFrame(learningViewportFrame);
+  learningViewportFrame=requestAnimationFrame(()=>{
+    const app=$("preview-app"),viewport=window.visualViewport;
+    const editing=document.activeElement?.matches("input:not([type=checkbox]):not([type=radio]),textarea");
+    const keyboard=!!viewport&&viewport.scale===1&&editing&&innerHeight-viewport.height>120;
+    app.classList.toggle("is-keyboard-open",keyboard);
+    if(keyboard){
+      app.style.setProperty("--learning-viewport-height",`${viewport.height}px`);
+      app.style.setProperty("--learning-viewport-top",`${viewport.offsetTop}px`);
+      document.activeElement.scrollIntoView({block:"center",behavior:"instant"});
+    }else{
+      app.style.removeProperty("--learning-viewport-height");
+      app.style.removeProperty("--learning-viewport-top");
+    }
+  });
+}
+window.visualViewport?.addEventListener("resize",syncLearningViewport);
+window.addEventListener("resize",syncLearningViewport);
+document.addEventListener("focusin",syncLearningViewport);
+document.addEventListener("focusout",syncLearningViewport);
 let resourceStage="N5",resourceKind="vocabulary",resourceQuery="",resourcePage=0;
 function captureLocation(){
   return {date:DATE,screen:s.screen,tab:s.tab,lessonId:s.lessonId,period:s.period,cursor:{...s.cursor},
@@ -10703,8 +10885,60 @@ function moveToNext(l){
   go("home","learn");
 }
 function renderReportOrientation(){
-  const dayDone=lessons.filter(l=>s.records[l.id]?.dayDone).length,nightPending=pendingNights().length,l=current();
-  $("preview-content").insertAdjacentHTML("beforeend",`<section class="learning-report-overview" aria-label="当前学习进度"><h1>学习进度</h1><div class="learning-report-summary"><p><strong>${dayDone}</strong> 课白天已完成</p><p><strong>${nightPending}</strong> 课待补晚练</p></div><div class="preview-context"><span>${esc(names[l.stage])} · 第 ${l.number} 课</span><button class="btn btn-secondary" data-report-continue>回到当前课</button></div></section>`);
+  const l=current();
+  $("preview-content").insertAdjacentHTML("beforeend",`<section class="learning-report-overview" aria-label="当前学习进度"><h1>学习进度</h1><div class="preview-context"><span>${esc(names[l.stage])} · 第 ${l.number} 课</span><button class="btn btn-secondary" data-report-continue>回到当前课</button></div></section>`);
+}
+function learningReportData(){
+  const ids=new Set(lessons.map(l=>l.id)),records=lessons.map(l=>s.records[l.id]||{});
+  const attempts=records.flatMap(r=>Object.values(r.answers||{})).filter(a=>Array.isArray(a)&&a.length);
+  const events=(s.events||[]).filter(e=>ids.has(e.lesson||e.source));
+  const allTests=Object.entries(s.exams||{}).filter(([,r])=>r.submittedAt)
+    .sort((a,b)=>String(a[1].submittedAt).localeCompare(String(b[1].submittedAt)));
+  return {dayDone:records.filter(r=>r.dayDone).length,completed:records.filter(r=>r.completed).length,
+    nightPending:pendingNights().length,attempts,firstCorrect:attempts.filter(a=>a[0]?.correct).length,
+    latestCorrect:attempts.filter(a=>a.at(-1)?.correct).length,events,
+    tests:allTests.filter(([,r])=>!r.seed),examples:allTests.filter(([,r])=>r.seed)};
+}
+function reportAccuracy(label,correct,total,tone,note){
+  const rate=total?Math.round(correct/total*100):null;
+  return `<article class="learning-report-accuracy ${tone}"><div class="learning-report-value"><h3>${label}</h3><strong>${rate===null?"—":rate+"%"}</strong></div>
+    <div class="learning-report-rail" ${rate===null?'aria-hidden="true"':`role="meter" aria-label="${label}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${rate}" aria-valuetext="${correct} / ${total} 题正确"`}><i style="width:${rate??0}%"></i></div>
+    <p class="preview-small">${total?`${correct} / ${total} 题正确`:"尚未作答"} · ${note}</p></article>`;
+}
+function reportStage(stage){
+  const pool=lessons.filter(l=>l.stage===stage),total=pool.length;
+  const done=pool.filter(l=>s.records[l.id]?.completed).length,day=pool.filter(l=>s.records[l.id]?.dayDone).length;
+  const rate=total?Math.round(done/total*100):0;
+  return `<article class="learning-report-stage"><div class="learning-report-value"><h3>${esc(names[stage])}</h3><span><strong>${done}</strong> / ${total} 课</span></div>
+    <div class="learning-report-rail" role="meter" aria-label="${esc(names[stage])}早晚完成课程比例" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${rate}" aria-valuetext="${done} / ${total} 课早晚完成"><i style="width:${rate}%"></i></div>
+    <p class="preview-small">白天完成 ${day} 课 · 早晚完成 ${done} 课</p></article>`;
+}
+function reportExamRows(tests){
+  return tests.slice(-3).reverse().map(([id,r])=>`<article><div class="learning-report-value"><strong>${esc(s.scheduled.find(t=>t.id===id)?.title||id)}</strong><span class="learning-report-score">${Number.isFinite(r.score)?r.score+"%":"—"}</span></div><small>${esc(r.date||String(r.submittedAt).slice(0,10))} · ${r.seed?"预置示例，不计完成数":"已交卷"}</small><button class="btn btn-quiet btn-small" data-open-test="${esc(id)}">查看结果</button></article>`).join("");
+}
+function renderReport(){
+  $("preview-content").innerHTML=`<div class="preview-tabs" role="tablist" aria-label="报告内容"><button data-report-tab="stats" role="tab" aria-selected="${reportTab==="stats"}">学习数据</button><button data-report-tab="pet" role="tab" aria-selected="${reportTab==="pet"}">墨滴仔</button></div>`;
+  if(reportTab==="pet")return renderPet();
+  const data=learningReportData(),stage=current().stage,total=data.attempts.length;
+  renderReportOrientation();
+  $("preview-content").insertAdjacentHTML("beforeend",
+    panel(`<h2>课程完成</h2><div class="preview-metrics learning-report-completion">
+      <article><span>白天已完成</span><strong data-report-day>${data.dayDone}</strong><small> 课</small></article>
+      <article><span>早晚均完成</span><strong data-report-complete>${data.completed}</strong><small> / ${lessons.length} 课</small></article></div>
+      <div class="learning-report-pending"><p><strong>${data.nightPending}</strong> 课待补晚练</p>${data.nightPending?'<button class="btn btn-secondary" data-report-pending>查看待补课程</button>':""}</div>
+      <p class="preview-small">早晚完成课包含在白天完成课中；晚练为自确认。</p>`,"learning-report-panel")+
+    panel(`<h2>答题表现</h2>
+      ${reportAccuracy("首答正确率",data.firstCorrect,total,"is-first","每题第一次提交")}
+      ${reportAccuracy("当前正确率",data.latestCorrect,total,"is-latest","每题最后一次提交，含订正")}
+      <p class="preview-small">${total?"两条轨道统计同一批已作答题目；重复提交不增加题数。":"完成主课练习后显示正确率；未作答不记为 0%。"}</p>
+      <div class="learning-report-counts"><p>练习提交 <strong data-report-submissions>${data.events.length}</strong> 次</p><p>已交考核 <strong data-report-exams>${data.tests.length}</strong> 份</p></div>`,"learning-report-panel")+
+    panel(`<h2>阶段课程覆盖</h2>${reportStage(stage)}<details class="preview-policy learning-report-other-stages"><summary>查看其他阶段</summary>${Object.keys(names).filter(k=>k!==stage&&lessons.some(l=>l.stage===k)).map(reportStage).join("")}</details><p class="preview-small">轨道表示早晚完成课数，不代表考试通过或阶段达标。</p>`,"learning-report-panel")+
+    panel(`<h2>最近考核</h2><div class="preview-history">${reportExamRows(data.tests)||"<p>尚无已交考核。完成周测或考核后，这里显示成绩。</p>"}</div>
+      ${data.examples.length?`<details class="preview-policy"><summary>预置示例（${data.examples.length} 份，不计完成数）</summary><div class="preview-history">${reportExamRows(data.examples)}</div></details>`:""}`,"learning-report-panel")+
+    `<details class="preview-policy learning-report-source"><summary>近期作答与统计来源</summary><button class="btn btn-secondary" data-export-report>导出完整学习报告与备份</button>
+      <p>本页统计系统主课练习及已交考核。提交次数包含重复提交与订正；预置考核示例单列。导出备份包含本机保存的系统课、历史答案与装扮。</p>
+      ${data.events.slice(-8).reverse().map(e=>`<p>${esc(e.skill||"主课练习")} · ${e.correct?"正确":"待复习"} · ${esc(e.date)}</p>`).join("")||"<p>尚无主课提交记录。</p>"}</details>`);
+  setPrimary("回到当前课",()=>go("home","learn"));
 }
 function renderHome(){
   const l=current(),r=record(),tasks=due(),nightDone=["read","shadow","recall"].every(k=>r.night[k]);
@@ -10750,16 +10984,21 @@ function renderSettings(){
     tests:'<path d="M8 4H5v17h14V4h-3M8 2h8v5H8ZM8 12l2 2 5-5"/>'}[name]);
   const svg=name=>`<svg viewBox="0 0 24 24" aria-hidden="true">${icon(name)}</svg>`;
   $("preview-content").innerHTML=panel(`<h1>每天怎么学</h1>
-    <section class="learning-route" aria-label="白天学习路径"><h2>${svg("day")}白天 · 新内容</h2><ol>
-      <li><b>回忆旧词</b><span>先做已学回忆</span></li><li><b>词卡与讲解</b><span>认识新词，理解用法</span></li><li><b>练习与自检</b><span>答题、耳机听辨、书写</span></li></ol></section>
-    <section class="learning-route" aria-label="晚间学习路径"><h2>${svg("night")}晚间 · 同课巩固</h2><ol>
-      <li><b>朗读</b><span>读白天已学词句</span></li><li><b>跟读</b><span>听示范，跟两遍</span></li><li><b>遮文复现</b><span>看中文回忆日语</span></li></ol></section>
-    <details class="preview-policy"><summary>答题与跨日衔接</summary><p>选好答案 → 点“下一题”提交；答错先看解析。白天完成后次日衔接下一课，未完成时接着剩余步骤。晚间记录跨日保留，待补晚练可单独进入。</p></details>
+    <section class="learning-route" aria-label="白天学习路径"><h2>${svg("day")}白天 · 学新课</h2><ol>
+      <li><b>回忆旧词</b><span>先回忆，再查漏</span></li><li><b>词卡与讲解</b><span>看懂后再练习</span></li><li><b>练习与自检</b><span>听辨与纸上书写</span></li></ol></section>
+    <section class="learning-route" aria-label="晚间学习路径"><h2>${svg("night")}晚间 · 练同课</h2><ol>
+      <li><b>朗读</b><span>读已学词句</span></li><li><b>跟读</b><span>听一句，跟两遍</span></li><li><b>遮文复现</b><span>看中文，说日语</span></li></ol></section>
+    <p class="learning-guide-context">白天戴耳机，不出声；晚间练当天已学词句。</p>
+    <h2 class="learning-tools-title">查词与记录</h2>
     <nav class="learning-guide-links" aria-label="学习工具">
-      <button data-guide-tool="library">${svg("words")}<span><b>分级词库与文型</b><small>当前 N5–N2 资源，可检索</small></span><span aria-hidden="true">→</span></button>
-      <button data-guide-tool="report">${svg("report")}<span><b>完整学习报告</b><small>当前进度、成绩、备份与墨滴仔</small></span><span aria-hidden="true">→</span></button>
-      <button data-guide-tool="tests">${svg("tests")}<span><b>周测与考核记录</b><small>已交卷结果与当前待做考核</small></span><span aria-hidden="true">→</span></button>
-    </nav><details class="preview-policy"><summary>保存、声音与复习安排</summary><p>记录保存在当前浏览器，换设备前可导出备份。合成日语示范需设备支持；晚练为自确认，不计自动正确率。</p><p>前课词与旧错项在白天的课前回忆中回收。晚间默认衔接当天白天学习的课，也可从课程目录回看历史课。</p></details>`);
+      <button data-guide-tool="library">${svg("words")}<span><b>分级词库</b><small>N5–N2 · 词汇、文型、汉字</small></span><span aria-hidden="true">→</span></button>
+      <button data-guide-tool="report">${svg("report")}<span><b>学习报告</b><small>进度、成绩与导出备份</small></span><span aria-hidden="true">→</span></button>
+      <button data-guide-tool="tests">${svg("tests")}<span><b>周测与考核</b><small>查看历史成绩</small></span><span aria-hidden="true">→</span></button>
+    </nav><details class="preview-policy learning-guide-help"><summary>答题、跨日与保存说明</summary>
+      <h3>怎么交题？</h3><p>选好答案后点“下一题”。答对自动继续；答错先看解析，再点“下一题”。“上一题”只读。</p>
+      <h3>怎么衔接与复习？</h3><p>白天完成后次日衔接下一课；未完成就接着剩余步骤。晚练记录保留，可另行补做。前课词与错题在白天回忆中回收，历史课可从课程目录回看。</p>
+      <h3>记录与声音</h3><p>记录保存在当前浏览器；换设备前到“学习报告”导出备份。日语示范为设备合成；晚练为自确认，不计自动正确率。</p>
+    </details>`,"learning-guide");
   setPrimary(s.guideReturn?.screen==="learning"?"返回学习位置":"返回打开前的位置",closeGuide);
 }
 function renderDayCards(){
