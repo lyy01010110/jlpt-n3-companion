@@ -10313,6 +10313,72 @@ ___時計は父のです。この／これ~この~___は父の時計です。こ
     }
     core.save();
   }
+  function weekStart(date){
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(date||""))return null;
+    const d=new Date(date+"T00:00:00Z");
+    if(!Number.isFinite(d.getTime())||d.toISOString().slice(0,10)!==date)return null;
+    d.setUTCDate(d.getUTCDate()-((d.getUTCDay()+6)%7));
+    return d.toISOString().slice(0,10);
+  }
+  function reconcileWeekly(s){
+    let changed=false;
+    // Old weekly quizzes store real submissions outside systemCourse.exams.
+    // Import once per attempt, retaining the source result without inventing questions.
+    for(const old of core.state.weeklyQuiz?.history||[]){
+      if(!Number.isFinite(Date.parse(old.completedAt)))continue;
+      const submittedDay=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Shanghai",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(old.completedAt));
+      const week=weekStart(old.weekKey)||weekStart(submittedDay);
+      const id="legacy-weekly-"+encodeURIComponent(old.attemptId||`${week}-${old.attempt||old.completedAt}`);
+      if(!s.exams[id]){
+        s.exams[id]={submittedAt:old.completedAt,date:submittedDay,startedAt:old.startedAt,
+          score:Number.isFinite(old.accuracy)?old.accuracy:null,sections:{},items:[],
+          legacyWeeklyResult:clone(old)};
+        changed=true;
+      }
+      if(!s.scheduled.some(t=>t.id===id)){
+        const sunday=new Date(week+"T00:00:00Z");sunday.setUTCDate(sunday.getUTCDate()+6);
+        s.scheduled.push({id,kind:"weekly",title:"已完成周测（原记录）",date:sunday.toISOString().slice(0,10),weekKey:week,lessonIds:[]});
+        changed=true;
+      }
+    }
+    const groups=new Map();
+    for(const t of s.scheduled.filter(t=>t.kind==="weekly")){
+      const week=weekStart(t.weekKey||t.date);if(!week)continue;
+      if(!groups.has(week))groups.set(week,[]);
+      groups.get(week).push(t);
+    }
+    const removed=new Set();
+    for(const tasks of groups.values()){
+      const completed=tasks.filter(t=>s.exams[t.id]?.submittedAt&&!s.exams[t.id].seed)
+        .sort((a,b)=>Date.parse(s.exams[b.id].submittedAt)-Date.parse(s.exams[a.id].submittedAt));
+      const pending=tasks.filter(t=>!s.exams[t.id]?.submittedAt);
+      const keep=completed[0]||pending.find(t=>t.id===s.activeExam?.id)||
+        pending.find(t=>Object.keys(s.exams[t.id]?.answers||{}).length)||
+        pending.find(t=>t.id.startsWith("weekly-date-"))||pending[0];
+      for(const t of pending){
+        if(t===keep)continue;
+        // Archive the task and leave any draft in exams; no score is copied to it.
+        (s.weeklyTaskArchive||={})[t.id]||=clone(t);
+        (s.weeklyTaskAliases||={})[t.id]=keep.id;
+        removed.add(t.id);changed=true;
+        if(s.activeExam?.id===t.id)s.activeExam=null;
+      }
+    }
+    if(removed.size)s.scheduled=s.scheduled.filter(t=>!removed.has(t.id));
+    for(const t of s.scheduled){
+      if(s.weeklyTaskAliases?.[t.id]){
+        delete s.weeklyTaskAliases[t.id];changed=true;
+      }
+    }
+    if(changed){core.state.systemCourse.mobileUI=s;core.save();}
+  }
+  function resolveWeeklyTask(s,id){
+    const seen=new Set();
+    while(s.weeklyTaskAliases?.[id]&&!seen.has(id)){
+      seen.add(id);id=s.weeklyTaskAliases[id];
+    }
+    return id;
+  }
   function schedule(s,lessons,papers,date){
     const add=t=>{if(!s.scheduled.some(a=>a.id===t.id))s.scheduled.push(t);};
     s.completedLearnDays=Object.values(s.records).filter(r=>r.completed).length;
@@ -10348,6 +10414,7 @@ ___時計は父のです。この／これ~この~___は父の時計です。こ
       }
       if(d>today)add({id:`weekly-date-${d.toISOString().slice(0,10)}`,kind:"weekly",title:"本周已学内容周测",date:d.toISOString().slice(0,10),lessonIds:lessons.filter(l=>s.records[l.id]?.cards.length).slice(-6).map(l=>l.id)});
     }
+    reconcileWeekly(s);
   }
   function weekly(s,t,lessons){
     if(t.questions)return t.questions;
@@ -10409,7 +10476,7 @@ ___時計は父のです。この／これ~この~___は父の時計です。こ
     }
     scrollTo(0,0);
   }
-  window.ModiMobileBridge={load,save,schedule,weekly,shuffleQuestions,reviews,reviewAnswer,history,restoreNight,confirmNight,rememberDay,dayLesson,resumeDate,applyCourseAssignment};
+  window.ModiMobileBridge={load,save,schedule,weekly,shuffleQuestions,reviews,reviewAnswer,history,restoreNight,confirmNight,rememberDay,dayLesson,resumeDate,applyCourseAssignment,reconcileWeekly,resolveWeeklyTask};
 })();
 
 </script>
@@ -10447,7 +10514,6 @@ function render(){stopHomeRules();
 trackStudyTime();window.ModiDailyCurriculum.sync(s);
 clearTimeout(timer);disposeDeck();stopAudio();
 if(core.state.systemCourse?.mobileUI!==s)s=window.ModiMobileBridge.load(lessons,papers,DATE);window.ModiDailyCurriculum.sync(s);const nowDate=core.today();if(nowDate!==DATE){DATE=nowDate;month=DATE.slice(0,7);selectedDate=DATE;window.ModiMobileBridge.restoreNight(s,DATE);window.ModiMobileBridge.resumeDate(s,lessons,DATE);delete s.manualLessonId;delete s.nightReturn;s.screen="home";s.tab="learn";save();}window.ModiMobileBridge.schedule(s,lessons,papers,DATE);
-if(new Date(DATE+"T00:00:00Z").getUTCDay()===0){const id=`weekly-date-${DATE}`,known=lessons.filter(l=>s.records[l.id]?.cards.length).map(l=>l.id);if(known.length&&!s.scheduled.some(t=>t.id===id)){s.scheduled.push({id,kind:"weekly",title:"本周已学内容周测",date:DATE,lessonIds:known.slice(-6)});save();}}
 document.querySelectorAll("[data-tab]").forEach(b=>{const active=b.dataset.tab===s.tab;b.classList.toggle("is-active",active);if(active)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});$("test-badge").hidden=!due().length;$("test-badge").textContent=due().length;$("preview-title").textContent={learn:"墨滴伴学",calendar:"学习日历",tests:"定期考核",report:"学习报告"}[s.tab]||"墨滴伴学";
 $("preview-settings").innerHTML=s.screen==="settings"?learningBackMark:"学习导览";$("preview-settings").setAttribute("aria-label",s.screen==="settings"?"返回打开前的位置":"学习导览");$("preview-content").scrollTop=0;setPrimary("",null);
 if(s.screen==="wardrobe")return renderWardrobe();if(s.screen==="settings")return renderSettings();
@@ -10618,7 +10684,7 @@ $("preview-content").insertAdjacentHTML("beforeend",`<div class="preview-tabs">$
 const pending=s.scheduled.filter(t=>!s.exams[t.id]?.submittedAt).sort((a,b)=>a.date.localeCompare(b.date));
 $("preview-content").insertAdjacentHTML("beforeend",panel(`<h2>${due().length?`今天有 ${due().length} 项待做`:"今天没有到期考核"}</h2>${pending.map(t=>{const ready=examReady(t);return `<div class="preview-line"><div><strong>${esc(t.title)}</strong><small style="display:block">${t.date<DATE?"已逾期":t.date===DATE?"今天":t.date} · ${ready.ready?"可开始":esc(ready.reason)}</small></div><button class="btn btn-secondary btn-small" data-open-test="${t.id}">查看</button></div>`;}).join("")||"<p>先学习当前课，系统按已学内容安排考核。</p>"}<details class="preview-policy"><summary>定期考核怎么安排</summary><p>每周日安排已学内容周测 / 复盘；每六个实际学习日收回已学内容。每完成六节主课安排单元 A 卷，B 至少 48 小时后。阶段主线结束，待配套核心覆盖后进行阶段 A / B。</p><p>日期到了但前置未学完，会提示先补教学；到期未做的任务保留，不消失，也不自动标完成。</p></details>`));
 }
-function openTest(id){
+function openTest(id){id=window.ModiMobileBridge.resolveWeeklyTask(s,id);
 const t=s.scheduled.find(t=>t.id===id);if(!t)return;
 if(s.exams[id]?.submittedAt){s.resultId=id;return go("exam-result","tests");}
 const ready=examReady(t);if(!ready.ready){s.notice=ready.reason;testTab="todo";go("tests","tests");$("preview-content").insertAdjacentHTML("afterbegin",`<div class="preview-feedback" role="status">${esc(ready.reason)}。任务仍保留在待办中。</div>`);return;}
@@ -10666,7 +10732,9 @@ s.resultId=t.id;s.activeExam=null;save();go("exam-result","tests");
 }
 function renderExamResult(){
 const r=s.exams[s.resultId],t=s.scheduled.find(t=>t.id===s.resultId);if(!r?.submittedAt)return go("tests","tests");
-$("preview-content").innerHTML=petSmall(r.score>=80?"这一卷完成了，结果已同步到日历和报告。":"这一卷已完成，先回看错项对应的课件。")+panel(`<h1>${r.score}%</h1><p>${esc(t?.title||"考核结果")} · ${r.date}</p><div class="preview-line"><span>状态</span><span>已交卷</span></div><p class="preview-small">${t?.kind==="weekly"?"已学词汇抽样周测，不替代阶段检验。":"这一份是抽样检验，不自动判全阶段达标；B 卷至少 48 小时后。"}${r.seed?" 此成绩为预置示例。":""}</p><details class="preview-policy"><summary>查看分项与错题解析</summary>${Object.entries(r.sections||{}).map(([k,v])=>`<div class="preview-line"><span>${esc(k)}</span><span>${v}%</span></div>`).join("")}${(r.items||[]).filter(q=>!q.correct).map(q=>`<p><strong>${esc(q.prompt)}</strong><br>你的答案：${esc(q.value)}<br>参考：${esc(q.answers.join(" / "))}<br>${esc(q.explain)}</p>`).join("")||"<p>没有可显示的错项。</p>"}</details>`);setPrimary("返回今天",()=>go("home","learn"));
+$("preview-content").innerHTML=petSmall(r.score>=80?"这一卷完成了，结果已同步到日历和报告。":"这一卷已完成，先回看错项对应的课件。")+panel(`<h1>${r.score}%</h1><p>${esc(t?.title||"考核结果")} · ${r.date}</p><div class="preview-line"><span>状态</span><span>已交卷</span></div><p class="preview-small">${t?.kind==="weekly"?"已学词汇抽样周测，不替代阶段检验。":"这一份是抽样检验，不自动判全阶段达标；B 卷至少 48 小时后。"}${r.seed?" 此成绩为预置示例。":""}</p><details class="preview-policy"><summary>查看分项与错题解析</summary>${Object.entries(r.sections||{}).map(([k,v])=>`<div class="preview-line"><span>${esc(k)}</span><span>${v}%</span></div>`).join("")}${(r.items||[]).filter(q=>!q.correct).map(q=>`<p><strong>${esc(q.prompt)}</strong><br>你的答案：${esc(q.value)}<br>参考：${esc(q.answers.join(" / "))}<br>${esc(q.explain)}</p>`).join("")||"<p>没有可显示的错项。</p>"}</details>`);if(r.legacyWeeklyResult){const old=r.legacyWeeklyResult;
+$("preview-content").insertAdjacentHTML("beforeend",panel(`<p>原周测记录 · ${esc(old.weekKey||r.date)}</p><p>${Number.isFinite(old.correct)&&Number.isFinite(old.total)?`${old.correct} / ${old.total} 题正确`:"已交卷"}</p>`));}
+setPrimary("返回今天",()=>go("home","learn"));
 }
 function renderWardrobe(){
 const model=core.wardrobe(),pet=model.pet,next=model.levels.find(l=>l.minDays>model.days);
