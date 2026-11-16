@@ -2230,6 +2230,115 @@ body .preview-nav.main-nav::before { border-radius: 21px; }
 .quality-sound-buttons,.quality-small-kana{display:flex;flex-wrap:wrap;gap:.5rem;margin:.75rem 0}
 .quality-sound-buttons button,.quality-small-kana button{min-width:44px;min-height:44px;font-size:1rem}
 
+/* R40: sound lessons retain the approved type hierarchy. */
+#preview-app .lesson-teach {
+  --teach-ink:#422b3c;
+  --teach-note:#604858;
+  padding:20px;
+  color:var(--teach-ink);
+  text-align:start;
+  font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+}
+#preview-app .lesson-teach :lang(ja) {
+  font-family:"Yu Gothic","Hiragino Kaku Gothic ProN","Meiryo",sans-serif;
+}
+#preview-app .lesson-teach .teach-title {
+  margin:0 0 12px;
+  font-size:1.25rem;
+  font-weight:600;
+  line-height:1.4;
+  letter-spacing:normal;
+  color:var(--teach-ink);
+  text-wrap:balance;
+}
+#preview-app .lesson-teach p {
+  margin:0;
+  font-size:1rem;
+  font-weight:400;
+  line-height:1.7;
+  letter-spacing:normal;
+  color:var(--teach-ink);
+  text-wrap:pretty;
+}
+#preview-app .lesson-teach strong { font-weight:600; }
+#preview-app .lesson-teach .teach-note {
+  font-size:.875rem;
+  line-height:1.6;
+  color:var(--teach-note);
+}
+#preview-app .lesson-teach .teach-material { margin-top:20px; }
+#preview-app .lesson-teach .teach-example {
+  font-size:1.375rem;
+  line-height:1.7;
+  white-space:pre-line;
+}
+#preview-app .lesson-teach .teach-translation { margin-top:8px; }
+#preview-app .lesson-teach .teach-sounds {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  margin:0;
+}
+#preview-app .lesson-teach .teach-sounds button {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  min-width:44px;
+  min-height:76px;
+  padding:8px;
+  color:var(--teach-ink);
+}
+#preview-app .lesson-teach .teach-sounds span { font-size:1.375rem; font-weight:600; line-height:1.4; }
+#preview-app .lesson-teach .teach-sounds small { font-size:.875rem; font-weight:400; line-height:1.4; color:var(--teach-note); }
+#preview-app .lesson-teach #mobile-audio-status:empty { display:none; }
+#preview-app .lesson-teach #mobile-audio-status:not(:empty) { margin-top:8px; }
+#preview-app .lesson-teach .teach-detail { margin-top:20px; }
+#preview-app .lesson-teach .teach-help { margin-top:24px; }
+#preview-app .lesson-teach .teach-help summary {
+  min-height:44px;
+  padding:8px 0;
+  font-size:.875rem;
+  font-weight:400;
+  line-height:1.6;
+  color:var(--teach-note);
+}
+#preview-app .lesson-teach .teach-help p { margin-top:8px; }
+@media(max-width:350px) {
+  #preview-app .lesson-teach { padding:16px; }
+}
+/* R40: selected two-row header, only on daily teaching pages. */
+#preview-app.lesson-header .preview-top {
+  min-height:56px;padding:max(8px,env(safe-area-inset-top)) 16px 4px;gap:12px;
+}
+#preview-app.lesson-header .preview-top button { min-height:44px; }
+#preview-app.lesson-header #preview-content { padding:4px 16px 16px; }
+#preview-app.lesson-header .lesson-toolbar {
+  display:grid;grid-template-columns:44px 60px minmax(0,1fr) 52px;
+  align-items:center;gap:8px;min-height:44px;margin:0 0 8px;
+}
+#preview-app.lesson-header .lesson-toolbar.no-previous {
+  grid-template-columns:44px minmax(0,1fr) 52px;
+}
+#preview-app.lesson-header .lesson-toolbar .btn {
+  min-width:44px;min-height:44px;width:100%;padding:8px 4px;
+  background:transparent;border-color:transparent;box-shadow:none;
+  font-size:14px;line-height:1.4;border-radius:12px;color:#422b3c;
+}
+#preview-app.lesson-header .lesson-toolbar .btn:hover { background:#ffffff30; }
+#preview-app.lesson-header .lesson-toolbar .btn:focus-visible {
+  outline:2px solid #8d789d;outline-offset:2px;
+}
+#preview-app.lesson-header .lesson-toolbar [data-reference] {
+  border-color:#ffffff85;background:#ffffff18;
+}
+#preview-app.lesson-header #mobile-learning-position {
+  text-align:center;font-size:14px;line-height:1.5;
+  font-weight:400;white-space:nowrap;color:#604858;
+}
+#preview-app.lesson-header .preview-pane { margin-top:0; }
+
 </style>
   <style>
 /* Approved material styling: shared roles, thin highlights, and consistent elevation. */
@@ -10691,6 +10800,7 @@ function go(screen,tab=s.tab){if(s.screen==="learning")s.studyResume=captureLoca
 function panel(html,cls=""){return `<section class="lesson-shell preview-pane ${cls}">${html}</section>`;}
 function petSmall(text){return `<div class="preview-pet"><button class="btn btn-quiet" data-pet aria-label="查看墨滴仔">${core.avatar(core.pet())}</button><div><strong>墨滴仔</strong><p>${text}</p></div></div>`;}
 function render(){stopHomeRules();
+document.getElementById("preview-app").classList.remove("lesson-header");
 trackStudyTime();window.ModiDailyCurriculum.sync(s);
 clearTimeout(timer);disposeDeck();stopAudio();
 if(core.state.systemCourse?.mobileUI!==s)s=window.ModiMobileBridge.load(lessons,papers,DATE);window.ModiDailyCurriculum.sync(s);const nowDate=core.today();if(nowDate!==DATE){DATE=nowDate;month=DATE.slice(0,7);selectedDate=DATE;window.ModiMobileBridge.restoreNight(s,DATE);window.ModiMobileBridge.resumeDate(s,lessons,DATE);delete s.manualLessonId;delete s.nightReturn;s.screen="home";s.tab="learn";save();}window.ModiMobileBridge.schedule(s,lessons,papers,DATE);
@@ -10784,11 +10894,18 @@ rememberLearningPlace();const l=current(),r=record(),kind=s.cursor.kind,phase=ph
 if(!phase||!phase.items.length){chooseCursor();return render();}
 s.cursor.i=Math.min(s.cursor.i,phase.items.length-1);
 const item=phase.items[s.cursor.i],label={prior:"课前回忆",cards:"新词卡",teach:"本课讲解",quiz:"本课练习",correction:"错题订正",checks:"理解与书写自检"}[kind];
-$("preview-content").innerHTML=`<div class="preview-context"><button class="btn btn-quiet btn-small" data-home aria-label="返回">${learningBackMark}</button><span id="mobile-learning-position">${label} · ${s.cursor.i+1} / ${phase.items.length}</span><button class="btn btn-quiet btn-small" data-reference aria-label="查看本题课件">课件</button></div>`;
-if(kind==="cards")return renderFan(l);if(kind==="checks")return renderDepthCheck(item,r);if(s.cursor.i>0)$("preview-content").insertAdjacentHTML("beforeend",'<button class="btn btn-quiet btn-small" data-practice-prev>上一题</button>');
+const teaching=kind==="teach";
+$("preview-app").classList.toggle("lesson-header",teaching);
+$("preview-content").innerHTML=`<div class="preview-context${teaching?` lesson-toolbar${s.cursor.i>0?"":" no-previous"}`:""}"><button class="btn btn-quiet btn-small" data-home aria-label="${teaching?"返回当前课":"返回"}">${learningBackMark}</button>${teaching&&s.cursor.i>0?'<button class="btn btn-quiet btn-small" data-practice-prev aria-label="上一页讲解">上一页</button>':""}<span id="mobile-learning-position">${teaching?`讲解 ${s.cursor.i+1}/${phase.items.length}`:`${label} · ${s.cursor.i+1} / ${phase.items.length}`}</span><button class="btn btn-quiet btn-small" data-reference aria-label="${teaching?"查看本课课件":"查看本题课件"}">课件</button></div>`;
+if(kind==="cards")return renderFan(l);if(kind==="checks")return renderDepthCheck(item,r);if(!teaching&&s.cursor.i>0)$("preview-content").insertAdjacentHTML("beforeend",'<button class="btn btn-quiet btn-small" data-practice-prev>上一题</button>');
 if(kind==="teach"){
 const sounds=item.form.startsWith("逐字音形")?current().dailyKana.filter(c=>item.example.includes(`${c.kana} →`)):[];
-$("preview-content").insertAdjacentHTML("beforeend",panel(`<h2 lang="ja">${esc(item.form)}</h2><p>${esc(item.rule)}</p><p class="preview-exam-text" lang="ja">${esc(item.example)}</p>${sounds.length?`<div class="quality-sound-buttons">${sounds.map(c=>`<button class="btn btn-secondary" data-speak="${esc(c.kana)}" aria-label="听${esc(c.kana)}的发音">${esc(c.kana)}</button>`).join("")}</div><div id="mobile-audio-status" class="preview-warning" role="status"></div>${sounds.some(c=>c.kana==="ふ")?"<p>ふ：双唇轻吹，别按英语 f 读。</p>":""}${sounds.some(c=>/[ゃゅょ]/.test(c.kana))?"<p>きゃ输入 kya，一拍；きや输入 ki＋ya，两拍。</p>":""}`:""}<p>${esc(item.translation)}</p><details class="preview-policy"><summary>易错提醒</summary><p>${esc(item.trap)}</p></details>`));
+$("preview-content").insertAdjacentHTML("beforeend",sounds.length?panel(`<h2 class="teach-title">逐字音形</h2>
+${sounds.length?`<p class="teach-note">${esc(item.rule)}</p><div class="teach-material"><div class="quality-sound-buttons teach-sounds">${sounds.map(c=>`<button class="btn btn-secondary" data-speak="${esc(c.kana)}" aria-label="听${esc(c.kana)}的发音"><span lang="ja">${esc(c.kana)}</span><small lang="en">${esc(c.sound)}</small></button>`).join("")}</div><div id="mobile-audio-status" class="preview-warning teach-note" role="status"></div><p class="teach-translation">${esc(item.translation)}</p></div>
+${sounds.some(c=>c.kana==="ふ")?'<div class="teach-detail"><p><strong lang="ja">ふ</strong>：双唇轻吹，别按英语 f 读。</p></div>':""}
+${sounds.some(c=>/[ゃゅょ]/.test(c.kana))?'<div class="teach-detail"><p><strong lang="ja">きゃ</strong>输入 <strong lang="en">kya</strong>，一拍；<strong lang="ja">きや</strong>输入 <strong lang="en">ki＋ya</strong>，两拍。</p></div>':""}`:
+`<div class="teach-rule"><p>${esc(item.rule)}</p></div><div class="teach-material"><p class="teach-example" lang="ja">${esc(item.example)}</p><p class="teach-translation">${esc(item.translation)}</p></div>`}
+<details class="preview-policy teach-help"><summary>易错提醒</summary><p>${esc(item.trap)}</p></details>`,"lesson-teach"):panel(`<h2 lang="ja">${esc(item.form)}</h2><p>${esc(item.rule)}</p><p class="preview-exam-text" lang="ja">${esc(item.example)}</p><p>${esc(item.translation)}</p><details class="preview-policy"><summary>易错提醒</summary><p>${esc(item.trap)}</p></details>`));
 setPrimary(s.cursor.i<phase.items.length-1?"下一页":"学完讲解，继续练习",()=>{if(!r.teach.includes(s.cursor.i))r.teach.push(s.cursor.i);save();advanceLearning();});return;}
 if(kind==="correction")$("preview-content").insertAdjacentHTML("beforeend",panel(`<p>本课练习和自检已做完；本轮仅订正 ${phase.items.length} 项错题，不增加新题。已完成的词卡、讲解与自检保留。</p>`));renderPractice(item,r);
 }
