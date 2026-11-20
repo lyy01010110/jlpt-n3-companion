@@ -11294,9 +11294,8 @@ const learningDateLabel=l=>{
   return days.at(-1)||null;
 };
 function dayProgress(l,r){
-  const ids=[...l.vocabulary.flatMap((_,i)=>[`word:${l.id}:${i}`,`dict:${l.id}:${i}`]),
-    ...l.tasks.map((_,i)=>`apply:${l.id}:${i}`),`read:${l.id}`,`listen:${l.id}`,
-    ...(l.coverageLesson?[]:[`keyword:${l.id}`,`sentence:${l.id}`]),...window.ModiDailyCurriculum.tasks(l).map(q=>q.id)];
+  const quiz=window.ModiLessonQuality.select(l,allDailyTasks(l),r);
+  const ids=[...new Set([...quiz.map(q=>q.id),...(r.practicePlan?.coreIds||[])])];
   return [
     {label:"词卡",done:l.vocabulary.filter((_,i)=>r.cards?.includes(i)).length,total:l.vocabulary.length},
     {label:"讲解",done:l.grammar.filter((_,i)=>r.teach?.includes(i)).length,total:l.grammar.length},
